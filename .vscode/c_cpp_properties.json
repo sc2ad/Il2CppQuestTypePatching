@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Quest",
+            "defines": [
+                "MOD_ID=\"TypePatching\"",
+                "VERSION=\"0.1.0\"",
+                "__GNUC__",
+                "__aarch64__"
+            ],
+            "includePath": [
+                "${workspaceFolder}/**",
+                "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp",
+                "c:/android-ndk-r20b/**"
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

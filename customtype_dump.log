@@ -1,0 +1,129 @@
+0 ======================CLASS INFO FOR CLASS: CustomIl2CppNamespace::CustomType======================
+0 ======================IMAGE INFO FOR: 0x7f611f02c0======================
+name: Main.dll
+nameNoExt: Main
+0 ======================ASSEMBLY INFO FOR: 0x7f790d0280======================
+image: 0x7f611f02c0
+token: 536870913
+referencedAssemblyStart: 326
+referencedAssemblyCount: 39
+0 ======================ASSEMBLY NAME INFO FOR: aname======================
+name: Main
+culture: 
+hash_value: NULL
+public_key: NULL
+hash_alg: 32772
+hash_len: 0
+flags: 0x0
+major: 0
+minor: 0
+build: 0
+revision: 0
+public_key_token: 0x7f790d02d4
+0 ======================END ASSEMBLY NAME INFO======================
+0 ======================END ASSEMBLY INFO======================
+typeStart: 6537
+typeCount: 1174
+exportedTypeStart: 4294967295
+exportedTypeCount: 0
+customAttributeStart: 10365
+customAttributeCount: 4109
+entryPointIndex: 4294967295
+nameToClassHashTable: 0x7f60198a60
+0 ======================CODEGEN INFO FOR: 0x7f64ebaeb8, codeGenModule======================
+moduleName: Main.dll
+methodPointerCount: 5563
+methodPointers: 0x7f6505d730
+invokerIndices: 0x7f6479f894
+reversePInvokeWrapperCount: 0
+reversePInvokeWrapperIndices: 0x0
+rgctxRangesCount: 2
+rgctxRanges: 0x7f647a4f80
+rgctxsCount: 8
+rgctxs: 0x7f647a4f98
+debuggerMetadata: 0x0
+0 ======================END CODEGEN INFO======================
+token: 1
+dynamic: 0
+0 ======================END IMAGE INFO======================
+gc_desc: 0x0
+name: CustomType
+namespaze: CustomIl2CppNamespace
+0 ======================TYPE INFO FOR: byval_arg======================
+klassIndex: 4294967295
+attrs: 0x0
+type: 0x12
+num_mods: 0
+byref: 0
+pinned: 0
+0 ======================END TYPE INFO======================
+0 ======================TYPE INFO FOR: this_arg======================
+klassIndex: 4294967295
+attrs: 0x0
+type: 0x12
+num_mods: 0
+byref: 0
+pinned: 0
+0 ======================END TYPE INFO======================
+element_class: 0x7f61465a00
+castClass: 0x7f61465a00
+declaringType: 0x0
+parent: 0x7f611fbb00
+*generic_class: 0x0
+typeDefinition: 0x12345678
+interopData: 0x0
+klass: 0x7f61465a00
+fields: 0x0
+events: 0x0
+properties: 0x0
+methods: 0x7f601a2ea0
+nestedTypes: 0x0
+implementedInterfaces: 0x0
+interfaceOffsets: 0x0
+static_fields: 0x0
+rgctx_data: 0x0
+typeHierarchy: 0x7f602ca2a0
+*unity_user_data: 0x0
+initializationExceptionGCHandle: 0
+cctor_started: 0
+cctor_finished: 0
+cctor_thread: 0
+genericContainerIndex: 4294967295
+instance_size: 24
+actualSize: 24
+element_size: 0
+native_size: 4294967295
+static_fields_size: 0
+thread_static_fields_size: 0
+thread_static_fields_offset: 4294967295
+flags: 0x100001
+token: 33554623
+method_count: 1
+property_count: 0
+field_count: 0
+event_count: 0
+nested_type_count: 0
+vtable_count: 4
+interfaces_count: 0
+interface_offsets_count: 0
+typeHierarchyDepth: 6
+genericRecursionDepth: 1
+rank: 0
+minimumAlignment: 8
+naturalAligment: 8
+packingSize: 0
+initialized_and_no_error: 1
+valuetype: 0
+initialized: 1
+enumtype: 0
+is_generic: 0
+has_references: 1
+init_pending: 0
+size_inited: 1
+has_finalize: 0
+has_cctor: 0
+is_blittable: 0
+is_import_or_windows_runtime: 0
+is_vtable_initialized: 1
+has_initialization_error: 0
+0 ======================END CLASS INFO======================
