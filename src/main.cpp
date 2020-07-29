@@ -586,14 +586,13 @@ extern "C" void load() {
     INSTALL_HOOK_DIRECT(MetadataCache_GetTypeDefinitionFromIndex, (void*)il2cpp_functions::MetadataCache_GetTypeDefinitionFromIndex);
     // Create custom monobehaviour
     logger().info("Attempting to create custom monobehaviour!");
-    // auto img = createMyImage("CustomIl2CppImage");
-    // auto a = createMyAssembly(img, "CustomIl2CppAssembly");
-    // img->assembly = a;
+    auto img = createMyImage("CustomIl2CppImage");  // il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image
+    auto a = createMyAssembly(img, "CustomIl2CppAssembly");
+    img->assembly = a;
     // TODO: Any more image setup?
     // TODO: Use type in creation of class
     static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
-    auto myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass,
-        il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image);
+    auto myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, img);
     logger().info("Custom Class: %p", myClass);
     logger().info("Custom Class name: %s", myClass->name);
     // Create methods
