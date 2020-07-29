@@ -31,8 +31,7 @@ extern "C" void setup(ModInfo& info)
 
 static Il2CppAssembly* myAsm;
 static Il2CppImage* myImage;
-static Il2CppType* myType;
-static Il2CppClass* myClass;
+static std::vector<Il2CppClass*> customClasses{};
 
 // Custom Update function
 void UpdateFunction(Il2CppObject* self) {
@@ -73,24 +72,6 @@ Il2CppImage* createMyImage(std::string_view name) {
     myImage->dynamic = 1;
     // TODO: Unclear if the rest of myImage is necessary or even useful!
     return myImage;
-}
-
-Il2CppType* createMyType() {
-    // Optimally, this would be replaced via a MetadataCalloc
-    myType = reinterpret_cast<Il2CppType*>(calloc(1, sizeof(Il2CppType)));
-    // TODO: For field flags/parameter flags?
-    // myType->attrs;
-    // TODO: Unclear if this is always the case
-    myType->byref = 0;
-    // TODO: Unclear if this is always the case
-    myType->num_mods = 0;
-    // TODO: Unclear if this is always the case
-    myType->pinned = 0;
-    // TODO: Change this for value types and other type enums
-    myType->type = Il2CppTypeEnum::IL2CPP_TYPE_CLASS;
-    // This should be a unique number, assigned when each new type is created.
-    myType->data.klassIndex = -1;
-    return myType;
 }
 
 void logAname(Il2CppAssemblyName* name, std::string_view anameLabel) {
@@ -308,12 +289,32 @@ void logAll(Il2CppClass* klass) {
     logger().debug("0 ======================END CLASS INFO======================");
 }
 
+Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
+    // Optimally, this would be replaced via a MetadataCalloc
+    auto myType = reinterpret_cast<Il2CppType*>(calloc(1, sizeof(Il2CppType)));
+    // TODO: For field flags/parameter flags?
+    // myType->attrs;
+    // TODO: Unclear if this is always the case
+    myType->byref = 0;
+    // TODO: Unclear if this is always the case
+    myType->num_mods = 0;
+    // TODO: Unclear if this is always the case
+    myType->pinned = 0;
+    // TODO: Change this for value types and other type enums
+    myType->type = Il2CppTypeEnum::IL2CPP_TYPE_CLASS;
+    // This should be a unique number, assigned when each new type is created.
+    myType->data.klassIndex = klassIndex;
+    return myType;
+}
+
 Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
+    auto myType = createMyType(-1 - customClasses.size());
+    logger().info("Custom Type: %p", myType);
     if (baseClass) {
         // Init our base class so we can grab a type hierarchy from it
         il2cpp_functions::Class_Init(baseClass);
     }
-    myClass = reinterpret_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass)));
+    auto myClass = reinterpret_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass)));
     // Fill in the values of the class
     // TODO: Create custom image
     // FOr now, just copy it
@@ -363,6 +364,7 @@ Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il
     // Set name
     myClass->name = name.data();
     myClass->namespaze = nameSpace.data();
+
     myClass->this_arg = *myType;
     // TODO: Modify this for future usage where byval argument may not match this argument
     myClass->byval_arg = *myType;
@@ -392,6 +394,7 @@ Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il
     myClass->unity_user_data = nullptr;
     // I have references to UnityEngine::MonoBehaviour (different namespace)
     myClass->has_references = 1;
+    customClasses.push_back(myClass);
 
     return myClass;
 }
@@ -491,29 +494,27 @@ static bool crashNow = false;
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     // Runtime generated class
     // logger().debug("FromIl2CppType called, type: %p", typ);
-    if (typ->data.klassIndex < 0) {
+    bool shouldBeOurs = false;
+    // klassIndex is only meaningful for these types
+    if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
+        shouldBeOurs = true;
         // If the type matches our type
         // TODO: Add a map for created classes here
-        if (myType->data.klassIndex == typ->data.klassIndex) {
-            logger().debug("Returning custom class!");
+        auto idx = -1 - typ->data.klassIndex;
+        if (idx < customClasses.size()) {
+            logger().debug("Returning custom class with idx %i!", idx);
             CRASH_UNLESS(!crashNow);
-            return myClass;
+            return customClasses[idx];
         }
     }
     // Otherwise, return orig
     auto klass = FromIl2CppType(typ);
+    if (shouldBeOurs) {
+        logger().debug("FromIl2CppType called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
+        il2cpp_utils::LogClass(klass, false);
+    }
     // logger().debug("Class: %p", klass);
     return klass;
-}
-
-// Will be Installed directly
-MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
-    // logger().debug("Class::Init Called, class: %p", klass);
-    if (klass == myClass) {
-        // logger().debug("Returning from Class::Init early!");
-        return true;
-    }
-    return Class_Init(klass);
 }
 
 // MAKE_HOOK(SetupGCDescriptor, NULL, void, Il2CppClass* klass) {
@@ -523,7 +524,7 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
 
 MAKE_HOOK(IsSubclassOf, NULL, bool, Il2CppClass *klass, Il2CppClass *klassc, bool check_interfaces) {
     // logger().debug("%s is subclass of: %s", klass->name, klassc->name);
-    if (klassc == myClass || klass == il2cpp_utils::GetClassFromName("UnityEngine", "Object")) {
+    if (klassc->byval_arg.data.klassIndex < 0 || klass == il2cpp_utils::GetClassFromName("UnityEngine", "Object")) {
         // logger().debug("IsSubclassOf: %p, %p, %i", klass, klassc, check_interfaces);
         // il2cpp_utils::LogClass(klass);
         // il2cpp_utils::LogClass(klassc);
@@ -542,6 +543,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
     logger().debug("Getting GO...");
     auto* go = RET_V_UNLESS(il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
     logger().debug("Got GO: %p", go);
+    auto myClass = customClasses[0];
     auto* customType = il2cpp_utils::GetSystemType(myClass);
     logger().debug("Custom System.Type: %p", customType);
     auto* strType = RET_V_UNLESS(il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
@@ -551,7 +553,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
     logger().debug("Actual type: %p", &myClass->byval_arg);
     logger().debug("Type: %p", customType->type);
     // Force call Class::Init
-    Class_Init(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
+    il2cpp_functions::Class_Init(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
     logAll(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
     logAll(il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour"));
     // crashNow = true;
@@ -578,10 +580,8 @@ extern "C" void load() {
     auto j2Cl_ISO = CRASH_UNLESS(classInitInst.findNthDirectBranchWithoutLink(1));
     Class_IsSubclassOf = (decltype(Class_IsSubclassOf))CRASH_UNLESS(j2Cl_ISO->label);
 
-    logger().info("Installing Class::Init hook!");
-    INSTALL_HOOK_DIRECT(Class_Init, (void*)il2cpp_functions::Class_Init);
     // INSTALL_HOOK_DIRECT(SetupGCDescriptor, (void*)Class_SetupGCDescriptor);
-    INSTALL_HOOK_DIRECT(IsSubclassOf, (void*)Class_IsSubclassOf);
+    // INSTALL_HOOK_DIRECT(IsSubclassOf, (void*)Class_IsSubclassOf);
     INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
     INSTALL_HOOK_DIRECT(MetadataCache_GetTypeDefinitionFromIndex, (void*)il2cpp_functions::MetadataCache_GetTypeDefinitionFromIndex);
     // Create custom monobehaviour
@@ -591,10 +591,9 @@ extern "C" void load() {
     // img->assembly = a;
     // TODO: Any more image setup?
     // TODO: Use type in creation of class
-    createMyType();
-    logger().info("Custom Type: %p", myType);
     static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
-    createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image);
+    auto myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass,
+        il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image);
     logger().info("Custom Class: %p", myClass);
     logger().info("Custom Class name: %s", myClass->name);
     // Create methods
