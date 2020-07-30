@@ -209,6 +209,13 @@ namespace custom_types {
     }; \
     namespace namespaze { \
         class name { \
+            static inline int32_t _field_offset = 0; \
+            static inline int32_t _get_field_offset() { \
+                return _field_offset; \
+            } \
+            static inline void _increment_field_offset(std::size_t off) { \
+                _field_offset += off; \
+            } \
             impl \
         }; \
     }
