@@ -176,8 +176,8 @@ namespace custom_types {
             if (std::string(#name).starts_with(".")) { \
                 flags |= METHOD_ATTRIBUTE_SPECIAL_NAME; \
             } \
-            using instanceClass = ::custom_types::method_info_template_instance<decltype(&##declaringType##::name)>; \
-            using staticClass = ::custom_types::method_info_template_static<decltype(&##declaringType##::name)>; \
+            using instanceClass = ::custom_types::method_info_template_instance<decltype(&declaringType::name)>; \
+            using staticClass = ::custom_types::method_info_template_static<decltype(&declaringType::name)>; \
             if constexpr (::custom_types::has_get<instanceClass>) { \
                 ret = instanceClass::get(); \
                 params = instanceClass::get_params(); \
@@ -187,9 +187,9 @@ namespace custom_types {
                 flags |= METHOD_ATTRIBUTE_STATIC; \
                 static_assert(false); \
             } else { \
-                static_assert(false_t<decltype(&##declaringType##::name)>, "Must define either an instance or a static method! Could not match either!"); \
+                static_assert(false_t<decltype(&declaringType::name)>, "Must define either an instance or a static method! Could not match either!"); \
             } \
-            return method_info{#name, (void*)&##declaringType::name, ret, params, flags}; \
+            return method_info{#name, (void*)&declaringType::name, ret, params, flags}; \
         } \
     }
 
@@ -203,5 +203,5 @@ namespace custom_types {
     // Registers a method to be attached to this type.
     // Must be called within the REGISTER_TYPE function.
     #define REGISTER_METHOD(name) \
-    methods.push_back(method_wrapper_##name##<>::get())
+    methods.push_back(method_wrapper_##name<>::get())
 }
