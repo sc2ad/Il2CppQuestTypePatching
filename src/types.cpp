@@ -60,27 +60,27 @@ void _increment_field_offset(std::size_t off) {
     // Increment field offset
 }
 
-class T {
-    public:
+DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
+public:
     DECLARE_FIELD(int, x);
     DECLARE_FIELD(Vector3, y);
 
-    DECLARE_METHOD(void, T, Start);
+    DECLARE_METHOD(void, Start);
 
-    static DECLARE_METHOD(void, T, Test, int x, float y);
+    static DECLARE_METHOD(void, Test, int x, float y);
 
-    REGISTER_TYPE(
+    REGISTER_FUNCTION(MyType,
         REGISTER_FIELD(x);
         REGISTER_FIELD(y);
         REGISTER_METHOD(Start);
         REGISTER_METHOD(Test);
     )
-};
+)
 
-void T::Start() {
+void Il2CppNamespace::MyType::Start() {
     
 }
 
-void T::Test(int x, float y) {
+void Il2CppNamespace::MyType::Test(int x, float y) {
 
 }

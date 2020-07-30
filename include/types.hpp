@@ -14,6 +14,14 @@ struct FieldInfo;
 struct MethodInfo;
 class Register;
 
+struct type_info {
+    friend Register;
+    private:
+    Il2CppClass* base;
+    public:
+    type_info(std::string_view namespaze, std::string_view name, Il2CppClass* base);
+};
+
 struct method_info {
     friend Register;
     private:
@@ -61,24 +69,13 @@ namespace custom_types {
     #endif
 
     template<typename T>
-    struct method_info_template_instance {
-        // static inline const Il2CppType* get() {
-        //     return nullptr;
-        // }
-        // static inline std::vector<ParameterInfo> get_params() {
-        //     return std::vector<ParameterInfo>();
-        // }
-    };
+    struct method_info_template_instance {};
 
     template<typename T>
-    struct method_info_template_static {
-        // static inline const Il2CppType* get() {
-        //     return nullptr;
-        // }
-        // static inline std::vector<ParameterInfo> get_params() {
-        //     return std::vector<ParameterInfo>();
-        // }
-    };
+    struct method_info_template_static {};
+
+    template<typename T>
+    struct name_registry {};
 
     // Create a single ParameterInfo* from P
     template<typename P>
@@ -89,7 +86,7 @@ namespace custom_types {
             auto type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
             // Ignore name, it will be set when we iterate over all of them (param_1, param_2, etc.)
             // Ignore position, it will also be set on iteration.
-            // Maybe some day we can actually use the parameters names themselves!
+            // TODO: Maybe some day we can actually use the parameters names themselves!
             info.parameter_type = type;
             info.token = -1;
             return info;
@@ -123,6 +120,10 @@ namespace custom_types {
             }
             return vec;
         }
+        template<TRet(T::* member)(TArgs...)>
+        static inline TRet wrap(T* self, TArgs&& ...args) {
+            return self->*member(std::forward<TArgs>(args)...);
+        }
     };
 
     template<typename TRet, typename... TArgs>
@@ -142,8 +143,9 @@ namespace custom_types {
     };
 
     // Creates static inline _register function used to register type within il2cpp
-    #define REGISTER_TYPE(innards) \
+    #define REGISTER_FUNCTION(typeN, innards) \
     static inline void _register(std::vector<::field_info>& fields, std::vector<::method_info>& methods) { \
+        using TargetType = typeN; \
         innards \
     }
 
@@ -151,7 +153,6 @@ namespace custom_types {
     // Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
     #define DECLARE_FIELD(type, name) \
     type name; \
-    /* Placeholder structure for ensuring template instantiations work */ \
     struct field_wrapper_##name { \
         static inline field_info get() { \
             int32_t offset = _get_field_offset(); \
@@ -165,34 +166,52 @@ namespace custom_types {
     // Declare an instance method with: returnType, declaringType, name, parameters, ...
     // Methods declared like this must also be registered via REGISTER_METHOD within the REGISTER_TYPE function.
     // Yes, this inner structure really does have to be a template, much to my dismay
-    #define DECLARE_METHOD(retType, declaringType, name, ...) \
+    #define DECLARE_METHOD(retType, name, ...) \
     retType name(__VA_ARGS__); \
-    template<class Discard = void> \
+    template<typename DeclType, class Discard = void> \
     struct method_wrapper_##name { \
         static inline method_info get() { \
             const Il2CppType* ret; \
             std::vector<ParameterInfo> params; \
             uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG; \
+            void* ptr; \
             if (std::string(#name).starts_with(".")) { \
                 flags |= METHOD_ATTRIBUTE_SPECIAL_NAME; \
             } \
-            using instanceClass = ::custom_types::method_info_template_instance<decltype(&declaringType::name)>; \
-            using staticClass = ::custom_types::method_info_template_static<decltype(&declaringType::name)>; \
+            using memberPtr = decltype(&DeclType::name); \
+            using instanceClass = ::custom_types::method_info_template_instance<memberPtr>; \
+            using staticClass = ::custom_types::method_info_template_static<memberPtr>; \
             if constexpr (::custom_types::has_get<instanceClass>) { \
                 ret = instanceClass::get(); \
                 params = instanceClass::get_params(); \
+                ptr = (void*)&instanceClass::wrap<memberPtr>(); \
             } else if constexpr (::custom_types::has_get<staticClass>) {\
                 ret = staticClass::get(); \
                 params = staticClass::get_params(); \
                 flags |= METHOD_ATTRIBUTE_STATIC; \
-                static_assert(false); \
+                ptr = (void*)&staticClass::wrap<memberPtr>(); \
             } else { \
-                static_assert(false_t<decltype(&declaringType::name)>, "Must define either an instance or a static method! Could not match either!"); \
+                static_assert(false_t<memberPtr>, "Must define either an instance or a static method! Could not match either!"); \
             } \
-            return method_info{#name, (void*)&declaringType::name, ret, params, flags}; \
+            return method_info{#name, ptr, ret, params, flags}; \
         } \
     }
 
+    #define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, impl) \
+    namespace namespaze { \
+        class name; \
+    } \
+    template<> \
+    struct ::custom_types::name_registry<namespaze::name> { \
+        static inline type_info get() { \
+            return type_info{#namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName)}; \
+        } \
+    }; \
+    namespace namespaze { \
+        class name { \
+            impl \
+        }; \
+    }
 
 
     // Registers a field to be attached to this type.
@@ -203,5 +222,5 @@ namespace custom_types {
     // Registers a method to be attached to this type.
     // Must be called within the REGISTER_TYPE function.
     #define REGISTER_METHOD(name) \
-    methods.push_back(method_wrapper_##name<>::get())
+    methods.push_back(method_wrapper_##name<TargetType>::get())
 }
