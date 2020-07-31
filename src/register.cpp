@@ -26,7 +26,7 @@ namespace custom_types {
     std::unordered_map<std::string, Il2CppAssembly*> Register::assembs;
     std::unordered_map<std::string, Il2CppImage*> Register::images;
     std::vector<ClassWrapper> Register::classes;
-    bool installed = false;
+    bool Register::installed = false;
 
     Il2CppAssembly* Register::createAssembly(std::string_view name, Il2CppImage* img) {
         // Name is NOT copied, so should be a constant string

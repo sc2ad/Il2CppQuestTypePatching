@@ -37,12 +37,16 @@ struct method_info {
     private:
     std::vector<ParameterInfo> params;
     MethodInfo* info;
-    constexpr void setClass(Il2CppClass* klass) const;
+    constexpr void setClass(Il2CppClass* klass) const {
+        info->klass = klass;
+    }
     public:
     // TODO: Figure out a way to dynamically get the invoker_function
     method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags);
     ~method_info();
-    constexpr const MethodInfo* get() const;
+    constexpr const MethodInfo* get() const {
+        return info;
+    }
 };
 
 struct field_info {
@@ -54,7 +58,9 @@ struct field_info {
     // Offset obtained via macro, as are fieldAttrs
     field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs);
     ~field_info();
-    constexpr const FieldInfo get() const;
+    constexpr const FieldInfo get() const {
+        return info;
+    }
 };
 
 namespace custom_types {
@@ -67,12 +73,37 @@ namespace custom_types {
     #elif __has_include(<experimental/type_traits>)
     #include <experimental/type_traits>
     template<typename T>
-    using type = decltype(T::get());
+    using get_type = decltype(T::get());
 
     template <class...> constexpr std::false_type false_t{};
 
     template<typename T>
-    constexpr bool has_get = std::experimental::is_detected_v<type, T>;
+    constexpr bool has_get = std::experimental::is_detected_v<get_type, T>;
+
+    // Helper for checking if a type has a _register function
+    // https://stackoverflow.com/questions/87372/check-if-a-class-has-a-member-function-of-a-given-signature/10707822
+    template<typename, typename T>
+    struct has_func_register;
+
+    template<typename C, typename Ret, typename... Args>
+    struct has_func_register<C, Ret(Args...)> {
+    private:
+        template<typename T>
+        static constexpr auto check(T*)
+        -> typename
+            std::is_same<
+                decltype(std::declval<T>()._register(std::declval<Args>()...)),
+                Ret
+            >::type;
+
+        template<typename>
+        static constexpr std::false_type check(...);
+
+        typedef decltype(check<C>(0)) type;
+
+    public:
+        static constexpr bool value = type::value;
+    };
     #else
     #error No libraries for the implementation of "has_" anything available!
     #endif
@@ -88,10 +119,15 @@ namespace custom_types {
 
     template<typename T> struct type_tag {};
 
-    // Create a single ParameterInfo* from P
-    template<typename P>
-    struct single_parameter_converter {
-        static inline const ParameterInfo get() {
+    template<typename... Ps>
+    struct parameter_converter;
+
+    // Create a vector of ParameterInfo objects (good ol tail recursion)
+    // 1 or more parameters
+    template<typename P, typename... Ps>
+    struct parameter_converter<P, Ps...> {
+        static inline std::vector<ParameterInfo> get() {
+            std::vector<ParameterInfo> params;
             ParameterInfo info;
             il2cpp_functions::Init();
             auto type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
@@ -100,16 +136,7 @@ namespace custom_types {
             // TODO: Maybe some day we can actually use the parameters names themselves!
             info.parameter_type = type;
             info.token = -1;
-            return info;
-        }
-    };
-
-    // Create a vector of ParameterInfo objects (good ol tail recursion)
-    template<typename P, typename... Ps>
-    struct parameter_converter {
-        static inline std::vector<ParameterInfo> get() {
-            std::vector<ParameterInfo> params;
-            params.push_back(single_parameter_converter<P>::get());
+            params.push_back(info);
             for (auto p : parameter_converter<Ps...>::get()) {
                 params.push_back(p);
             }
@@ -117,22 +144,23 @@ namespace custom_types {
         }
     };
 
+    // 0 parameters
+    template<>
+    struct parameter_converter<> {
+        static inline std::vector<ParameterInfo> get() {
+            return std::vector<ParameterInfo>();
+        }
+    };
 
-
-    void* allocate(std::size_t size) {
-        // Allocate using il2cpp
-        // This is a bit tricky since we want to ensure il2cpp cleans up after we are done
-        // This is specifically for value types and primitives
-        // since reference types should be created via il2cpp_utils::New and returned.
-    }
+    void* allocate(std::size_t size);
 
     // These concepts originally created by DaNike, modifications made by Sc2ad
     template<typename>
-    struct invoker_creator;
+    struct invoker_creator {};
 
     struct arg_helper {
-    template<typename Q>
-        auto unpack_arg(void* arg, type_tag<Q>) {
+        template<typename Q>
+        static inline Q unpack_arg(void* arg, type_tag<Q>) {
             if constexpr (std::is_pointer_v<Q>) {
                 return reinterpret_cast<Q>(arg);
             } else {
@@ -140,12 +168,13 @@ namespace custom_types {
             }
         }
         template<typename Q>
-        auto pack_result(Q&& thing) {
+        static inline void* pack_result(Q&& thing) {
             if constexpr (std::is_pointer_v<Q>) {
                 return reinterpret_cast<void*>(std::forward<Q>(thing));
             } else {
                 // For now, we will fail a static_assert here to force people to use non-primitive returns
-                static_assert(false, "We cannot allocate any il2cpp primitives yet!");
+                // We can't actually have a static assert, sooooo do the following as usual
+                // allocate simply returns nullptr.
                 auto mem = allocate(sizeof(Q));
                 new(mem) Q(std::forward<Q>(thing));
                 return mem;
@@ -155,6 +184,21 @@ namespace custom_types {
 
     template<typename TRet, typename T, typename ...TArgs>
     struct invoker_creator<TRet(T::*)(TArgs...)> {
+        template<std::size_t ...Ns>
+        static void* instance_invoke(TRet(*func)(T*, TArgs...), T* self, void** args, std::index_sequence<Ns...>) {
+            if constexpr (std::is_same_v<TRet, void>) {
+                func(self,
+                    std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                );
+                return nullptr;
+            } else {
+                return arg_helper::pack_result(
+                    func(self,
+                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                    )
+                );
+            }
+        }
         [[gnu::noinline]]
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
@@ -163,26 +207,28 @@ namespace custom_types {
             T* self = static_cast<T*>(obj);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-
-            return [&]<std::size_t ...Ns>(std::index_sequence<Ns...>) {
-                if constexpr (std::is_same_v<TRet, void>) {
-                    func(self,
-                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
-                    );
-                    return nullptr;
-                } else {
-                    return arg_helper::pack_result(
-                        func(self,
-                            std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
-                        )
-                    );
-                }
-            }(seq);
+            
+            return instance_invoke(func, self, args, seq);
         }
     };
 
     template<typename TRet, typename ...TArgs>
-    struct invoker_creator<TRet(TArgs...)> {
+    struct invoker_creator<TRet(*)(TArgs...)> {
+        template<std::size_t ...Ns>
+        static void* static_invoke(TRet(*func)(TArgs...), void** args, std::index_sequence<Ns...>) {
+            if constexpr (std::is_same_v<TRet, void>) {
+                func(
+                    std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                );
+                return nullptr;
+            } else {
+                return arg_helper::pack_result(
+                    func(
+                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                    )
+                );
+            }
+        }
         [[gnu::noinline]]
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
@@ -191,20 +237,7 @@ namespace custom_types {
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
 
-            return [&]<std::size_t ...Ns>(std::index_sequence<Ns...>) {
-                if constexpr (std::is_same_v<TRet, void>) {
-                    func(
-                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
-                    );
-                    return nullptr;
-                } else {
-                    return arg_helper::pack_result(
-                        func(
-                            std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
-                        )
-                    );
-                }
-            }(seq);
+            return static_invoke(func, args, seq);
         }
     };
 
@@ -301,11 +334,11 @@ namespace custom_types {
             if (std::string(#name).starts_with(".")) { \
                 flags |= METHOD_ATTRIBUTE_SPECIAL_NAME; \
             } \
-            InvokerMethod invoker = &invoker_creator<memberPtr>::invoke; \
+            InvokerMethod invoker = (InvokerMethod)&::custom_types::invoker_creator<memberPtr>::invoke; \
             if constexpr (::custom_types::has_get<instanceClass>) { \
                 ret = instanceClass::get(); \
                 params = instanceClass::get_params(); \
-                ptr = (void*)&instanceClass::wrap<&DeclType::name>(); \
+                ptr = (void*)&instanceClass::template wrap<&DeclType::name>; \
             } else if constexpr (::custom_types::has_get<staticClass>) {\
                 ret = staticClass::get(); \
                 params = staticClass::get_params(); \
@@ -331,6 +364,7 @@ namespace custom_types {
     namespace namespaze { \
         class name { \
             friend ::custom_types::Register; \
+            friend ::custom_types::has_func_register<name, void*>; \
             private: \
             static inline int32_t _field_offset = 0; \
             static inline int32_t _get_field_offset() { \

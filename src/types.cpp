@@ -33,10 +33,6 @@ field_info::~field_info() {
     delete info.type;
 }
 
-constexpr const FieldInfo field_info::get() const {
-    return info;
-}
-
 method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
     // Create MethodInfo*
     info = new MethodInfo();
@@ -60,10 +56,10 @@ method_info::~method_info() {
     delete info;
 }
 
-constexpr const MethodInfo* method_info::get() const {
-    return info;
-}
-
-constexpr void method_info::setClass(Il2CppClass* klass) const {
-    info->klass = klass;
+void* allocate(std::size_t size) {
+    // Allocate using il2cpp
+    // This is a bit tricky since we want to ensure il2cpp cleans up after we are done
+    // This is specifically for value types and primitives
+    // since reference types should be created via il2cpp_utils::New and returned.
+    return nullptr;
 }

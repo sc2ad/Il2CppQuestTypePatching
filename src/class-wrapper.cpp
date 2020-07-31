@@ -160,8 +160,4 @@ namespace custom_types {
         typeIdx--;
         return type;
     }
-
-    constexpr const Il2CppClass* ClassWrapper::get() const {
-        return klass;
-    }
 }
