@@ -11,7 +11,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp",
-                "c:/android-ndk-r20b/**"
+                "c:/android-ndk-r20b/**",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/extern"
             ],
             "cStandard": "c11",
             "cppStandard": "c++20",

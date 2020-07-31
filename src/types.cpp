@@ -2,37 +2,54 @@
 #include "beatsaber-hook/shared/utils/typedefs.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
-field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset) {
+type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b) {
+    typeEnum = typeE;
+    base = b;
+    namespaze = ns;
+    name = n;
+}
+
+field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs) {
     // Create FieldInfo*
-    info = new FieldInfo();
-    info->name = name.data();
-    info->type = type;
-    info->offset = offset;
-    info->token = -1;
+    info = FieldInfo{};
+    info.name = name.data();
+    // We want to make sure we set the correct attributes on this type
+    // For that purpose, we actually want to COPY the type
+    auto* tmp = new Il2CppType();
+    tmp->attrs = type->attrs | fieldAttrs;
+    tmp->byref = type->byref;
+    tmp->data.dummy = type->data.dummy;
+    tmp->num_mods = type->num_mods;
+    tmp->pinned = type->pinned;
+    tmp->type = type->type;
+    info.type = tmp;
+    info.offset = offset;
+    info.token = -1;
 }
 
 field_info::~field_info() {
-    delete info;
+    delete info.type;
 }
 
-constexpr void field_info::setClass(Il2CppClass* klass) const {
-    info->parent = klass;
-}
-
-constexpr const FieldInfo* field_info::get() const {
+constexpr const FieldInfo field_info::get() const {
     return info;
 }
 
-method_info::method_info(std::string_view name, void* func, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
+method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
     // Create MethodInfo*
     info = new MethodInfo();
     params = parameters;
     info->name = name.data();
     info->methodPointer = (Il2CppMethodPointer)func;
+    // TODO: Need to figure out how to reliably set invoker functions
+    // This is probably going to be really challenging...
+    // For now, we will try to make our own and see if we crash
+    info->invoker_method = invoker;
     info->return_type = returnType;
     info->parameters = params.data();
     info->parameters_count = params.size();
     info->flags = flags;
+    info->slot = kInvalidIl2CppMethodSlot;
     // TODO: set more data on method, perhaps pass in less?
 }
 
@@ -46,41 +63,4 @@ constexpr const MethodInfo* method_info::get() const {
 
 constexpr void method_info::setClass(Il2CppClass* klass) const {
     info->klass = klass;
-}
-
-constexpr void method_info::setInvoker(InvokerMethod invoker) const {
-    info->invoker_method = invoker;
-}
-
-int32_t _get_field_offset() {
-    return 0;
-}
-
-void _increment_field_offset(std::size_t off) {
-    // Increment field offset
-}
-
-DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
-public:
-    DECLARE_FIELD(int, x);
-    DECLARE_FIELD(Vector3, y);
-
-    DECLARE_METHOD(void, Start);
-
-    static DECLARE_METHOD(void, Test, int x, float y);
-
-    REGISTER_FUNCTION(MyType,
-        REGISTER_FIELD(x);
-        REGISTER_FIELD(y);
-        REGISTER_METHOD(Start);
-        REGISTER_METHOD(Test);
-    )
-)
-
-void Il2CppNamespace::MyType::Start() {
-    
-}
-
-void Il2CppNamespace::MyType::Test(int x, float y) {
-
 }
