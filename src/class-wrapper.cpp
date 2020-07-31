@@ -59,18 +59,19 @@ namespace custom_types {
         klass->unity_user_data = nullptr;
         // Just assume we always have references. This is mostly unused anyways.
         klass->has_references = 1;
-        logger().debug("Deleting Il2CppType! Ptr: %p", type);
-        delete type;
+        // logger().debug("Deleting Il2CppType! Ptr: %p", type);
+        // delete type;
     }
 
     ClassWrapper::~ClassWrapper() {
-        logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
-        delete klass->typeHierarchy;
-        logger().debug("Deleting ClassWrapper! Ptr: %p", klass);
-        delete klass;
-        fields.clear();
-        staticFields.clear();
-        methods.clear();
+        logger().debug("Tried to delete class wrapper, but instead we are NOT deleting it!");
+        // logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
+        // delete klass->typeHierarchy;
+        // logger().debug("Deleting Il2CppClass*! Ptr: %p", klass);
+        // delete klass;
+        // fields.clear();
+        // staticFields.clear();
+        // methods.clear();
     }
 
     // Setup type hierarchy using base class

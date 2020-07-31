@@ -29,8 +29,8 @@ field_info::field_info(std::string_view name, const Il2CppType* type, int32_t of
 }
 
 field_info::~field_info() {
-    logger().debug("Deleting field_info.Il2CppType! Ptr: %p", info.type);
-    delete info.type;
+    // logger().debug("Deleting field_info.Il2CppType! Ptr: %p", info.type);
+    // delete info.type;
 }
 
 method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
@@ -52,11 +52,11 @@ method_info::method_info(std::string_view name, void* func, InvokerMethod invoke
 }
 
 method_info::~method_info() {
-    logger().debug("Deleting method_info! Ptr: %p", info);
-    delete info;
+    // logger().debug("Deleting method_info! Ptr: %p", info);
+    // delete info;
 }
 
-void* allocate(std::size_t size) {
+void* ::custom_types::allocate(std::size_t size) {
     // Allocate using il2cpp
     // This is a bit tricky since we want to ensure il2cpp cleans up after we are done
     // This is specifically for value types and primitives

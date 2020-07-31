@@ -128,7 +128,7 @@ namespace custom_types {
     struct parameter_converter<P, Ps...> {
         static inline std::vector<ParameterInfo> get() {
             std::vector<ParameterInfo> params;
-            ParameterInfo info;
+            auto& info = params.emplace_back();
             il2cpp_functions::Init();
             auto type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
             // Ignore name, it will be set when we iterate over all of them (param_1, param_2, etc.)
@@ -136,11 +136,10 @@ namespace custom_types {
             // TODO: Maybe some day we can actually use the parameters names themselves!
             info.parameter_type = type;
             info.token = -1;
-            params.push_back(info);
-            for (auto p : parameter_converter<Ps...>::get()) {
-                params.push_back(p);
+            for (const auto& q : parameter_converter<Ps...>::get()) {
+                params.push_back(q);
             }
-            return params;
+            return std::move(params);
         }
     };
 
@@ -389,13 +388,13 @@ namespace custom_types {
     #define REGISTER_FIELD(name) \
     do { \
         if (field_wrapper_##name::isStatic()) { \
-            staticFields.push_back(field_wrapper_##name::get()); \
+            staticFields.push_back(std::move(field_wrapper_##name::get())); \
         } \
-        fields.push_back(field_wrapper_##name::get()); \
+        fields.push_back(std::move(field_wrapper_##name::get())); \
     } while (0)
 
     // Registers a method to be attached to this type.
     // Must be called within the REGISTER_TYPE function.
     #define REGISTER_METHOD(name) \
-    methods.push_back(method_wrapper_##name<TargetType>::get())
+    methods.push_back(std::move(method_wrapper_##name<TargetType>::get()))
 }

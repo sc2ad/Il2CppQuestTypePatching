@@ -16,12 +16,12 @@ namespace custom_types {
         std::vector<field_info> staticFields;
         std::vector<method_info> methods;
 
-        ClassWrapper(type_info type);
         void setupTypeHierarchy(Il2CppClass* base);
         void populateMethods();
         void populateFields();
         Il2CppType* createType(Il2CppTypeEnum typeE);
         public:
+        ClassWrapper(type_info type);
         ~ClassWrapper();
         constexpr const Il2CppClass* get() const {
             return klass;
@@ -54,13 +54,11 @@ namespace custom_types {
                 // Create our type
                 auto type = ::custom_types::name_registry<T>::get();
                 if constexpr (::custom_types::has_func_register<T, void(std::vector<::field_info>&, std::vector<::field_info>&, std::vector<::method_info>&)>::value) {
-                    ClassWrapper classWrapper(type);
+                    auto& classWrapper = classes.emplace_back(type);
                     // Iterate over all methods, all fields
                     T::_register(classWrapper.fields, classWrapper.staticFields, classWrapper.methods);
                     classWrapper.populateFields();
                     classWrapper.populateMethods();
-                    // Add to vector
-                    classes.push_back(classWrapper);
                     // Return for extra modification
                     logger().debug("Registered type: %s::%s", type.namespaze.c_str(), type.name.c_str());
                     return classWrapper.klass;
