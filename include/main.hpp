@@ -12,16 +12,17 @@ namespace custom_types {
         static TypeDefinitionIndex typeIdx;
 
         Il2CppClass* klass;
-        std::vector<field_info> fields;
-        std::vector<field_info> staticFields;
-        std::vector<method_info> methods;
+        type_info* info;
+        std::vector<field_info*> fields;
+        std::vector<field_info*> staticFields;
+        std::vector<method_info*> methods;
 
         void setupTypeHierarchy(Il2CppClass* base);
         void populateMethods();
         void populateFields();
         Il2CppType* createType(Il2CppTypeEnum typeE);
         public:
-        ClassWrapper(type_info type);
+        ClassWrapper(type_info* type);
         ClassWrapper(ClassWrapper&&) = default;
         ~ClassWrapper();
         constexpr const Il2CppClass* get() const {
@@ -54,19 +55,17 @@ namespace custom_types {
             else {
                 // Create our type
                 auto type = ::custom_types::name_registry<T>::get();
-                if constexpr (::custom_types::has_func_register<T, void(std::vector<::field_info>&, std::vector<::field_info>&, std::vector<::method_info>&)>::value) {
-                    ClassWrapper classWrapper(std::move(type));
+                if constexpr (::custom_types::has_func_register<T, void(std::vector<::field_info*>&, std::vector<::field_info*>&, std::vector<::method_info*>&)>::value) {
+                    ClassWrapper& classWrapper = classes.emplace_back(type);
                     // Iterate over all methods, all fields
                     T::_register(classWrapper.fields, classWrapper.staticFields, classWrapper.methods);
                     classWrapper.populateFields();
                     classWrapper.populateMethods();
-                    // Add to vector
-                    classes.push_back(std::move(classWrapper));
                     // Return for extra modification
-                    logger().debug("Registered type: %s::%s", type.namespaze.c_str(), type.name.c_str());
+                    logger().debug("Registered type: %s::%s", type->namespaze.c_str(), type->name.c_str());
                     return classWrapper.klass;
                 } else {
-                    static_assert(::custom_types::has_func_register<T, void(std::vector<::field_info>&, std::vector<::field_info>&, std::vector<::method_info>&)>::value, "Must have a REGISTER_FUNCTION within the type!");
+                    static_assert(::custom_types::has_func_register<T, void(std::vector<::field_info*>&, std::vector<::field_info*>&, std::vector<::method_info*>&)>::value, "Must have a REGISTER_FUNCTION within the type!");
                 }
             }
             return nullptr;

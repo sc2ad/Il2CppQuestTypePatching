@@ -30,7 +30,7 @@ struct type_info {
     public:
     type_info(type_info&&) = default;
     type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b);
-    ~type_info();
+    ~type_info() = delete;
 };
 
 struct method_info {
@@ -46,7 +46,7 @@ struct method_info {
     // TODO: Figure out a way to dynamically get the invoker_function
     method_info(method_info&&) = default;
     method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags);
-    ~method_info();
+    ~method_info() = delete;
     constexpr const MethodInfo* get() const {
         return info;
     }
@@ -61,7 +61,7 @@ struct field_info {
     // Offset obtained via macro, as are fieldAttrs
     field_info(field_info&&) = default;
     field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs);
-    ~field_info();
+    ~field_info() = delete;
     constexpr const FieldInfo get() const {
         return info;
     }
@@ -288,13 +288,13 @@ namespace custom_types {
     type name; \
     private: \
     struct field_wrapper_##name { \
-        static inline field_info get() { \
+        static inline field_info* get() { \
             int32_t offset = _get_field_offset(); \
             _increment_field_offset(sizeof(type)); \
             ::il2cpp_functions::Init(); \
             auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
             uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
-            return std::move(field_info{#name, t, offset, attrs}); \
+            return new field_info(#name, t, offset, attrs); \
         } \
         static inline constexpr bool isStatic() { \
             return false; \
@@ -306,11 +306,11 @@ namespace custom_types {
     static type name; \
     private: \
     struct field_wrapper_##name { \
-        static inline field_info get() { \
+        static inline field_info* get() { \
             ::il2cpp_functions::Init(); \
             auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
             uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC | FIELD_ATTRIBUTE_STATIC; \
-            return std::move(field_info{#name, t, offset, attrs}); \
+            return new field_info(#name, t, offset, attrs); \
         } \
         static inline constexpr bool isStatic() { \
             return true; \
@@ -326,7 +326,7 @@ namespace custom_types {
     private: \
     template<typename DeclType, class Discard = void> \
     struct method_wrapper_##name { \
-        static inline method_info get() { \
+        static inline method_info* get() { \
             using memberPtr = decltype(&DeclType::name); \
             using instanceClass = ::custom_types::method_info_template_instance<memberPtr>; \
             using staticClass = ::custom_types::method_info_template_static<memberPtr>; \
@@ -351,7 +351,7 @@ namespace custom_types {
                 static_assert(false_t<memberPtr>, "Must define either an instance or a static method! Could not match either!"); \
             } \
             logger().debug("creating method_info for: %s", #name); \
-            return std::move(method_info{#name, ptr, invoker, ret, params, flags}); \
+            return new method_info(#name, ptr, invoker, ret, params, flags); \
         } \
     }
 
@@ -361,9 +361,9 @@ namespace custom_types {
     } \
     template<> \
     struct ::custom_types::name_registry<namespaze::name> { \
-        static inline type_info get() { \
+        static inline type_info* get() { \
             logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
-            return std::move(type_info{Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName)}); \
+            return new type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName)); \
         } \
     }; \
     namespace namespaze { \
@@ -384,7 +384,7 @@ namespace custom_types {
 
     // Creates static inline _register function used to register type within il2cpp
     #define REGISTER_FUNCTION(typeN, innards) \
-    static inline void _register(std::vector<::field_info>& fields, std::vector<::field_info>& staticFields, std::vector<::method_info>& methods) { \
+    static inline void _register(std::vector<::field_info*>& fields, std::vector<::field_info*>& staticFields, std::vector<::method_info*>& methods) { \
         using TargetType = typeN; \
         innards \
     }

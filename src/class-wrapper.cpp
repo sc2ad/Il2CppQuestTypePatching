@@ -3,22 +3,23 @@
 
 namespace custom_types {
     TypeDefinitionIndex ClassWrapper::typeIdx = kTypeDefinitionIndexInvalid;
-    ClassWrapper::ClassWrapper(type_info info) {
+    ClassWrapper::ClassWrapper(type_info* info) {
         // Create the class
         klass = new Il2CppClass();
-        auto* type = createType(info.typeEnum);
+        this->info = info;
+        auto* type = createType(info->typeEnum);
         // Create image from namespace
-        klass->image = Register::createImage(info.namespaze);
-        setupTypeHierarchy(info.base);
+        klass->image = Register::createImage(info->namespaze);
+        setupTypeHierarchy(info->base);
         // Set name
-        klass->name = info.name.data();
-        klass->namespaze = info.namespaze.data();
+        klass->name = info->name.c_str();
+        klass->namespaze = info->namespaze.c_str();
         klass->this_arg = *type;
         // TODO: Modify this for future usage where byval argument may not match this argument
         klass->byval_arg = *type;
         // TODO: Modify flags in the future
         // For now, copy them from base class
-        klass->flags = info.base->flags;
+        klass->flags = info->base->flags;
         // This is for arrays, we can safely assume we are not an array so set this to ourselves.
         klass->element_class = klass;
         // TODO: Determine more information from this
@@ -49,9 +50,9 @@ namespace custom_types {
         // Method creation should happen around now
         // TODO: Modify vtables in future, instead of copying from base vtable
         klass->is_vtable_initialized = true;
-        klass->vtable_count = info.base->vtable_count;
-        for (auto i = 0; i < info.base->vtable_count; i++) {
-            klass->vtable[i] = info.base->vtable[i];
+        klass->vtable_count = info->base->vtable_count;
+        for (auto i = 0; i < info->base->vtable_count; i++) {
+            klass->vtable[i] = info->base->vtable[i];
         }
         // TODO: is this valid?
         klass->token = -1;
@@ -65,6 +66,8 @@ namespace custom_types {
 
     ClassWrapper::~ClassWrapper() {
         logger().debug("Tried to delete class wrapper, but instead we are NOT deleting it!");
+        // We need to delete info, all of the fields, methods, typeHierarchy, staticFields
+
         // logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
         // delete klass->typeHierarchy;
         // logger().debug("Deleting Il2CppClass*! Ptr: %p", klass);
@@ -113,7 +116,7 @@ namespace custom_types {
         klass->field_count = fields.size();
         klass->fields = reinterpret_cast<FieldInfo*>(calloc(klass->field_count, sizeof(FieldInfo)));
         for (uint16_t i = 0; i < fields.size(); i++) {
-            klass->fields[i] = fields[i].get();
+            klass->fields[i] = fields[i]->get();
             klass->fields[i].parent = klass;
         }
         // TODO: Figure out static fields.
@@ -135,8 +138,8 @@ namespace custom_types {
         klass->method_count = methods.size();
         klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
         for (auto i = 0; i < klass->method_count; i++) {
-            methods[i].setClass(klass);
-            auto* info = methods[i].get();
+            methods[i]->setClass(klass);
+            auto* info = methods[i]->get();
             // TODO: Populate other fields as necessary
             klass->methods[i] = info;
         }
