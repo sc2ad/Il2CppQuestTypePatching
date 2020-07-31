@@ -78,6 +78,7 @@ namespace custom_types {
                 // Add to vector
                 classes.push_back(classWrapper);
                 // Return for extra modification
+                logger().debug("Registered type: %s::%s", type.namespaze.c_str(), type.name.c_str());
                 return classWrapper.klass;
             } else {
                 static_assert(false_t<T>, "Must have a REGISTER_FUNCTION within the type!");

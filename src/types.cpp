@@ -1,4 +1,5 @@
 #include "types.hpp"
+#include "logging.hpp"
 #include "beatsaber-hook/shared/utils/typedefs.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -28,6 +29,7 @@ field_info::field_info(std::string_view name, const Il2CppType* type, int32_t of
 }
 
 field_info::~field_info() {
+    logger().debug("Deleting field_info.Il2CppType! Ptr: %p", info.type);
     delete info.type;
 }
 
@@ -54,6 +56,7 @@ method_info::method_info(std::string_view name, void* func, InvokerMethod invoke
 }
 
 method_info::~method_info() {
+    logger().debug("Deleting method_info! Ptr: %p", info);
     delete info;
 }
 

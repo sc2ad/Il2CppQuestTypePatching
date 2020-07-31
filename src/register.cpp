@@ -42,6 +42,7 @@ namespace custom_types {
         img->assembly = assemb;
         assemb->aname.name = name.data();
         assembs.insert({strName, assemb});
+        logger().debug("Created new assembly: %s, %p", name.data(), assemb);
         return assemb;
     }
 
@@ -61,12 +62,16 @@ namespace custom_types {
         img->assembly = createAssembly(name, img);
         // TODO: Unclear if more is required
         images.insert({strName, img});
+        logger().debug("Created new image: %s, %p", name.data(), img);
         return img;
     }
 
     void Register::EnsureHooks() {
         if (!installed) {
+            il2cpp_functions::Init();
+            logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
+            installed = true;
         }
     }
 }
