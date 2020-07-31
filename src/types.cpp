@@ -6,8 +6,13 @@
 type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b) {
     typeEnum = typeE;
     base = b;
-    namespaze = ns;
-    name = n;
+    namespaze = std::string(ns);
+    name = std::string(n);
+}
+
+type_info::~type_info() {
+    logger().debug("Deleting type_info!");
+    logger().debug("This would invalidate type namespace and name, this shouldn't happen!");
 }
 
 field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs) {
@@ -29,6 +34,8 @@ field_info::field_info(std::string_view name, const Il2CppType* type, int32_t of
 }
 
 field_info::~field_info() {
+    logger().debug("Deleting field_info!");
+    logger().debug("This shouldn't happen!");
     // logger().debug("Deleting field_info.Il2CppType! Ptr: %p", info.type);
     // delete info.type;
 }
@@ -52,6 +59,8 @@ method_info::method_info(std::string_view name, void* func, InvokerMethod invoke
 }
 
 method_info::~method_info() {
+    logger().debug("Deleting method_info!");
+    logger().debug("This would invalidate our params vector, this call shouldn't happen!");
     // logger().debug("Deleting method_info! Ptr: %p", info);
     // delete info;
 }

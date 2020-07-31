@@ -135,9 +135,8 @@ namespace custom_types {
         klass->method_count = methods.size();
         klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
         for (auto i = 0; i < klass->method_count; i++) {
-            auto method = methods[i];
-            method.setClass(klass);
-            auto* info = method.get();
+            methods[i].setClass(klass);
+            auto* info = methods[i].get();
             // TODO: Populate other fields as necessary
             klass->methods[i] = info;
         }
