@@ -9,8 +9,10 @@ namespace custom_types {
         this->info = info;
         auto* type = createType(info->typeEnum);
         // Create image from namespace
-        klass->image = Register::createImage(info->namespaze);
+        // klass->image = Register::createImage(info->namespaze);
         setupTypeHierarchy(info->base);
+        // Grab image from our parent for now
+        klass->image = info->base->image;
         // Set name
         klass->name = info->name.c_str();
         klass->namespaze = info->namespaze.c_str();
@@ -114,10 +116,12 @@ namespace custom_types {
         // The count of fields on this type is actually fields + static fields
         // fields contains ALL fields, including static ones.
         klass->field_count = fields.size();
-        klass->fields = reinterpret_cast<FieldInfo*>(calloc(klass->field_count, sizeof(FieldInfo)));
-        for (uint16_t i = 0; i < fields.size(); i++) {
-            klass->fields[i] = fields[i]->get();
-            klass->fields[i].parent = klass;
+        if (fields.size() > 0) {
+            klass->fields = reinterpret_cast<FieldInfo*>(calloc(klass->field_count, sizeof(FieldInfo)));
+            for (uint16_t i = 0; i < fields.size(); i++) {
+                klass->fields[i] = fields[i]->get();
+                klass->fields[i].parent = klass;
+            }
         }
         // TODO: Figure out static fields.
         // Static fields are more obnoxious, since klass->static_fields is a pointer to a region of memory

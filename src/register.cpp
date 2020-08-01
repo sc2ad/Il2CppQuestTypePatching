@@ -2,12 +2,14 @@
 #include "logging.hpp"
 
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
+    // logger().debug("FromIl2CppType: %p", typ);
     bool shouldBeOurs = false;
     // klassIndex is only meaningful for these types
     if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
         shouldBeOurs = true;
         // If the type matches our type
         auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
+        logger().debug("custom idx: %u for type: %p", idx, typ);
         if (idx < ::custom_types::Register::classes.size()) {
             logger().debug("Returning custom class with idx %i!", idx);
             return const_cast<Il2CppClass*>(::custom_types::Register::classes[idx].get());
@@ -20,6 +22,14 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
         il2cpp_utils::LogClass(klass, false);
     }
     return klass;
+}
+
+MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
+    if ((klass->this_arg.type == IL2CPP_TYPE_CLASS || klass->this_arg.type == IL2CPP_TYPE_VALUETYPE) && klass->this_arg.data.klassIndex < 0) {
+        logger().debug("Returning from Class::Init early!");
+        return true;
+    }
+    return Class_Init(klass);
 }
 
 namespace custom_types {
@@ -50,6 +60,8 @@ namespace custom_types {
         // Name is NOT copied, so should be a constant string
         // Check to see if an image with the given name already exists.
         // If it does, use that instead.
+        // TODO: WE NEED TO CREATE A non-null culture!
+        // That way il2cpp doesn't hard exit with our image
         std::string strName(name);
         auto itr = images.find(strName);
         if (itr != images.end()) {
@@ -71,6 +83,7 @@ namespace custom_types {
             il2cpp_functions::Init();
             logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
+            INSTALL_HOOK_DIRECT(Class_Init, (void*)il2cpp_functions::Class_Init);
             installed = true;
         }
     }
