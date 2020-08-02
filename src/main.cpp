@@ -94,7 +94,7 @@ Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
     return myType;
 }
 
-Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
+custom_types::ClassWrapper& createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
     auto myType = createMyType(-1 - customClasses.size());
     modLogger().info("Custom Type: %p", myType);
     if (baseClass) {
@@ -184,18 +184,17 @@ Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il
     type_info* info = new type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, nameSpace, name, baseClass);
     // custom_types::ClassWrapper wrapper(info);
     auto& wrapper = custom_types::Register::classes.emplace_back(info);
-    // TODO: !!! temporary !!!
-    delete wrapper.klass;
-    wrapper.klass = myClass;
-    customClasses.push_back(myClass);
-
-    return myClass;
+    wrapper.setupTypeHierarchy(baseClass);
+    return wrapper;
 }
 
-void createMethods(Il2CppClass* klass, std::vector<method_info*> methods) {
+void createMethods(custom_types::ClassWrapper& wrapper, std::vector<method_info*> methods) {
     // Maybe we need to manually add a Finalize method?
     // Maybe also foricbly add a ctor? If it wasn't provided?
     // TODO: Check the above
+    // wrapper.methods = methods;
+    // wrapper.populateMethods();
+    auto klass = wrapper.klass;
     klass->method_count = methods.size();
     klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
     // klass->methods[0] = createFinalizeMethod();
@@ -252,7 +251,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
     modLogger().debug("Getting GO...");
     auto* go = RET_V_UNLESS(il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
     modLogger().debug("Got GO: %p", go);
-    auto myClass = customClasses[0];
+    auto myClass = custom_types::Register::classes[0].get();
     auto* customType = il2cpp_utils::GetSystemType(myClass);
     modLogger().debug("Custom System.Type: %p", customType);
     auto* strType = RET_V_UNLESS(il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
@@ -286,9 +285,9 @@ extern "C" void load() {
     // TODO: Any more image setup?
     // TODO: Use type in creation of class
     static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
-    auto myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, img);
-    modLogger().info("Custom Class: %p", myClass);
-    modLogger().info("Custom Class name: %s", myClass->name);
+    auto& myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, img);
+    modLogger().info("Custom Class: %p", myClass.get());
+    // modLogger().info("Custom Class name: %s", myClass->name);
     // Create methods
     std::vector<method_info*> methods;
     // TODO: Create methods
@@ -309,7 +308,7 @@ extern "C" void load() {
     modLogger().info("Created custom monobehaviour!");
     // Now, we need to actually USE the new type somewhere. Preferrably, we make a new one via a call to AddComponent
     // TODO: Check to ensure that this doesn't invalidate our class/break il2cpp (it does)
-    logAll(myClass);
+    logAll((Il2CppClass*)myClass.get());
     logAll(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
     logAll(monoBehaviourClass);
     INSTALL_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 2));

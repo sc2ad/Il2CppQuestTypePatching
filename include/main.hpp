@@ -14,14 +14,14 @@ namespace custom_types {
         type_info* info;
         std::vector<field_info*> fields;
         std::vector<field_info*> staticFields;
-        std::vector<method_info*> methods;
 
-        void setupTypeHierarchy(Il2CppClass* base);
-        void populateMethods();
-        void populateFields();
         Il2CppType* createType(Il2CppTypeEnum typeE);
         public:
         Il2CppClass* klass;
+        std::vector<method_info*> methods;
+        void setupTypeHierarchy(Il2CppClass* base);
+        void populateMethods();
+        void populateFields();
         ClassWrapper(type_info* type);
         ClassWrapper(ClassWrapper&&) = default;
         ~ClassWrapper();
