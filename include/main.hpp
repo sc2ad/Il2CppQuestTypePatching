@@ -48,6 +48,7 @@ namespace custom_types {
         // Registers the type within the il2cpp domain
         template<typename T>
         static Il2CppClass* RegisterType() {
+            il2cpp_functions::Init();
             EnsureHooks();
             if constexpr (!::custom_types::has_get<::custom_types::name_registry<T>>) {
                 static_assert(false_t<T>, "Must have a DECLARE_ to start the type!");
