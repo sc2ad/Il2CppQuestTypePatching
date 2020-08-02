@@ -76,7 +76,7 @@ custom_types::ClassWrapper& createMyClass(std::string_view nameSpace, std::strin
     // modLogger().info("Custom Type: %p", myType);
     if (baseClass) {
         // Init our base class so we can grab a type hierarchy from it
-        il2cpp_functions::Class_Init(baseClass);
+        // il2cpp_functions::Class_Init(baseClass);
     }
     // auto myClass = reinterpret_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass)));
     // // Fill in the values of the class

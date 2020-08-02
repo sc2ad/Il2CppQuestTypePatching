@@ -5,6 +5,11 @@
 
 type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b) {
     typeEnum = typeE;
+    il2cpp_functions::Init();
+    logger().debug("Base class: %p", b ? b : nullptr);
+    if (b) {
+        il2cpp_functions::Class_Init(b);
+    }
     base = b;
     namespaze = std::string(ns);
     name = std::string(n);
