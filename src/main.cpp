@@ -72,92 +72,92 @@ Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
 }
 
 custom_types::ClassWrapper& createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
-    auto myType = createMyType(-1 - custom_types::Register::classes.size());
-    modLogger().info("Custom Type: %p", myType);
+    // auto myType = createMyType(-1 - custom_types::Register::classes.size());
+    // modLogger().info("Custom Type: %p", myType);
     if (baseClass) {
         // Init our base class so we can grab a type hierarchy from it
         il2cpp_functions::Class_Init(baseClass);
     }
-    auto myClass = reinterpret_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass)));
-    // Fill in the values of the class
-    // TODO: Create custom image
-    // FOr now, just copy it
-    myClass->image = img;
-    myClass->parent = baseClass;
+    // auto myClass = reinterpret_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass)));
+    // // Fill in the values of the class
+    // // TODO: Create custom image
+    // // FOr now, just copy it
+    // myClass->image = img;
+    // myClass->parent = baseClass;
     // Setup type hierarchy
-    if (myClass->parent) {
-        myClass->typeHierarchyDepth = baseClass->typeHierarchyDepth + 1;
-    } else {
-        myClass->typeHierarchyDepth = 1;
-    }
-    myClass->typeHierarchy = reinterpret_cast<Il2CppClass**>(calloc(myClass->typeHierarchyDepth, sizeof(Il2CppClass*)));
-    if (myClass->parent) {
-        myClass->typeHierarchy[myClass->typeHierarchyDepth - 1] = myClass;
-        memcpy(myClass->typeHierarchy, baseClass->typeHierarchy, baseClass->typeHierarchyDepth * sizeof(Il2CppClass*));
-    } else {
-        myClass->typeHierarchy[0] = myClass;
-    }
-    // TODO: Setup interfaces
-    // This is for arrays, we can safely assume we are not an array so set this to ourselves.
-    myClass->element_class = myClass;
-    // TODO: Determine more information from this
-    myClass->castClass = myClass;
-    // Pointer to self
-    myClass->klass = myClass;
-    // Unless the class is used in native code, this isn't necessary
-    myClass->native_size = -1;
-    // Actual size of the class
-    // TODO: This will change based off of fields, for now, we have no fields, so it should simply be baseClass size
-    myClass->actualSize = baseClass->actualSize;  // "actualSize is instance_size for compiler generated values"
-    myClass->instance_size = baseClass->instance_size;
-    myClass->interfaces_count = 0;
-    myClass->generic_class = nullptr;
+    // if (myClass->parent) {
+    //     myClass->typeHierarchyDepth = baseClass->typeHierarchyDepth + 1;
+    // } else {
+    //     myClass->typeHierarchyDepth = 1;
+    // }
+    // myClass->typeHierarchy = reinterpret_cast<Il2CppClass**>(calloc(myClass->typeHierarchyDepth, sizeof(Il2CppClass*)));
+    // if (myClass->parent) {
+    //     myClass->typeHierarchy[myClass->typeHierarchyDepth - 1] = myClass;
+    //     memcpy(myClass->typeHierarchy, baseClass->typeHierarchy, baseClass->typeHierarchyDepth * sizeof(Il2CppClass*));
+    // } else {
+    //     myClass->typeHierarchy[0] = myClass;
+    // }
+    // // TODO: Setup interfaces
+    // // This is for arrays, we can safely assume we are not an array so set this to ourselves.
+    // myClass->element_class = myClass;
+    // // TODO: Determine more information from this
+    // myClass->castClass = myClass;
+    // // Pointer to self
+    // myClass->klass = myClass;
+    // // Unless the class is used in native code, this isn't necessary
+    // myClass->native_size = -1;
+    // // Actual size of the class
+    // // TODO: This will change based off of fields, for now, we have no fields, so it should simply be baseClass size
+    // myClass->actualSize = baseClass->actualSize;  // "actualSize is instance_size for compiler generated values"
+    // myClass->instance_size = baseClass->instance_size;
+    // myClass->interfaces_count = 0;
+    // myClass->generic_class = nullptr;
 
-    // Pretend that the class has already been initialized
-    myClass->initialized = 1;
-    myClass->initialized_and_no_error = 1;
-    myClass->init_pending = 0;
-    myClass->has_initialization_error = 0;
-    myClass->size_inited = 1;
-    // TODO: Type Definition
-    myClass->typeDefinition = (Il2CppTypeDefinition*)0x12345678;
-    // myClass->typeDefinition = reinterpret_cast<Il2CppTypeDefinition*>(calloc(1, sizeof(Il2CppTypeDefinition)));
-    myClass->has_finalize = 0;
-    myClass->is_vtable_initialized = 1;
-    // TODO: For value types: myClass->valuetype
-    // Set name
-    myClass->name = name.data();
-    myClass->namespaze = nameSpace.data();
+    // // Pretend that the class has already been initialized
+    // myClass->initialized = 1;
+    // myClass->initialized_and_no_error = 1;
+    // myClass->init_pending = 0;
+    // myClass->has_initialization_error = 0;
+    // myClass->size_inited = 1;
+    // // TODO: Type Definition
+    // myClass->typeDefinition = (Il2CppTypeDefinition*)0x12345678;
+    // // myClass->typeDefinition = reinterpret_cast<Il2CppTypeDefinition*>(calloc(1, sizeof(Il2CppTypeDefinition)));
+    // myClass->has_finalize = 0;
+    // myClass->is_vtable_initialized = 1;
+    // // TODO: For value types: myClass->valuetype
+    // // Set name
+    // myClass->name = name.data();
+    // myClass->namespaze = nameSpace.data();
 
-    myClass->this_arg = *myType;
-    // TODO: Modify this for future usage where byval argument may not match this argument
-    myClass->byval_arg = *myType;
-    // TODO: Modify flags in the future
-    // For now, copy them from base class
-    myClass->flags = baseClass->flags;
-    // Method creation should happen around now
-    // TODO: Modify vtables in future, instead of copying from base vtable
-    myClass->vtable_count = baseClass->vtable_count;
-    for (auto i = 0; i < baseClass->vtable_count; i++) {
-        myClass->vtable[i] = baseClass->vtable[i];
-    }
-    // TODO: Support generic class creation
-    myClass->genericContainerIndex = kGenericContainerIndexInvalid;
-    // TODO: is this valid?
-    myClass->token = baseClass->token;
-    // modLogger().debug("Calling Class::SetupGCDescriptor");
-    // Class_SetupGCDescriptor(myClass);
-    // modLogger().debug("Finished calling SetupGCDescriptor!");
-    // TODO: Is this always 8?
-    myClass->minimumAlignment = 8;
-    myClass->naturalAligment = 8;
-    // TODO: Is this always 1?
-    myClass->genericRecursionDepth = 1;
-    myClass->thread_static_fields_offset = -1;
-    // I hope I don't have to set this...
-    myClass->unity_user_data = nullptr;
-    // I have references to UnityEngine::MonoBehaviour (different namespace)
-    myClass->has_references = 1;
+    // myClass->this_arg = *myType;
+    // // TODO: Modify this for future usage where byval argument may not match this argument
+    // myClass->byval_arg = *myType;
+    // // TODO: Modify flags in the future
+    // // For now, copy them from base class
+    // myClass->flags = baseClass->flags;
+    // // Method creation should happen around now
+    // // TODO: Modify vtables in future, instead of copying from base vtable
+    // myClass->vtable_count = baseClass->vtable_count;
+    // for (auto i = 0; i < baseClass->vtable_count; i++) {
+    //     myClass->vtable[i] = baseClass->vtable[i];
+    // }
+    // // TODO: Support generic class creation
+    // myClass->genericContainerIndex = kGenericContainerIndexInvalid;
+    // // TODO: is this valid?
+    // myClass->token = baseClass->token;
+    // // modLogger().debug("Calling Class::SetupGCDescriptor");
+    // // Class_SetupGCDescriptor(myClass);
+    // // modLogger().debug("Finished calling SetupGCDescriptor!");
+    // // TODO: Is this always 8?
+    // myClass->minimumAlignment = 8;
+    // myClass->naturalAligment = 8;
+    // // TODO: Is this always 1?
+    // myClass->genericRecursionDepth = 1;
+    // myClass->thread_static_fields_offset = -1;
+    // // I hope I don't have to set this...
+    // myClass->unity_user_data = nullptr;
+    // // I have references to UnityEngine::MonoBehaviour (different namespace)
+    // myClass->has_references = 1;
     type_info* info = new type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, nameSpace, name, baseClass);
     // custom_types::ClassWrapper wrapper(info);
     auto& wrapper = custom_types::Register::classes.emplace_back(info);
