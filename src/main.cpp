@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "macros.hpp"
 
 #include "extern/modloader/modloader.hpp"
 
@@ -38,6 +39,17 @@ void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void
     return nullptr;
 }
 
+DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
+    DECLARE_METHOD(void, Start);
+    REGISTER_FUNCTION(MyType,
+        REGISTER_METHOD(Start);
+    )
+)
+
+void Il2CppNamespace::MyType::Start() {
+    modLogger().info("Cool start called! Instance: %p", this);
+}
+
 // Custom Update function
 void UpdateFunction(Il2CppObject* self) {
     modLogger().info("Called Update! Instance: %p", self);
@@ -58,24 +70,6 @@ void Ctor(Il2CppObject* self) {
     modLogger().info("Called ctor! Instance: %p", self);
     // TODO: Maybe need to do more in our constructor than simply this?
     // Perhaps il2cpp wants us to actually call our base ctor?
-}
-
-Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
-    // Optimally, this would be replaced via a MetadataCalloc
-    auto myType = reinterpret_cast<Il2CppType*>(calloc(1, sizeof(Il2CppType)));
-    // TODO: For field flags/parameter flags?
-    // myType->attrs;
-    // TODO: Unclear if this is always the case
-    myType->byref = 0;
-    // TODO: Unclear if this is always the case
-    myType->num_mods = 0;
-    // TODO: Unclear if this is always the case
-    myType->pinned = 0;
-    // TODO: Change this for value types and other type enums
-    myType->type = Il2CppTypeEnum::IL2CPP_TYPE_CLASS;
-    // This should be a unique number, assigned when each new type is created.
-    myType->data.klassIndex = klassIndex;
-    return myType;
 }
 
 custom_types::ClassWrapper& createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
@@ -158,21 +152,18 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
 // This is where OFFSETLESS hooks must be installed.
 extern "C" void load() {
     il2cpp_functions::Init();
-    custom_types::Register::EnsureHooks();
     // INSTALL_HOOK_DIRECT(SetupGCDescriptor, (void*)Class_SetupGCDescriptor);
     // INSTALL_HOOK_DIRECT(IsSubclassOf, (void*)Class_IsSubclassOf);
     // Create custom monobehaviour
     modLogger().info("Attempting to create custom monobehaviour!");
-    auto img = custom_types::Register::createImage("CustomIl2CppImage");  // il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image
-    auto a = custom_types::Register::createAssembly("CustomIl2CppAssembly", img);
     // TODO: Any more image setup?
     // TODO: Use type in creation of class
-    static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
-    auto& myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, img);
-    modLogger().info("Custom Class: %p", myClass.get());
+    // static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
+    // auto& myClass = createMyClass("CustomIl2CppNamespace", "CustomType", monoBehaviourClass, img);
+    // modLogger().info("Custom Class: %p", myClass.get());
     // modLogger().info("Custom Class name: %s", myClass->name);
     // Create methods
-    std::vector<method_info*> methods;
+    // std::vector<method_info*> methods;
     // TODO: Create methods
     // createUpdateMethod(methods);
     // createStartMethod(methods);
@@ -182,18 +173,20 @@ extern "C" void load() {
     // We could grab it from our base type like so:
     // auto zeroArgInvoker = (void*)il2cpp_utils::FindMethod("", "AudioClipQueue", "Awake")->invoker_method;
     // Create an invoker method
-    modLogger().info("Invoker method: %p", invoke);
-    createAwakeMethod(methods, (void*)invoke);
-    createCtorMethod(methods, (void*)invoke);
-    createStartMethod(methods, (void*)invoke);
-    createUpdateMethod(methods, (void*)invoke);
-    createMethods(myClass, methods);
+    // modLogger().info("Invoker method: %p", invoke);
+    // createAwakeMethod(methods, (void*)invoke);
+    // createCtorMethod(methods, (void*)invoke);
+    // createStartMethod(methods, (void*)invoke);
+    // createUpdateMethod(methods, (void*)invoke);
+    // createMethods(myClass, methods);
     // Type should now be completely valid, and created!
     modLogger().info("Created custom monobehaviour!");
+    // Create second one!
+    auto myClass = custom_types::Register::RegisterType<Il2CppNamespace::MyType>();
     // Now, we need to actually USE the new type somewhere. Preferrably, we make a new one via a call to AddComponent
     // TODO: Check to ensure that this doesn't invalidate our class/break il2cpp (it does)
-    logAll((Il2CppClass*)myClass.get());
-    logAll(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
-    logAll(monoBehaviourClass);
+    logAll(myClass);
+    // logAll(il2cpp_utils::GetClassFromName("", "AudioClipQueue"));
+    // logAll(monoBehaviourClass);
     INSTALL_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 2));
 }

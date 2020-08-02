@@ -12,7 +12,7 @@ namespace custom_types {
         // klass->image = Register::createImage(info->namespaze);
         setupTypeHierarchy(info->base);
         // Grab image from our parent for now
-        klass->image = info->base->image;
+        klass->image = Register::createImage(info->namespaze);
         // Set name
         klass->name = info->name.c_str();
         klass->namespaze = info->namespaze.c_str();
