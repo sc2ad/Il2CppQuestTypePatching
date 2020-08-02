@@ -171,20 +171,6 @@ void createMethods(custom_types::ClassWrapper& wrapper, std::vector<method_info*
     // TODO: Check the above
     wrapper.methods = methods;
     wrapper.populateMethods();
-    // auto klass = wrapper.klass;
-    // klass->method_count = methods.size();
-    // klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
-    // // klass->methods[0] = createFinalizeMethod();
-    // for (auto i = 0; i < klass->method_count; i++) {
-    //     auto method = methods[i];
-    //     auto info = const_cast<MethodInfo*>(method->get());
-    //     auto def = reinterpret_cast<Il2CppMethodDefinition*>(calloc(1, sizeof(Il2CppMethodDefinition)));
-    //     info->methodDefinition = def;
-    //     info->klass = klass;
-    //     // TODO: Handle the method definition somehow
-    //     // TODO: Populate other fields as necessary
-    //     klass->methods[i] = info;
-    // }
 }
 
 void createUpdateMethod(std::vector<method_info*>& methods, void* invoker) {
