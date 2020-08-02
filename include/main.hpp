@@ -11,7 +11,6 @@ namespace custom_types {
         private:
         static TypeDefinitionIndex typeIdx;
 
-        Il2CppClass* klass;
         type_info* info;
         std::vector<field_info*> fields;
         std::vector<field_info*> staticFields;
@@ -22,6 +21,7 @@ namespace custom_types {
         void populateFields();
         Il2CppType* createType(Il2CppTypeEnum typeE);
         public:
+        Il2CppClass* klass;
         ClassWrapper(type_info* type);
         ClassWrapper(ClassWrapper&&) = default;
         ~ClassWrapper();

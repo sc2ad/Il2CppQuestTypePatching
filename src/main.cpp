@@ -181,6 +181,12 @@ Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il
     myClass->unity_user_data = nullptr;
     // I have references to UnityEngine::MonoBehaviour (different namespace)
     myClass->has_references = 1;
+    type_info* info = new type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, nameSpace, name, baseClass);
+    // custom_types::ClassWrapper wrapper(info);
+    auto& wrapper = custom_types::Register::classes.emplace_back(info);
+    // TODO: !!! temporary !!!
+    delete wrapper.klass;
+    wrapper.klass = myClass;
     customClasses.push_back(myClass);
 
     return myClass;
@@ -241,33 +247,6 @@ void createCtorMethod(std::vector<method_info*>& methods, void* invoker) {
     methods.push_back(methodInfo);
 }
 
-static bool crashNow = false;
-MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
-    // Runtime generated class
-    // modLogger().debug("FromIl2CppType called, type: %p", typ);
-    bool shouldBeOurs = false;
-    // klassIndex is only meaningful for these types
-    if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
-        shouldBeOurs = true;
-        // If the type matches our type
-        // TODO: Add a map for created classes here
-        auto idx = -1 - typ->data.klassIndex;
-        if (idx < customClasses.size()) {
-            modLogger().debug("Returning custom class with idx %i!", idx);
-            CRASH_UNLESS(!crashNow);
-            return customClasses[idx];
-        }
-    }
-    // Otherwise, return orig
-    auto klass = FromIl2CppType(typ);
-    if (shouldBeOurs) {
-        modLogger().debug("FromIl2CppType called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
-        il2cpp_utils::LogClass(klass, false);
-    }
-    // modLogger().debug("Class: %p", klass);
-    return klass;
-}
-
 MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, int activationType) {
     MainMenuViewController_DidActivate(self, firstActivation, activationType);
     modLogger().debug("Getting GO...");
@@ -297,15 +276,13 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
 // This is where OFFSETLESS hooks must be installed.
 extern "C" void load() {
     il2cpp_functions::Init();
-
+    custom_types::Register::EnsureHooks();
     // INSTALL_HOOK_DIRECT(SetupGCDescriptor, (void*)Class_SetupGCDescriptor);
     // INSTALL_HOOK_DIRECT(IsSubclassOf, (void*)Class_IsSubclassOf);
-    INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
     // Create custom monobehaviour
     modLogger().info("Attempting to create custom monobehaviour!");
-    auto img = createMyImage("CustomIl2CppImage");  // il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image
-    auto a = createMyAssembly(img, "CustomIl2CppAssembly");
-    img->assembly = a;
+    auto img = custom_types::Register::createImage("CustomIl2CppImage");  // il2cpp_utils::GetClassFromName("", "AudioClipQueue")->image
+    auto a = custom_types::Register::createAssembly("CustomIl2CppAssembly", img);
     // TODO: Any more image setup?
     // TODO: Use type in creation of class
     static auto monoBehaviourClass = il2cpp_utils::GetClassFromName("UnityEngine", "MonoBehaviour");
