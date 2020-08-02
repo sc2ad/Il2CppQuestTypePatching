@@ -186,7 +186,7 @@ Il2CppClass* createMyClass(std::string_view nameSpace, std::string_view name, Il
     return myClass;
 }
 
-void createMethods(Il2CppClass* klass, std::vector<method_info_t> methods) {
+void createMethods(Il2CppClass* klass, std::vector<method_info*> methods) {
     // Maybe we need to manually add a Finalize method?
     // Maybe also foricbly add a ctor? If it wasn't provided?
     // TODO: Check the above
@@ -195,73 +195,49 @@ void createMethods(Il2CppClass* klass, std::vector<method_info_t> methods) {
     // klass->methods[0] = createFinalizeMethod();
     for (auto i = 0; i < klass->method_count; i++) {
         auto method = methods[i];
-        auto info = reinterpret_cast<MethodInfo*>(calloc(1, sizeof(MethodInfo)));
-        info->return_type = method.returnType;
-        info->methodPointer = (Il2CppMethodPointer)method.function;
-        info->invoker_method = reinterpret_cast<InvokerMethod>(method.invoker_function);
-        info->parameters_count = method.parameterCount;
-        info->parameters = method.parameters;
-        info->slot = kInvalidIl2CppMethodSlot;
+        auto info = const_cast<MethodInfo*>(method->get());
         auto def = reinterpret_cast<Il2CppMethodDefinition*>(calloc(1, sizeof(Il2CppMethodDefinition)));
-        // TODO: Handle the method definition somehow
         info->methodDefinition = def;
-        info->flags = method.flags;
-        info->name = method.name;
         info->klass = klass;
+        // TODO: Handle the method definition somehow
         // TODO: Populate other fields as necessary
         klass->methods[i] = info;
     }
 }
 
-void createUpdateMethod(std::vector<method_info_t>& methods, void* invoker) {
-    method_info_t methodInfo;
-    methodInfo.name = "Update";
-    methodInfo.invoker_function = invoker;
-    methodInfo.parameterCount = 0;
+void createUpdateMethod(std::vector<method_info*>& methods, void* invoker) {
     RET_V_UNLESS(il2cpp_functions::defaults->void_class);
-    methodInfo.returnType = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
-    methodInfo.parameters = reinterpret_cast<ParameterInfo*>(calloc(1, sizeof(ParameterInfo)));;
-    methodInfo.flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
-    methodInfo.function = (void*)UpdateFunction;
+    auto ret = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
+    std::vector<ParameterInfo> params;
+    uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
+    method_info* methodInfo = new method_info("Update", (void*)UpdateFunction, (InvokerMethod)invoker, ret, params, flags);
     methods.push_back(methodInfo);
 }
 
-void createAwakeMethod(std::vector<method_info_t>& methods, void* invoker) {
-    method_info_t methodInfo;
-    methodInfo.name = "Awake";
-    methodInfo.invoker_function = invoker;
-    methodInfo.parameterCount = 0;
+void createAwakeMethod(std::vector<method_info*>& methods, void* invoker) {
     RET_V_UNLESS(il2cpp_functions::defaults->void_class);
-    methodInfo.returnType = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
-    methodInfo.parameters = reinterpret_cast<ParameterInfo*>(calloc(1, sizeof(ParameterInfo)));
-    methodInfo.flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
-    methodInfo.function = (void*)AwakeFunction;
+    auto ret = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
+    std::vector<ParameterInfo> params;
+    uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
+    method_info* methodInfo = new method_info("Awake", (void*)AwakeFunction, (InvokerMethod)invoker, ret, params, flags);
     methods.push_back(methodInfo);
 }
 
-void createStartMethod(std::vector<method_info_t>& methods, void* invoker) {
-    method_info_t methodInfo;
-    methodInfo.name = "Start";
-    methodInfo.invoker_function = invoker;
-    methodInfo.parameterCount = 0;
+void createStartMethod(std::vector<method_info*>& methods, void* invoker) {
     RET_V_UNLESS(il2cpp_functions::defaults->void_class);
-    methodInfo.returnType = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
-    methodInfo.parameters = reinterpret_cast<ParameterInfo*>(calloc(1, sizeof(ParameterInfo)));;
-    methodInfo.flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
-    methodInfo.function = (void*)StartFunction;
+    auto ret = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
+    std::vector<ParameterInfo> params;
+    uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG;
+    method_info* methodInfo = new method_info("Start", (void*)StartFunction, (InvokerMethod)invoker, ret, params, flags);
     methods.push_back(methodInfo);
 }
 
-void createCtorMethod(std::vector<method_info_t>& methods, void* invoker) {
-    method_info_t methodInfo;
-    methodInfo.name = ".ctor";
-    methodInfo.invoker_function = invoker;
-    methodInfo.parameterCount = 0;
-    // Constructors have void return type
-    methodInfo.returnType = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
-    methodInfo.parameters = reinterpret_cast<ParameterInfo*>(calloc(1, sizeof(ParameterInfo)));
-    methodInfo.flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME;
-    methodInfo.function = (void*)Ctor;
+void createCtorMethod(std::vector<method_info*>& methods, void* invoker) {
+    RET_V_UNLESS(il2cpp_functions::defaults->void_class);
+    auto ret = const_cast<Il2CppType*>(il2cpp_functions::class_get_type(il2cpp_functions::defaults->void_class));
+    std::vector<ParameterInfo> params;
+    uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME;
+    method_info* methodInfo = new method_info(".ctor", (void*)Ctor, (InvokerMethod)invoker, ret, params, flags);
     methods.push_back(methodInfo);
 }
 
@@ -337,7 +313,7 @@ extern "C" void load() {
     modLogger().info("Custom Class: %p", myClass);
     modLogger().info("Custom Class name: %s", myClass->name);
     // Create methods
-    std::vector<method_info_t> methods;
+    std::vector<method_info*> methods;
     // TODO: Create methods
     // createUpdateMethod(methods);
     // createStartMethod(methods);
