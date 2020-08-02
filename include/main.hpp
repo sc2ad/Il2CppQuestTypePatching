@@ -10,6 +10,7 @@ namespace custom_types {
         friend Register;
         private:
         static TypeDefinitionIndex typeIdx;
+        Il2CppClass* klass;
 
         type_info* info;
         std::vector<field_info*> fields;
@@ -17,7 +18,6 @@ namespace custom_types {
 
         Il2CppType* createType(Il2CppTypeEnum typeE);
         public:
-        Il2CppClass* klass;
         std::vector<method_info*> methods;
         void setupTypeHierarchy(Il2CppClass* base);
         void populateMethods();

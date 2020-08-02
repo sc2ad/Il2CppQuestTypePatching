@@ -31,10 +31,6 @@ extern "C" void setup(ModInfo& info)
     modLogger().info("Leaving setup!");
 }
 
-static Il2CppAssembly* myAsm;
-static Il2CppImage* myImage;
-static std::vector<Il2CppClass*> customClasses{};
-
 // Custom Update function
 void UpdateFunction(Il2CppObject* self) {
     modLogger().info("Called Update! Instance: %p", self);
@@ -57,25 +53,6 @@ void Ctor(Il2CppObject* self) {
     // Perhaps il2cpp wants us to actually call our base ctor?
 }
 
-// After being created and attached to an image, the image must also be attached to the assembly.
-Il2CppAssembly* createMyAssembly(Il2CppImage* image, std::string_view name) {
-    myAsm = reinterpret_cast<Il2CppAssembly*>(calloc(1, sizeof(Il2CppAssembly)));
-    myAsm->image = image;
-    // Name doesn't need to be allocated on heap
-    // Name MAY need to be copied, however.
-    myAsm->aname.name = name.data();
-    return myAsm;
-}
-
-Il2CppImage* createMyImage(std::string_view name) {
-    myImage = reinterpret_cast<Il2CppImage*>(calloc(1, sizeof(Il2CppImage)));
-    myImage->name = name.data();
-    myImage->nameNoExt = name.data();
-    myImage->dynamic = 1;
-    // TODO: Unclear if the rest of myImage is necessary or even useful!
-    return myImage;
-}
-
 Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
     // Optimally, this would be replaced via a MetadataCalloc
     auto myType = reinterpret_cast<Il2CppType*>(calloc(1, sizeof(Il2CppType)));
@@ -95,7 +72,7 @@ Il2CppType* createMyType(TypeDefinitionIndex klassIndex) {
 }
 
 custom_types::ClassWrapper& createMyClass(std::string_view nameSpace, std::string_view name, Il2CppClass* baseClass, const Il2CppImage* img) {
-    auto myType = createMyType(-1 - customClasses.size());
+    auto myType = createMyType(-1 - custom_types::Register::classes.size());
     modLogger().info("Custom Type: %p", myType);
     if (baseClass) {
         // Init our base class so we can grab a type hierarchy from it
@@ -192,22 +169,22 @@ void createMethods(custom_types::ClassWrapper& wrapper, std::vector<method_info*
     // Maybe we need to manually add a Finalize method?
     // Maybe also foricbly add a ctor? If it wasn't provided?
     // TODO: Check the above
-    // wrapper.methods = methods;
-    // wrapper.populateMethods();
-    auto klass = wrapper.klass;
-    klass->method_count = methods.size();
-    klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
-    // klass->methods[0] = createFinalizeMethod();
-    for (auto i = 0; i < klass->method_count; i++) {
-        auto method = methods[i];
-        auto info = const_cast<MethodInfo*>(method->get());
-        auto def = reinterpret_cast<Il2CppMethodDefinition*>(calloc(1, sizeof(Il2CppMethodDefinition)));
-        info->methodDefinition = def;
-        info->klass = klass;
-        // TODO: Handle the method definition somehow
-        // TODO: Populate other fields as necessary
-        klass->methods[i] = info;
-    }
+    wrapper.methods = methods;
+    wrapper.populateMethods();
+    // auto klass = wrapper.klass;
+    // klass->method_count = methods.size();
+    // klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
+    // // klass->methods[0] = createFinalizeMethod();
+    // for (auto i = 0; i < klass->method_count; i++) {
+    //     auto method = methods[i];
+    //     auto info = const_cast<MethodInfo*>(method->get());
+    //     auto def = reinterpret_cast<Il2CppMethodDefinition*>(calloc(1, sizeof(Il2CppMethodDefinition)));
+    //     info->methodDefinition = def;
+    //     info->klass = klass;
+    //     // TODO: Handle the method definition somehow
+    //     // TODO: Populate other fields as necessary
+    //     klass->methods[i] = info;
+    // }
 }
 
 void createUpdateMethod(std::vector<method_info*>& methods, void* invoker) {
