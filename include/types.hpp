@@ -7,6 +7,7 @@
 #include <string_view>
 #include <memory>
 #include <vector>
+#include "logging.hpp"
 
 struct Il2CppType;
 struct ParameterInfo;
@@ -155,8 +156,6 @@ namespace custom_types {
         }
     };
 
-    void* allocate(std::size_t size);
-
     // These concepts originally created by DaNike, modifications made by Sc2ad
     template<typename>
     struct invoker_creator {};
@@ -175,12 +174,16 @@ namespace custom_types {
             if constexpr (std::is_pointer_v<Q>) {
                 return reinterpret_cast<void*>(std::forward<Q>(thing));
             } else {
-                // For now, we will fail a static_assert here to force people to use non-primitive returns
-                // We can't actually have a static assert, sooooo do the following as usual
-                // allocate simply returns nullptr.
-                auto mem = allocate(sizeof(Q));
-                new(mem) Q(std::forward<Q>(thing));
-                return mem;
+                // We SHOULD simply be able to grab the class and box our result
+                // Once boxed, we should just be able to return without any issue
+                // I DO wonder if our invoke functions miss registration with GC...
+                auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
+                if (!klass) {
+                    logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
+                    return nullptr;
+                }
+                il2cpp_functions::Init();
+                return static_cast<void*>(il2cpp_functions::value_box(klass, thing));
             }
         }
     };

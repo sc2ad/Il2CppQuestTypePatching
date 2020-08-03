@@ -15,11 +15,6 @@ type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view
     name = std::string(n);
 }
 
-// type_info::~type_info() {
-//     logger().debug("Deleting type_info!");
-//     logger().debug("This would invalidate type namespace and name, this shouldn't happen!");
-// }
-
 field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs) {
     // Create FieldInfo*
     info = FieldInfo{};
@@ -38,13 +33,6 @@ field_info::field_info(std::string_view name, const Il2CppType* type, int32_t of
     info.token = -1;
 }
 
-// field_info::~field_info() {
-//     logger().debug("Deleting field_info!");
-//     logger().debug("This shouldn't happen!");
-//     // logger().debug("Deleting field_info.Il2CppType! Ptr: %p", info.type);
-//     // delete info.type;
-// }
-
 method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
     // Create MethodInfo*
     info = new MethodInfo();
@@ -61,19 +49,4 @@ method_info::method_info(std::string_view name, void* func, InvokerMethod invoke
     info->flags = flags;
     info->slot = kInvalidIl2CppMethodSlot;
     // TODO: set more data on method, perhaps pass in less?
-}
-
-// method_info::~method_info() {
-//     logger().debug("Deleting method_info!");
-//     logger().debug("This would invalidate our params vector, this call shouldn't happen!");
-//     // logger().debug("Deleting method_info! Ptr: %p", info);
-//     // delete info;
-// }
-
-void* ::custom_types::allocate(std::size_t size) {
-    // Allocate using il2cpp
-    // This is a bit tricky since we want to ensure il2cpp cleans up after we are done
-    // This is specifically for value types and primitives
-    // since reference types should be created via il2cpp_utils::New and returned.
-    return nullptr;
 }
