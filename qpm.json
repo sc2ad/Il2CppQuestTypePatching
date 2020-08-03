@@ -5,8 +5,11 @@
     "name": "CustomTypes",
     "id": "CustomTypes",
     "version": "0.1.0",
-    "url": null,
-    "additionalData": {}
+    "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
+    "additionalData": {
+      "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
+      "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so"
+    }
   },
   "dependencies": [
     {

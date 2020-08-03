@@ -1,3 +1,6 @@
+// If LOCAL_TEST is defined, create a mod that uses custom types.
+// Otherwise, it will be built as a library.
+#ifdef LOCAL_TEST
 #include "register.hpp"
 #include "macros.hpp"
 #include "modloader/modloader.hpp"
@@ -98,3 +101,4 @@ extern "C" void load() {
     // logAll(k->parent);
     modLogger().debug("Custom types size: %u", custom_types::Register::classes.size());
 }
+#endif
