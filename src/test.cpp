@@ -1,4 +1,5 @@
 #include "main.hpp"
+#include "macros.hpp"
 #include "modloader/modloader.hpp"
 #include "beatsaber-hook/shared/utils/logging.hpp"
 #include "beatsaber-hook/shared/utils/utils.h"
@@ -17,9 +18,9 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
     // DECLARE_INSTANCE_FIELD(int, x);
     // DECLARE_INSTANCE_FIELD(Vector3, y);
 
-    // DECLARE_METHOD(void, Start);
+    DECLARE_METHOD(void, Start);
 
-    // DECLARE_METHOD(static void, Test, int x, float y);
+    DECLARE_METHOD(static void, Test, int x, float y);
 
     // At the moment, it will not function if primitive/non-pointer return types are returned
     // For now, please stick with `void` or `Il2CppObject*` and allocate them yourself before returning.
@@ -31,16 +32,16 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
         modLogger().debug("Registering MyType!");
         // REGISTER_FIELD(x);
         // REGISTER_FIELD(y);
-        // REGISTER_METHOD(Start);
-        // REGISTER_METHOD(Test);
+        REGISTER_METHOD(Start);
+        REGISTER_METHOD(Test);
         // REGISTER_METHOD(asdf);
         // REGISTER_METHOD(asdf);
     )
 )
 
-// void Il2CppNamespace::MyType::Start() {
-//     modLogger().debug("Called Il2CppNamespace::MyType::Start!");
-// }
+void Il2CppNamespace::MyType::Start() {
+    modLogger().debug("Called Il2CppNamespace::MyType::Start!");
+}
 
 // int Il2CppNamespace::MyType::asdf(int q) {
     
@@ -54,9 +55,9 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
 //     return nullptr;
 // }
 
-// void Il2CppNamespace::MyType::Test(int x, float y) {
-//     modLogger().debug("Called Il2CppNamespace::MyType::Test!");
-// }
+void Il2CppNamespace::MyType::Test(int x, float y) {
+    modLogger().debug("Called Il2CppNamespace::MyType::Test!");
+}
 
 static Il2CppClass* klass;
 

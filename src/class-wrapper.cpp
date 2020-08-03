@@ -12,7 +12,7 @@ namespace custom_types {
         // klass->image = Register::createImage(info->namespaze);
         setupTypeHierarchy(info->base);
         // Grab image from our parent for now
-        klass->image = info->base->image;
+        klass->image = Register::createImage(info->namespaze);
         // Set name
         klass->name = info->name.c_str();
         klass->namespaze = info->namespaze.c_str();
@@ -80,20 +80,17 @@ namespace custom_types {
     }
 
     // Setup type hierarchy using base class
-    void ClassWrapper::setupTypeHierarchy(Il2CppClass* base) {
-        klass->parent = base;
-        if (base) {
-            il2cpp_functions::Init();
-            // Initialize base class so we can grab type hierarchy from it
-            il2cpp_functions::Class_Init(base);
-            klass->typeHierarchyDepth = base->typeHierarchyDepth + 1;
+    void ClassWrapper::setupTypeHierarchy(Il2CppClass* baseClass) {
+        klass->parent = baseClass;
+        if (klass->parent) {
+            klass->typeHierarchyDepth = baseClass->typeHierarchyDepth + 1;
         } else {
             klass->typeHierarchyDepth = 1;
         }
         klass->typeHierarchy = reinterpret_cast<Il2CppClass**>(calloc(klass->typeHierarchyDepth, sizeof(Il2CppClass*)));
-        if (base) {
+        if (klass->parent) {
             klass->typeHierarchy[klass->typeHierarchyDepth - 1] = klass;
-            memcpy(klass->typeHierarchy, base->typeHierarchy, base->typeHierarchyDepth * sizeof(Il2CppClass*));
+            memcpy(klass->typeHierarchy, baseClass->typeHierarchy, baseClass->typeHierarchyDepth * sizeof(Il2CppClass*));
         } else {
             klass->typeHierarchy[0] = klass;
         }

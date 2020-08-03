@@ -2,7 +2,7 @@
 #include "beatsaber-hook/shared/utils/typedefs.h"
 
 const Logger& logger() {
-    static const Logger logger("CustomTypes");
+    static const Logger logger("CustomTypes|" VERSION);
     return logger;
 }
 

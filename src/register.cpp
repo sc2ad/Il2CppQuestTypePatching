@@ -24,14 +24,6 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     return klass;
 }
 
-MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
-    if ((klass->this_arg.type == IL2CPP_TYPE_CLASS || klass->this_arg.type == IL2CPP_TYPE_VALUETYPE) && klass->this_arg.data.klassIndex < 0) {
-        logger().debug("Returning from Class::Init early!");
-        return true;
-    }
-    return Class_Init(klass);
-}
-
 namespace custom_types {
     std::unordered_map<std::string, Il2CppAssembly*> Register::assembs;
     std::unordered_map<std::string, Il2CppImage*> Register::images;
@@ -83,7 +75,6 @@ namespace custom_types {
             il2cpp_functions::Init();
             logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
-            INSTALL_HOOK_DIRECT(Class_Init, (void*)il2cpp_functions::Class_Init);
             installed = true;
         }
     }
