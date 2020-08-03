@@ -1,10 +1,10 @@
-#include "main.hpp"
+#include "register.hpp"
 #include "macros.hpp"
 #include "modloader/modloader.hpp"
-#include "beatsaber-hook/shared/utils/logging.hpp"
-#include "beatsaber-hook/shared/utils/utils.h"
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/utils/logging.hpp"
+#include "beatsaber-hook/utils/utils.h"
+#include "beatsaber-hook/utils/il2cpp-functions.hpp"
+#include "beatsaber-hook/utils/il2cpp-utils.hpp"
 
 ModInfo modInfo;
 
@@ -22,9 +22,7 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
 
     DECLARE_METHOD(static void, Test, int x, float y);
 
-    // At the moment, it will not function if primitive/non-pointer return types are returned
-    // For now, please stick with `void` or `Il2CppObject*` and allocate them yourself before returning.
-    // DECLARE_METHOD(int, asdf, int q);
+    DECLARE_METHOD(int, asdf, int q);
 
     // DECLARE_METHOD(Il2CppObject*, asdf, int z);
 
@@ -34,18 +32,24 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
         // REGISTER_FIELD(y);
         REGISTER_METHOD(Start);
         REGISTER_METHOD(Test);
-        // REGISTER_METHOD(asdf);
+        REGISTER_METHOD(asdf);
         // REGISTER_METHOD(asdf);
     )
 )
 
 void Il2CppNamespace::MyType::Start() {
     modLogger().debug("Called Il2CppNamespace::MyType::Start!");
+    modLogger().debug("Return of asdf(1): %u", asdf(1));
+    // Runtime invoke it.
+    // We ARE NOT able to call GetClassFromName.
+    // This is because our class name is NOT in the nameToClassHashTable
+    // However, we ARE able to get our Il2CppClass* via the klass private static field of this type.
+    modLogger().debug("klass: %p", klass);
 }
 
-// int Il2CppNamespace::MyType::asdf(int q) {
-    
-// }
+int Il2CppNamespace::MyType::asdf(int q) {
+    return q + 1;
+}
 
 // Il2CppObject* Il2CppNamespace::MyType::asdf(int z) {
 //     modLogger().debug("Called Il2CppNamespace::MyType::asdf!");
@@ -70,20 +74,20 @@ extern "C" void setup(ModInfo& info) {
 
 MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, int activationType) {
     MainMenuViewController_DidActivate(self, firstActivation, activationType);
-    logger().debug("Getting GO...");
+    modLogger().debug("Getting GO...");
     auto* go = RET_V_UNLESS(il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
-    logger().debug("Got GO: %p", go);
+    modLogger().debug("Got GO: %p", go);
     auto* customType = il2cpp_utils::GetSystemType(klass);
-    logger().debug("Custom System.Type: %p", customType);
+    modLogger().debug("Custom System.Type: %p", customType);
     auto* strType = RET_V_UNLESS(il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
-    logger().debug("ToString: %s", to_utf8(csstrtostr(strType)).data());
+    modLogger().debug("ToString: %s", to_utf8(csstrtostr(strType)).data());
     auto* name = RET_V_UNLESS(il2cpp_utils::GetPropertyValue<Il2CppString*>(customType, "Name"));
-    logger().debug("Name: %s", to_utf8(csstrtostr(name)).c_str());
-    logger().debug("Actual type: %p", &klass->byval_arg);
-    logger().debug("Type: %p", customType->type);
+    modLogger().debug("Name: %s", to_utf8(csstrtostr(name)).c_str());
+    modLogger().debug("Actual type: %p", &klass->byval_arg);
+    modLogger().debug("Type: %p", customType->type);
     // crashNow = true;
     auto* comp = RET_V_UNLESS(il2cpp_utils::RunMethod(go, "AddComponent", customType));
-    logger().debug("Custom Type added as a component: %p", comp);
+    modLogger().debug("Custom Type added as a component: %p", comp);
 }
 
 extern "C" void load() {

@@ -1,0 +1,23 @@
+{
+  "sharedDir": "shared",
+  "dependenciesDir": "extern",
+  "info": {
+    "name": "CustomTypes",
+    "id": "CustomTypes",
+    "version": "0.1.0",
+    "url": null,
+    "additionalData": {}
+  },
+  "dependencies": [
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^0.3.3",
+      "additionalData": {
+        "extraFiles": [
+          "src/inline-hook"
+        ]
+      }
+    }
+  ],
+  "additionalData": {}
+}

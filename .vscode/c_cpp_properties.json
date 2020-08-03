@@ -1,24 +1,27 @@
 {
-    "configurations": [
-        {
-            "name": "Quest",
-            "defines": [
-                "ID=\"CustomTypesTest\"",
-                "VERSION=\"0.1.0\"",
-                "__GNUC__",
-                "__aarch64__"
-            ],
-            "includePath": [
-                "${workspaceFolder}/**",
-                "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp",
-                "c:/android-ndk-r20b/**",
-                "${workspaceFolder}/include",
-                "${workspaceFolder}/extern"
-            ],
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "clang-x64"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "defines": [
+        "ID=\"CustomTypes\"",
+        "VERSION=\"0.1.0\"",
+        "__GNUC__",
+        "__aarch64__",
+        "NEED_UNSAFE_CSHARP",
+        "UNITY_2019"
+      ],
+      "includePath": [
+        "${workspaceFolder}/**",
+        "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp",
+        "c:/android-ndk-r20b/**",
+        "${workspaceFolder}/include",
+        "${workspaceFolder}/extern",
+        "${workspaceFolder}/shared"
+      ],
+      "name": "Quest",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "clang-x64"
+    }
+  ],
+  "version": 4
 }

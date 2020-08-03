@@ -1,24 +1,24 @@
-#include "main.hpp"
+#include "register.hpp"
 #include "logging.hpp"
 
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
-    // logger().debug("FromIl2CppType: %p", typ);
+    // _logger().debug("FromIl2CppType: %p", typ);
     bool shouldBeOurs = false;
     // klassIndex is only meaningful for these types
     if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
         shouldBeOurs = true;
         // If the type matches our type
         auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
-        logger().debug("custom idx: %u for type: %p", idx, typ);
+        ::custom_types::_logger().debug("custom idx: %u for type: %p", idx, typ);
         if (idx < ::custom_types::Register::classes.size()) {
-            logger().debug("Returning custom class with idx %i!", idx);
+            ::custom_types::_logger().debug("Returning custom class with idx %i!", idx);
             return const_cast<Il2CppClass*>(::custom_types::Register::classes[idx].get());
         }
     }
     // Otherwise, return orig
     auto klass = FromIl2CppType(typ);
     if (shouldBeOurs) {
-        logger().debug("FromIl2CppType called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
+        ::custom_types::_logger().debug("FromIl2CppType called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
         il2cpp_utils::LogClass(klass, false);
     }
     return klass;
@@ -44,7 +44,7 @@ namespace custom_types {
         img->assembly = assemb;
         assemb->aname.name = name.data();
         assembs.insert({strName, assemb});
-        logger().debug("Created new assembly: %s, %p", name.data(), assemb);
+        _logger().debug("Created new assembly: %s, %p", name.data(), assemb);
         return assemb;
     }
 
@@ -66,14 +66,14 @@ namespace custom_types {
         img->assembly = createAssembly(name, img);
         // TODO: Unclear if more is required
         images.insert({strName, img});
-        logger().debug("Created new image: %s, %p", name.data(), img);
+        _logger().debug("Created new image: %s, %p", name.data(), img);
         return img;
     }
 
     void Register::EnsureHooks() {
         if (!installed) {
             il2cpp_functions::Init();
-            logger().debug("Installing FromIl2CppType hook...");
+            _logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
             installed = true;
         }

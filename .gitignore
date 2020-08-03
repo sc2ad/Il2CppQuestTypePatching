@@ -43,3 +43,7 @@ out/
 [Oo]bjs/
 ndkpath.txt
 *.zip
+
+qpm.lock.json
+extern/
+*.backup

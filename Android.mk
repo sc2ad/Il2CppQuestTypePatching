@@ -22,17 +22,19 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := beatsaber-hook
-LOCAL_CPP_FEATURES := rtti
+LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook/shared
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_0_3_2.so
 LOCAL_EXPORT_CFLAGS := -DNEED_UNSAFE_CSHARP -DUNITY_2019
-LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook/shared
+LOCAL_CPP_FEATURES += rtti
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
-LOCAL_LDLIBS     := -llog
-LOCAL_CFLAGS     := -std=c++2a -O3 -isystem "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp" -isystem"./extern" -I"./include" -D"ID=\"CustomTypesTest\"" -D"VERSION=\"0.1.0\""
-LOCAL_MODULE     := typepatching
-LOCAL_C_INCLUDES := ./include ./src
-LOCAL_SHARED_LIBRARIES := beatsaber-hook modloader # il2cpp-codegen
-LOCAL_SRC_FILES  += $(call rwildcard,src/,*.cpp)
+LOCAL_MODULE := typepatching
+LOCAL_SRC_FILES := $(call rwildcard,src/,*.cpp)
+LOCAL_SHARED_LIBRARIES += beatsaber-hook
+LOCAL_SHARED_LIBRARIES += modloader
+LOCAL_LDLIBS += -llog
+LOCAL_CPP_FLAGS += -Wall -Werror
+LOCAL_CFLAGS += -std=c++2a -O3 -isystem "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"CustomTypesTest\"" -D"VERSION=\"0.1.0\"" -I'./shared' -I'./extern'
+LOCAL_C_INCLUDES += ./include ./src
 include $(BUILD_SHARED_LIBRARY)

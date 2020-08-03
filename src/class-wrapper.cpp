@@ -1,4 +1,5 @@
-#include "main.hpp"
+#include "types.hpp"
+#include "register.hpp"
 #include "logging.hpp"
 
 namespace custom_types {
@@ -67,16 +68,18 @@ namespace custom_types {
     }
 
     ClassWrapper::~ClassWrapper() {
-        logger().debug("Tried to delete class wrapper, but instead we are NOT deleting it!");
         // We need to delete info, all of the fields, methods, typeHierarchy, staticFields
 
-        // logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
-        // delete klass->typeHierarchy;
-        // logger().debug("Deleting Il2CppClass*! Ptr: %p", klass);
-        // delete klass;
-        // fields.clear();
-        // staticFields.clear();
-        // methods.clear();
+        _logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
+        delete klass->typeHierarchy;
+        _logger().debug("Deleting Il2CppClass*! Ptr: %p", klass);
+        delete klass;
+        _logger().debug("Deleting fields...");
+        fields.clear();
+        _logger().debug("Deleting static fields...");
+        staticFields.clear();
+        _logger().debug("Deleting methods...");
+        methods.clear();
     }
 
     // Setup type hierarchy using base class

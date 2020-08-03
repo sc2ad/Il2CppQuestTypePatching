@@ -1,8 +1,9 @@
 #pragma once
 #include <dlfcn.h>
-#include "../extern/beatsaber-hook/shared/utils/utils.h"
-#include "../extern/beatsaber-hook/shared/utils/il2cpp-functions.hpp"
-#include "../extern/beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/utils/utils.h"
+#include "beatsaber-hook/utils/il2cpp-functions.hpp"
+#include "beatsaber-hook/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/utils/typedefs.h"
 #include <utility>
 #include <string_view>
 #include <memory>
@@ -18,57 +19,111 @@ struct MethodInfo;
 namespace custom_types {
     class Register;
     class ClassWrapper;
-}
 
-struct type_info {
-    friend ::custom_types::Register;
-    friend ::custom_types::ClassWrapper;
-    private:
-    Il2CppTypeEnum typeEnum;
-    Il2CppClass* base;
-    std::string namespaze;
-    std::string name;
-    public:
-    type_info(type_info&&) = default;
-    type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b);
-    ~type_info() = delete;
-};
+    /// @struct A wrapper around information necessary to create an Il2CppClass*
+    struct type_info {
+        friend Register;
+        friend ClassWrapper;
+        private:
+        Il2CppTypeEnum typeEnum;
+        Il2CppClass* base;
+        std::string namespaze;
+        std::string name;
+        public:
+        /// @brief Copy constructor.
+        type_info(type_info&&) = default;
+        /// @brief Construct a type_info from some information.
+        /// @param typeE Il2CppTypeEnum to use for creating the type.
+        /// @param ns Namespace of the type to create.
+        /// @param n Name of the type to create.
+        /// @param b Base Il2CppClass* to use as parent.
+        type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b);
+        ~type_info() = delete;
+    };
 
-struct method_info {
-    friend ::custom_types::Register;
-    friend ::custom_types::ClassWrapper;
-    private:
-    std::vector<ParameterInfo> params;
-    MethodInfo* info;
-    constexpr void setClass(Il2CppClass* klass) const {
-        info->klass = klass;
-    }
-    public:
-    // TODO: Figure out a way to dynamically get the invoker_function
-    method_info(method_info&&) = default;
-    method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags);
-    ~method_info() = delete;
-    constexpr const MethodInfo* get() const {
-        return info;
-    }
-};
+    /// @struct A wrapper around information necessary to create a MethodInfo*
+    struct method_info {
+        friend Register;
+        friend ClassWrapper;
+        private:
+        std::vector<ParameterInfo> params;
+        MethodInfo* info;
+        constexpr void setClass(Il2CppClass* klass) const {
+            info->klass = klass;
+        }
+        public:
+        /// @brief Copy constructor.
+        method_info(method_info&&) = default;
+        /// @brief Construct a method_info from some information.
+        /// @param name The name of the method to create.
+        /// @param func The method pointer to use when creating the method.
+        /// @param invoker The invoker method to use when creating the method.
+        /// @param returnType The return type of the method to create.
+        /// @param parameters The parameters of the method to create.
+        /// @param flags The flags to use when creating the method.
+        method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags);
+        ~method_info() = delete;
+        /// @brief Get the MethodInfo* wrapped by this type.
+        /// @return The MethodInfo*
+        constexpr const MethodInfo* get() const {
+            return info;
+        }
+    };
 
-struct field_info {
-    friend ::custom_types::Register;
-    friend ::custom_types::ClassWrapper;
-    private:
-    FieldInfo info;
-    public:
-    // Offset obtained via macro, as are fieldAttrs
-    field_info(field_info&&) = default;
-    field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs);
-    ~field_info() = delete;
-    constexpr const FieldInfo get() const {
-        return info;
-    }
-};
+    /// @struct A wrapper around information necessary to create a FieldInfo
+    struct field_info {
+        friend Register;
+        friend ClassWrapper;
+        private:
+        FieldInfo info;
+        public:
+        /// @brief Copy constructor
+        field_info(field_info&&) = default;
+        /// @brief Construct a field_info from some information.
+        /// @param name Name of the field to create.
+        /// @param type Il2CppType* of the field to create.
+        /// @param offset The offset of the field to create (0, -1 for static, thread_static fields).
+        /// @param fieldAttrs The attributes for the field to create.
+        field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs);
+        ~field_info() = delete;
+        /// @brief Get the FieldInfo wrapped by this type.
+        /// @return The FieldInfo
+        constexpr const FieldInfo get() const {
+            return info;
+        }
+    };
 
-namespace custom_types {
+    /// @class A wrapper around a macro-defined Il2CppClass*
+    class ClassWrapper {
+        friend Register;
+        private:
+        static TypeDefinitionIndex typeIdx;
+
+        Il2CppClass* klass;
+        type_info* info;
+        std::vector<field_info*> fields;
+        std::vector<field_info*> staticFields;
+        std::vector<method_info*> methods;
+
+        void setupTypeHierarchy(Il2CppClass* base);
+        void populateMethods();
+        void populateFields();
+        Il2CppType* createType(Il2CppTypeEnum typeE);
+
+        public:
+        /// @brief Construct a ClassWrapper from a type_info*. The type_info* is not deleted during this call.
+        /// @param type The type_info* to use for the construction of this ClassWrapper.
+        ClassWrapper(type_info* type);
+        /// @brief Copy constructor.
+        ClassWrapper(ClassWrapper&&) = default;
+        /// @brief Custom deletion function, to manage deletion of all owned resources.
+        ~ClassWrapper();
+        /// @brief Get the Il2CppClass* wrapped by this ClassWrapper.
+        constexpr const Il2CppClass* get() const {
+            return klass;
+        }
+    };
+
     #if __has_include(<concepts>)
     #include <concepts>
     template<typename T>
@@ -112,18 +167,28 @@ namespace custom_types {
     #else
     #error No libraries for the implementation of "has_" anything available!
     #endif
+    // Several of these concepts originally created by DaNike, modifications made by Sc2ad
 
+    /// @struct A helper structure for getting parameters, return type, and function pointer from an instance method
     template<typename T>
     struct method_info_template_instance {};
 
+    /// @struct A helper structure for getting parameters, return type, and function pointer from a static method
     template<typename T>
     struct method_info_template_static {};
 
+    /// @struct A helper structure for getting the name of the type.
     template<typename T>
     struct name_registry {};
 
+    /// @struct A helper structure for getting the invoker function of a method
+    template<typename>
+    struct invoker_creator {};
+
+    /// @struct Type mapping struct
     template<typename T> struct type_tag {};
 
+    /// @struct A helper structure for converting parameter types to il2cpp types.
     template<typename... Ps>
     struct parameter_converter;
 
@@ -156,10 +221,7 @@ namespace custom_types {
         }
     };
 
-    // These concepts originally created by DaNike, modifications made by Sc2ad
-    template<typename>
-    struct invoker_creator {};
-
+    /// @struct Helper structure for unpacking and packing arguments/return types for invoker function creation
     struct arg_helper {
         template<typename Q>
         static inline Q unpack_arg(void* arg, type_tag<Q>) {
@@ -179,11 +241,11 @@ namespace custom_types {
                 // I DO wonder if our invoke functions miss registration with GC...
                 auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
                 if (!klass) {
-                    logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
+                    _logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
                     return nullptr;
                 }
                 il2cpp_functions::Init();
-                return static_cast<void*>(il2cpp_functions::value_box(klass, thing));
+                return static_cast<void*>(il2cpp_functions::value_box(klass, reinterpret_cast<void*>(std::forward<Q>(thing))));
             }
         }
     };
@@ -283,127 +345,4 @@ namespace custom_types {
             return vec;
         }
     };
-
-    // Declare a field with type, name.
-    // Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
-    #define DECLARE_INSTANCE_FIELD(type, name) \
-    public: \
-    type name; \
-    private: \
-    struct field_wrapper_##name { \
-        static inline field_info* get() { \
-            int32_t offset = _get_field_offset(); \
-            _increment_field_offset(sizeof(type)); \
-            ::il2cpp_functions::Init(); \
-            auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
-            uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
-            return new field_info(#name, t, offset, attrs); \
-        } \
-        static inline constexpr bool isStatic() { \
-            return false; \
-        } \
-    }
-
-    #define DECLARE_STATIC_FIELD(type, name) \
-    public: \
-    static type name; \
-    private: \
-    struct field_wrapper_##name { \
-        static inline field_info* get() { \
-            ::il2cpp_functions::Init(); \
-            auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
-            uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC | FIELD_ATTRIBUTE_STATIC; \
-            return new field_info(#name, t, offset, attrs); \
-        } \
-        static inline constexpr bool isStatic() { \
-            return true; \
-        } \
-    }
-
-    // Declare an instance method with: returnType, declaringType, name, parameters, ...
-    // Methods declared like this must also be registered via REGISTER_METHOD within the REGISTER_TYPE function.
-    // Yes, this inner structure really does have to be a template, much to my dismay
-    #define DECLARE_METHOD(methodPrefix, name, ...) \
-    public: \
-    methodPrefix name(__VA_ARGS__); \
-    private: \
-    template<typename DeclType, class Discard = void> \
-    struct method_wrapper_##name { \
-        static inline method_info* get() { \
-            using memberPtr = decltype(&DeclType::name); \
-            using instanceClass = ::custom_types::method_info_template_instance<memberPtr>; \
-            using staticClass = ::custom_types::method_info_template_static<memberPtr>; \
-            const Il2CppType* ret; \
-            std::vector<ParameterInfo> params; \
-            uint16_t flags = METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG; \
-            void* ptr; \
-            if (std::string(#name).starts_with(".")) { \
-                flags |= METHOD_ATTRIBUTE_SPECIAL_NAME; \
-            } \
-            InvokerMethod invoker = (InvokerMethod)&::custom_types::invoker_creator<memberPtr>::invoke; \
-            if constexpr (::custom_types::has_get<instanceClass>) { \
-                ret = instanceClass::get(); \
-                params = instanceClass::get_params(); \
-                ptr = (void*)&instanceClass::template wrap<&DeclType::name>; \
-            } else if constexpr (::custom_types::has_get<staticClass>) {\
-                ret = staticClass::get(); \
-                params = staticClass::get_params(); \
-                flags |= METHOD_ATTRIBUTE_STATIC; \
-                ptr = (void*)&DeclType::name; \
-            } else { \
-                static_assert(false_t<memberPtr>, "Must define either an instance or a static method! Could not match either!"); \
-            } \
-            logger().debug("creating method_info for: %s", #name); \
-            return new method_info(#name, ptr, invoker, ret, params, flags); \
-        } \
-    }
-
-    #define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, impl) \
-    namespace namespaze { \
-        class name; \
-    } \
-    template<> \
-    struct ::custom_types::name_registry<namespaze::name> { \
-        static inline type_info* get() { \
-            logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
-            return new type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName)); \
-        } \
-    }; \
-    namespace namespaze { \
-        class name { \
-            friend ::custom_types::Register; \
-            friend ::custom_types::has_func_register<name, void*>; \
-            private: \
-            static inline int32_t _field_offset = 0; \
-            static inline int32_t _get_field_offset() { \
-                return _field_offset + ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName)->actualSize; \
-            } \
-            static inline void _increment_field_offset(std::size_t off) { \
-                _field_offset += off; \
-            } \
-            impl \
-        }; \
-    }
-
-    // Creates static inline _register function used to register type within il2cpp
-    #define REGISTER_FUNCTION(typeN, innards) \
-    static inline void _register(std::vector<::field_info*>& fields, std::vector<::field_info*>& staticFields, std::vector<::method_info*>& methods) { \
-        using TargetType = typeN; \
-        innards \
-    }
-
-    // Registers a field to be attached to this type.
-    // Must be called within the REGISTER_TYPE function.
-    #define REGISTER_FIELD(name) \
-    do { \
-        if (field_wrapper_##name::isStatic()) { \
-            staticFields.push_back(std::move(field_wrapper_##name::get())); \
-        } \
-        fields.push_back(std::move(field_wrapper_##name::get())); \
-    } while (0)
-
-    // Registers a method to be attached to this type.
-    // Must be called within the REGISTER_TYPE function.
-    #define REGISTER_METHOD(name) \
-    methods.push_back(std::move(method_wrapper_##name<TargetType>::get()))
 }

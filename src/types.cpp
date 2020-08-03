@@ -1,12 +1,12 @@
 #include "types.hpp"
 #include "logging.hpp"
-#include "beatsaber-hook/shared/utils/typedefs.h"
-#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/utils/typedefs.h"
+#include "beatsaber-hook/utils/il2cpp-utils.hpp"
 
-type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b) {
+::custom_types::type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b) {
     typeEnum = typeE;
     il2cpp_functions::Init();
-    logger().debug("Base class: %p", b ? b : nullptr);
+    ::custom_types::_logger().debug("Base class: %p", b ? b : nullptr);
     if (b) {
         il2cpp_functions::Class_Init(b);
     }
@@ -15,7 +15,7 @@ type_info::type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view
     name = std::string(n);
 }
 
-field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs) {
+::custom_types::field_info::field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs) {
     // Create FieldInfo*
     info = FieldInfo{};
     info.name = name.data();
@@ -33,7 +33,7 @@ field_info::field_info(std::string_view name, const Il2CppType* type, int32_t of
     info.token = -1;
 }
 
-method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
+::custom_types::method_info::method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags) {
     // Create MethodInfo*
     info = new MethodInfo();
     params = parameters;
