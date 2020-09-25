@@ -107,7 +107,19 @@ namespace custom_types {
         // _logger().debug("method info class: %p", invokeData->method ? invokeData->method->klass : nullptr);
         logMethod(invokeData->method);
         _logger().debug("method pointer: %p", invokeData->methodPtr);
-        _logger().debug("0 ======================END PARAMETER INFO======================");
+        _logger().debug("0 ======================END VIRTUAL INVOKE DATA======================");
+    }
+
+    void logInterfaceOffset(const Il2CppRuntimeInterfaceOffsetPair* pair) {
+        if (!pair) {
+            _logger().debug("NULL Il2CppRuntimeInterfaceOffsetPair!");
+            return;
+        }
+        _logger().debug("0 ======================Interface Offset Pair FOR: %p======================", pair);
+        _logger().debug("Klass: %p", pair->interfaceType);
+        _logger().debug("klass ID: %s::%s", pair->interfaceType->namespaze, pair->interfaceType->name);
+        _logger().debug("Offset: %u", pair->offset);
+        _logger().debug("0 ======================END INTERFACE OFFSET======================");
     }
 
     void logParam(const ParameterInfo* info) {
@@ -234,6 +246,12 @@ namespace custom_types {
         _logger().debug("is_import_or_windows_runtime: %u", klass->is_import_or_windows_runtime);
         _logger().debug("is_vtable_initialized: %u", klass->is_vtable_initialized);
         _logger().debug("has_initialization_error: %u", klass->has_initialization_error);
+        for (uint16_t i = 0; i < klass->interface_offsets_count; i++) {
+            logInterfaceOffset(&klass->interfaceOffsets[i]);
+        }
+        for (uint16_t i = 0; i < klass->vtable_count; i++) {
+            logVtable(&klass->vtable[i]);
+        }
         _logger().debug("0 ======================END CLASS INFO======================");
     }
 }

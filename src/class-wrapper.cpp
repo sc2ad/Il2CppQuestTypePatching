@@ -226,9 +226,10 @@ namespace custom_types {
             klass->vtable[i] = vtable[i];
         }
         klass->interface_offsets_count = offsets.size();
-        klass->interfaceOffsets = reinterpret_cast<Il2CppRuntimeInterfaceOffsetPair*>(calloc(offsets.size(), sizeof(Il2CppClass*)));
+        klass->interfaceOffsets = reinterpret_cast<Il2CppRuntimeInterfaceOffsetPair*>(calloc(offsets.size(), sizeof(Il2CppRuntimeInterfaceOffsetPair)));
         for (int i = 0; i < offsets.size(); i++) {
-            klass->interfaceOffsets[i] = offsets[i];
+            klass->interfaceOffsets[i].interfaceType = offsets[i].interfaceType;
+            klass->interfaceOffsets[i].offset = offsets[i].offset;
         }
         // TODO: is this valid?
         klass->token = -1;

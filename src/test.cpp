@@ -89,13 +89,12 @@ void Il2CppNamespace::MyType::Test(int x, float y) {
 
 DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object",
     il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection"),
-    DECLARE_CTOR(ctor, Il2CppObject* originalInstance);
-
     DECLARE_INTERFACE_METHOD(Array<Il2CppObject*>*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
+    DECLARE_CTOR(ctor, Il2CppObject* originalInstance);
     REGISTER_FUNCTION(MyCustomBeatmapLevelPackCollection,
         modLogger().debug("Registering MyCustomBeatmapLevelPackCollection!");
-        REGISTER_METHOD(ctor);
         REGISTER_METHOD(get_beatmapLevelPacks);
+        REGISTER_METHOD(ctor);
     )
 )
 
@@ -200,6 +199,10 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
     modLogger().debug("Constructing custom type and setting it to field!");
     auto* myType = CRASH_UNLESS(il2cpp_utils::New<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*>(existing));
     modLogger().debug("Created new type: %p", myType);
+    auto* k = il2cpp_functions::object_get_class(existing);
+    custom_types::logAll(k);
+    k = il2cpp_functions::object_get_class((Il2CppObject*)myType);
+    custom_types::logAll(k);
     CRASH_UNLESS(il2cpp_utils::SetFieldValue(self, "_allLoadedBeatmapLevelPackCollection", myType));
 }
 

@@ -11,6 +11,7 @@ struct ParameterInfo;
 struct MethodInfo;
 struct Il2CppClass;
 struct VirtualInvokeData;
+struct Il2CppRuntimeInterfaceOffsetPair;
 
 namespace custom_types {
     /// @brief Returns the logger used within custom types. Should not be called publicly.
@@ -42,6 +43,9 @@ namespace custom_types {
 
     /// @brief Logs the provided Il2CppClass*'s vtable
     void logVtable(const VirtualInvokeData* invokeData);
+
+    /// @brief Logs the provided Il2CppRuntimeInterfaceOffsetPair
+    void logInterfaceOffset(const Il2CppRuntimeInterfaceOffsetPair* pair);
 
     /// @brief Logs the provided ParameterInfo*
     /// @param info The ParameterInfo* to log all fields on.

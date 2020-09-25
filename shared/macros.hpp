@@ -197,7 +197,7 @@ __CREATE_METHOD_WRAPPER(name, specialName, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTR
 #define DECLARE_CTOR(name, ...) \
 public: \
 void name(__VA_ARGS__); \
-__CREATE_METHOD_WRAPPER(name, ".ctor", METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME, nullptr)
+__CREATE_METHOD_WRAPPER(name, ".ctor", METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME | METHOD_ATTRIBUTE_RT_SPECIAL_NAME, nullptr)
 
 #ifdef DECLARE_METHOD
 #error "DECLARE_METHOD is already defined! Undefine it before including macros.hpp!"
@@ -219,7 +219,7 @@ __CREATE_METHOD_WRAPPER(name, #name, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_
 #define DECLARE_INTERFACE_METHOD(methodPrefix, name, interfaceMethodInfo, ...) \
 public: \
 methodPrefix name(__VA_ARGS__); \
-__CREATE_METHOD_WRAPPER(name, #name, interfaceMethodInfo->flags | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, interfaceMethodInfo)
+__CREATE_METHOD_WRAPPER(name, #name, (interfaceMethodInfo->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, interfaceMethodInfo)
 
 #ifdef REGISTER_FUNCTION
 #error "REGISTER_FUNCTION is already defined! Undefine it before including macros.hpp!"
