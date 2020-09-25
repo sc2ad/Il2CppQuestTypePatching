@@ -15,26 +15,27 @@ LOCAL_PATH := $(call my-dir)
 TARGET_ARCH_ABI := $(APP_ABI)
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
+# Creating prebuilt for dependency: beatsaber-hook - version: 0.5.9
+include $(CLEAR_VARS)
+LOCAL_MODULE := beatsaber-hook_0_7_0
+LOCAL_EXPORT_C_INCLUDES := ./extern/beatsaber-hook
+LOCAL_SRC_FILES := ./extern/libbeatsaber-hook_0_7_0.so
+LOCAL_EXPORT_CFLAGS := -DNEED_UNSAFE_CSHARP -DUNITY_2019
+include $(PREBUILT_SHARED_LIBRARY)
+# Creating prebuilt for dependency: modloader - version: 1.0.2
 include $(CLEAR_VARS)
 LOCAL_MODULE := modloader
-LOCAL_SRC_FILES := extern/libmodloader.so
-include $(PREBUILT_SHARED_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := beatsaber-hook
-LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook/shared
-LOCAL_SRC_FILES := extern/libbeatsaber-hook_0_3_2.so
-LOCAL_EXPORT_CFLAGS := -DNEED_UNSAFE_CSHARP -DUNITY_2019
-LOCAL_CPP_FEATURES += rtti
+LOCAL_EXPORT_C_INCLUDES := ./extern/modloader
+LOCAL_SRC_FILES := ./extern/libmodloader.so
 include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := typepatching
-LOCAL_SRC_FILES := $(call rwildcard,src/,*.cpp)
-LOCAL_SHARED_LIBRARIES += beatsaber-hook
+LOCAL_SRC_FILES := $(call rwildcard,src/**,*.cpp)
+LOCAL_SHARED_LIBRARIES += beatsaber-hook_0_7_0
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_LDLIBS += -llog
-LOCAL_CPP_FLAGS += -Wall -Werror
-LOCAL_CFLAGS += -std=c++2a -O3 -isystem "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"CustomTypesTest\"" -D"VERSION=\"0.1.0\"" -I'./shared' -I'./extern'
+LOCAL_CFLAGS += -std=c++2a -O3 -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"CustomTypesTest\"" -D"VERSION=\"0.1.0\"" -I'./shared' -I'./extern' -D"LOCAL_TEST" -DNEED_UNSAFE_CSHARP
 LOCAL_C_INCLUDES += ./include ./src
+LOCAL_CPP_FLAGS += -Wall -Werror
 include $(BUILD_SHARED_LIBRARY)
