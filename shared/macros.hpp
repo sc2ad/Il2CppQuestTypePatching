@@ -1,6 +1,17 @@
 #pragma once
 #include "types.hpp"
-#include <stddef.h>
+#include <stdint.h>
+
+template <typename T1, typename T2>
+/// @brief Returns the offset of a provided member pointer.
+/// This constructs an instance and subtracts sizes to compare validity.
+/// @tparam T1 Type of the member
+/// @tparam T2 Type the member is in
+/// @returns Offset of the particular member.
+inline size_t constexpr offset_of(T1 T2::*member) {
+    constexpr T2 object {};
+    return size_t(&(object.*member)) - size_t(&object);
+}
 
 #ifdef DECLARE_CLASS
 #error "DECLARE_CLASS is already defined! Undefine it before including macros.hpp!"
@@ -9,7 +20,7 @@
 // Assumes the class is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
-#define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, impl) \
+#define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, baseSize, impl) \
 namespace namespaze { \
     class name; \
 } \
@@ -27,6 +38,7 @@ namespace namespaze { \
         public: \
         static inline const Il2CppClass* klass = nullptr; \
         private: \
+        uint8_t _baseFields[baseSize]; \
         impl \
     }; \
 } \
@@ -44,7 +56,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
 // Assumes the class is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
-#define DECLARE_CLASS_INTERFACES(namespaze, name, baseNamespaze, baseName, interfaces, impl) \
+#define DECLARE_CLASS_INTERFACES(namespaze, name, baseNamespaze, baseName, baseSize, interfaces, impl) \
 namespace namespaze { \
     class name; \
 } \
@@ -62,6 +74,7 @@ namespace namespaze { \
         public: \
         static inline const Il2CppClass* klass = nullptr; \
         private: \
+        uint8_t _baseFields[baseSize]; \
         impl \
     }; \
 } \
@@ -97,6 +110,7 @@ namespace namespaze { \
         public: \
         static inline const Il2CppClass* klass = nullptr; \
         private: \
+        uint8_t _baseFields[sizeof(baseT)]; \
         impl \
     }; \
 } \
@@ -244,7 +258,7 @@ do { \
         val->setOffset(0); \
     } \
     else { \
-        val->setOffset(offsetof(TargetType, name)); \
+        val->setOffset(offset_of(&TargetType::name)); \
     } \
     fields.push_back(std::move(val)); \
 } while (0)

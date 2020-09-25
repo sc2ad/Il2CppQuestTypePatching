@@ -22,7 +22,7 @@ const Logger& modLogger() {
     return myLogger;
 }
 
-DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour",
+DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*),
     // TODO: Fields need to be copied from base type, size needs to be adjusted to match, offsets of all declared fields need to be correct
     // DECLARE_INSTANCE_FIELD(int, x);
     // DECLARE_INSTANCE_FIELD(Vector3, y);
@@ -87,30 +87,30 @@ void Il2CppNamespace::MyType::Test(int x, float y) {
     modLogger().debug("Called Il2CppNamespace::MyType::Test!");
 }
 
-DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object",
+DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject),
     il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection"),
-    DECLARE_INTERFACE_METHOD(Array<Il2CppObject*>*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
-    DECLARE_CTOR(ctor, Il2CppObject* originalInstance);
+    DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
+    
+    DECLARE_INTERFACE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
+    DECLARE_CTOR(ctor, Il2CppArray* originalArray);
     REGISTER_FUNCTION(MyCustomBeatmapLevelPackCollection,
         modLogger().debug("Registering MyCustomBeatmapLevelPackCollection!");
         REGISTER_METHOD(get_beatmapLevelPacks);
         REGISTER_METHOD(ctor);
+        REGISTER_FIELD(wrappedArr);
     )
 )
 
-// Placeholder for fields
-std::unordered_map<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*, Il2CppObject*> instances;
-
-void Il2CppNamespace::MyCustomBeatmapLevelPackCollection::ctor(Il2CppObject* originalInstance) {
+void Il2CppNamespace::MyCustomBeatmapLevelPackCollection::ctor(Il2CppArray* originalArray) {
     // We want to basically wrap the original instance.
     // Also log.
-    instances.insert({this, originalInstance});
-    modLogger().debug("Added original instance to instances map!");
+    wrappedArr = originalArray;
+    modLogger().debug("Added original array: %p", originalArray);
 }
 
-Array<Il2CppObject*>* Il2CppNamespace::MyCustomBeatmapLevelPackCollection::get_beatmapLevelPacks() {
-    modLogger().debug("My cool getter!");
-    return CRASH_UNLESS(il2cpp_utils::RunMethod<Array<Il2CppObject*>*>(instances[this], "get_beatmapLevelPacks"));
+Il2CppArray* Il2CppNamespace::MyCustomBeatmapLevelPackCollection::get_beatmapLevelPacks() {
+    modLogger().debug("My cool getter wrappedArr: %p!", wrappedArr);
+    return wrappedArr;
 }
 
 // DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyBeatmapObjectManager, "", "BeatmapObjectManager",
@@ -196,8 +196,10 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
     BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks(self);
     auto* existing = CRASH_UNLESS(il2cpp_utils::GetFieldValue(self, "_allLoadedBeatmapLevelPackCollection"));
     modLogger().debug("Existing: %p", existing);
+    auto* arr = CRASH_UNLESS(il2cpp_utils::GetPropertyValue(existing, "beatmapLevelPacks"));
+    modLogger().debug("Existing arr: %p", arr);
     modLogger().debug("Constructing custom type and setting it to field!");
-    auto* myType = CRASH_UNLESS(il2cpp_utils::New<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*>(existing));
+    auto* myType = CRASH_UNLESS(il2cpp_utils::New<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*>(arr));
     modLogger().debug("Created new type: %p", myType);
     auto* k = il2cpp_functions::object_get_class(existing);
     custom_types::logAll(k);
