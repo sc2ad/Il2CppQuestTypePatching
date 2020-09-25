@@ -1,5 +1,5 @@
 #pragma once
-#include "beatsaber-hook/utils/logging.hpp"
+#include "beatsaber-hook/shared/utils/logging.hpp"
 #include <string_view>
 
 struct Il2CppAssemblyName;
@@ -10,6 +10,7 @@ struct Il2CppType;
 struct ParameterInfo;
 struct MethodInfo;
 struct Il2CppClass;
+struct VirtualInvokeData;
 
 namespace custom_types {
     /// @brief Returns the logger used within custom types. Should not be called publicly.
@@ -38,6 +39,9 @@ namespace custom_types {
     /// @param t The Il2CppType* to log all fields on.
     /// @param s The label for the logging.
     void logType(const Il2CppType* t, std::string_view s);
+
+    /// @brief Logs the provided Il2CppClass*'s vtable
+    void logVtable(const VirtualInvokeData* invokeData);
 
     /// @brief Logs the provided ParameterInfo*
     /// @param info The ParameterInfo* to log all fields on.

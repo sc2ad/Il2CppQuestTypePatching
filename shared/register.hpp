@@ -17,14 +17,14 @@ namespace custom_types {
 
         static void EnsureHooks();
         public:
-        // All of the ClassWrappers that are accessible
-        static std::vector<ClassWrapper> classes;
+        // All of the ClassWrapper*s that are accessible
+        static std::vector<ClassWrapper*> classes;
         // Registers the type within the il2cpp domain
         /// @brief Registers the provided type within the il2cpp domain.
         /// @tparam T Type to register within il2cpp
-        /// @return An Il2CppClass* for further modification
+        /// @return A ClassWrapper* for further modification. Returns nullptr on failure.
         template<typename T>
-        static Il2CppClass* RegisterType() {
+        static ClassWrapper* RegisterType() {
             il2cpp_functions::Init();
             EnsureHooks();
             if constexpr (!::custom_types::has_get<::custom_types::name_registry<T>>) {
@@ -34,21 +34,34 @@ namespace custom_types {
                 // Create our type
                 auto type = ::custom_types::name_registry<T>::get();
                 if constexpr (::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value) {
-                    ClassWrapper& classWrapper = classes.emplace_back(type);
+                    ClassWrapper* classWrapper = new ClassWrapper(type);
                     // Iterate over all methods, all fields
-                    T::_register(classWrapper.fields, classWrapper.staticFields, classWrapper.methods);
-                    classWrapper.populateFields();
-                    classWrapper.populateMethods();
+                    T::_register(classWrapper->fields, classWrapper->staticFields, classWrapper->methods);
+                    classWrapper->createClass(sizeof(T));
+                    classWrapper->populateFields();
+                    classWrapper->populateMethods();
                     // Return for extra modification
                     _logger().debug("Registered type: %s::%s", type->namespaze.c_str(), type->name.c_str());
                     // Set the klass static inline field on the type
-                    T::klass = classWrapper.klass;
-                    return classWrapper.klass;
+                    T::klass = classWrapper->get();
+                    classes.push_back(classWrapper);
+                    return classWrapper;
                 } else {
                     static_assert(::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value, "Must have a REGISTER_FUNCTION within the type!");
                 }
             }
             return nullptr;
+        }
+
+        /// @brief Unregisters all custom types, deleting all associated data.
+        /// You should not (realistically) have a need for this unless you find custom types memory overhead to be significant.
+        static void UnregisterAll() {
+            ClassWrapper::typeIdx = kTypeDefinitionIndexInvalid;
+            for (auto* wrapper : classes) {
+                wrapper->~ClassWrapper();
+            }
+            // We also need to correctly delete any created images or assemblies.
+            // These need to deleted in a very delicate way so as not to have any dangling references.
         }
     };
 }

@@ -12,7 +12,8 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
         ::custom_types::_logger().debug("custom idx: %u for type: %p", idx, typ);
         if (idx < ::custom_types::Register::classes.size()) {
             ::custom_types::_logger().debug("Returning custom class with idx %i!", idx);
-            return const_cast<Il2CppClass*>(::custom_types::Register::classes[idx].get());
+            auto* wrapper = ::custom_types::Register::classes[idx];
+            return const_cast<Il2CppClass*>(wrapper->get());
         }
     }
     // Otherwise, return orig
@@ -24,10 +25,25 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     return klass;
 }
 
+MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, TypeDefinitionIndex index) {
+    if (index < 0) {
+        // index is either invalid or one of ours
+        auto idx = kTypeDefinitionIndexInvalid - index;
+        ::custom_types::_logger().debug("custom idx: %u", idx);
+        if (idx < ::custom_types::Register::classes.size()) {
+            ::custom_types::_logger().debug("Returning custom class with idx %i!", idx);
+            auto* wrapper = ::custom_types::Register::classes[idx];
+            return const_cast<Il2CppClass*>(wrapper->get());
+        }
+    }
+    // Otherwise, return orig
+    return MetadataCache_GetTypeInfoFromTypeDefinitionIndex(index);
+}
+
 namespace custom_types {
     std::unordered_map<std::string, Il2CppAssembly*> Register::assembs;
     std::unordered_map<std::string, Il2CppImage*> Register::images;
-    std::vector<ClassWrapper> Register::classes;
+    std::vector<ClassWrapper*> Register::classes;
     bool Register::installed = false;
 
     Il2CppAssembly* Register::createAssembly(std::string_view name, Il2CppImage* img) {
@@ -43,6 +59,7 @@ namespace custom_types {
         assemb->image = img;
         img->assembly = assemb;
         assemb->aname.name = name.data();
+        il2cpp_functions::Assembly_GetAllAssemblies()->push_back(assemb);
         assembs.insert({strName, assemb});
         _logger().debug("Created new assembly: %s, %p", name.data(), assemb);
         return assemb;
@@ -64,6 +81,8 @@ namespace custom_types {
         img->nameNoExt = name.data();
         img->dynamic = true;
         img->assembly = createAssembly(name, img);
+        img->nameToClassHashTable = new Il2CppNameToTypeDefinitionIndexHashTable();
+        // Types are pushed here on class creation
         // TODO: Unclear if more is required
         images.insert({strName, img});
         _logger().debug("Created new image: %s, %p", name.data(), img);
@@ -75,6 +94,7 @@ namespace custom_types {
             il2cpp_functions::Init();
             _logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
+            INSTALL_HOOK_DIRECT(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
             installed = true;
         }
     }

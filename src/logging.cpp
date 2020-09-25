@@ -1,10 +1,10 @@
 #include "logging.hpp"
-#include "beatsaber-hook/utils/typedefs.h"
+#include "beatsaber-hook/shared/utils/typedefs.h"
 
 namespace custom_types {
 
     const Logger& _logger() {
-        static const Logger logger("CustomTypes|" VERSION);
+        static const Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
         return logger;
     }
 
@@ -97,6 +97,19 @@ namespace custom_types {
         _logger().debug("0 ======================END TYPE INFO======================");
     }
 
+    void logVtable(const VirtualInvokeData* invokeData) {
+        if (!invokeData) {
+            _logger().debug("NULL VirtualInvokeData!");
+            return;
+        }
+        _logger().debug("0 ======================Virtual Invoke Data FOR: %p======================", invokeData);
+        _logger().debug("method info: %p", invokeData->method);
+        // _logger().debug("method info class: %p", invokeData->method ? invokeData->method->klass : nullptr);
+        logMethod(invokeData->method);
+        _logger().debug("method pointer: %p", invokeData->methodPtr);
+        _logger().debug("0 ======================END PARAMETER INFO======================");
+    }
+
     void logParam(const ParameterInfo* info) {
         if (!info) {
             _logger().debug("NULL PARAMETER INFO!");
@@ -120,6 +133,7 @@ namespace custom_types {
         _logger().debug("invoker_method: %p", info->invoker_method);
         _logger().debug("name: %s", info->name ? info->name : "NULL");
         _logger().debug("klass: %p", info->klass);
+        _logger().debug("klass ID: %s::%s", info->klass->namespaze, info->klass->name);
         _logger().debug("return_type: %p", info->return_type);
         if (info->parameters) {
             for (int i = 0; i < info->parameters_count; i++) {

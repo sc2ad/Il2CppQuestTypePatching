@@ -1,13 +1,14 @@
 #pragma once
 #include <dlfcn.h>
-#include "beatsaber-hook/utils/utils.h"
-#include "beatsaber-hook/utils/il2cpp-functions.hpp"
-#include "beatsaber-hook/utils/il2cpp-utils.hpp"
-#include "beatsaber-hook/utils/typedefs.h"
+#include "beatsaber-hook/shared/utils/utils.h"
+#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/shared/utils/typedefs.h"
 #include <utility>
 #include <string_view>
 #include <memory>
 #include <vector>
+#include <initializer_list>
 #include "logging.hpp"
 
 struct Il2CppType;
@@ -20,6 +21,16 @@ namespace custom_types {
     class Register;
     class ClassWrapper;
 
+    struct virtual_invoke_data {
+        friend Register;
+        friend ClassWrapper;
+        private:
+        VirtualInvokeData data;
+        public:
+        virtual_invoke_data(virtual_invoke_data&&) = default;
+        ~virtual_invoke_data() = delete;
+    };
+
     /// @struct A wrapper around information necessary to create an Il2CppClass*
     struct type_info {
         friend Register;
@@ -29,6 +40,8 @@ namespace custom_types {
         Il2CppClass* base;
         std::string namespaze;
         std::string name;
+        std::vector<Il2CppClass*> interfaces;
+        bool abst = false;
         public:
         /// @brief Copy constructor.
         type_info(type_info&&) = default;
@@ -37,7 +50,7 @@ namespace custom_types {
         /// @param ns Namespace of the type to create.
         /// @param n Name of the type to create.
         /// @param b Base Il2CppClass* to use as parent.
-        type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b);
+        type_info(Il2CppTypeEnum typeE, std::string_view ns, std::string_view n, Il2CppClass* b, std::initializer_list<Il2CppClass*> interfaces, bool abst = false);
         ~type_info() = delete;
     };
 
@@ -47,6 +60,7 @@ namespace custom_types {
         friend ClassWrapper;
         private:
         std::vector<ParameterInfo> params;
+        const MethodInfo* virtual_data;
         MethodInfo* info;
         constexpr void setClass(Il2CppClass* klass) const {
             info->klass = klass;
@@ -61,7 +75,8 @@ namespace custom_types {
         /// @param returnType The return type of the method to create.
         /// @param parameters The parameters of the method to create.
         /// @param flags The flags to use when creating the method.
-        method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags);
+        /// @param virtualInfo The virtual MethodInfo* to set in the vtable (nullptr if this is not a virtual method)
+        method_info(std::string_view name, void* func, InvokerMethod invoker, const Il2CppType* returnType, std::vector<ParameterInfo>& parameters, uint16_t flags, const MethodInfo* virtualInfo);
         ~method_info() = delete;
         /// @brief Get the MethodInfo* wrapped by this type.
         /// @return The MethodInfo*
@@ -82,14 +97,18 @@ namespace custom_types {
         /// @brief Construct a field_info from some information.
         /// @param name Name of the field to create.
         /// @param type Il2CppType* of the field to create.
-        /// @param offset The offset of the field to create (0, -1 for static, thread_static fields).
         /// @param fieldAttrs The attributes for the field to create.
-        field_info(std::string_view name, const Il2CppType* type, int32_t offset, uint16_t fieldAttrs);
+        field_info(std::string_view name, const Il2CppType* type, uint16_t fieldAttrs);
         ~field_info() = delete;
         /// @brief Get the FieldInfo wrapped by this type.
         /// @return The FieldInfo
         constexpr const FieldInfo get() const {
             return info;
+        }
+        /// @brief Sets the offset of the field created.
+        /// @param offset The offset of the field to create (0, -1 for static, thread_static fields).
+        constexpr void setOffset(int32_t offset) {
+            info.offset = offset;
         }
     };
 
@@ -105,19 +124,51 @@ namespace custom_types {
         std::vector<field_info*> staticFields;
         std::vector<method_info*> methods;
 
+        void getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets);
         void setupTypeHierarchy(Il2CppClass* base);
         void populateMethods();
         void populateFields();
         Il2CppType* createType(Il2CppTypeEnum typeE);
 
+        /// @brief Custom deletion function, to manage deletion of all owned resources.
+        ~ClassWrapper();
         public:
+        /// @brief Get fields
+        /// @returns Fields
+        const std::vector<field_info*> getFields() {
+            return fields;
+        }
+        /// @brief Get static fields
+        /// @returns Static fields
+        const std::vector<field_info*> getStaticFields() {
+            return staticFields;
+        }
+        /// @brief Get methods
+        /// @returns Methods
+        const std::vector<method_info*> getMethods() {
+            return methods;
+        }
         /// @brief Construct a ClassWrapper from a type_info*. The type_info* is not deleted during this call.
         /// @param type The type_info* to use for the construction of this ClassWrapper.
         ClassWrapper(type_info* type);
         /// @brief Copy constructor.
-        ClassWrapper(ClassWrapper&&) = default;
-        /// @brief Custom deletion function, to manage deletion of all owned resources.
-        ~ClassWrapper();
+        ClassWrapper(ClassWrapper&& other) {
+            // Ideally we copy everything from our original and null out the old things
+            // This will be necessary when we switch back from ClassWrapper*s in our classes vector.
+            klass = other.klass;
+            info = other.info;
+            fields = other.fields;
+            staticFields = other.staticFields;
+            methods = other.methods;
+            other.klass = nullptr;
+            other.info = nullptr;
+            other.fields.clear();
+            other.staticFields.clear();
+            other.methods.clear();
+        }
+        /// @brief Creates the Il2CppClass* used within this wrapper.
+        /// Should be done at a point in time after all fields and methods are set for this wrapper.
+        void createClass(std::size_t size);
         /// @brief Get the Il2CppClass* wrapped by this ClassWrapper.
         constexpr const Il2CppClass* get() const {
             return klass;
@@ -245,7 +296,7 @@ namespace custom_types {
                     return nullptr;
                 }
                 il2cpp_functions::Init();
-                return static_cast<void*>(il2cpp_functions::value_box(klass, reinterpret_cast<void*>(std::forward<Q>(thing))));
+                return static_cast<void*>(il2cpp_functions::value_box(klass, static_cast<void*>(&thing)));
             }
         }
     };
@@ -253,7 +304,7 @@ namespace custom_types {
     template<typename TRet, typename T, typename ...TArgs>
     struct invoker_creator<TRet(T::*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* instance_invoke(TRet(*func)(T*, TArgs...), T* self, void** args, std::index_sequence<Ns...>) {
+        static void* instance_invoke(TRet(*func)(T*, TArgs&&...), T* self, void** args, std::index_sequence<Ns...>) {
             if constexpr (std::is_same_v<TRet, void>) {
                 func(self,
                     std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
@@ -271,11 +322,10 @@ namespace custom_types {
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
-            auto func = reinterpret_cast<TRet(*)(T*, TArgs...)>(ptr);
+            auto func = reinterpret_cast<TRet(*)(T*, TArgs&&...)>(ptr);
             T* self = static_cast<T*>(obj);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            
             return instance_invoke(func, self, args, seq);
         }
     };
@@ -283,7 +333,7 @@ namespace custom_types {
     template<typename TRet, typename ...TArgs>
     struct invoker_creator<TRet(*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* static_invoke(TRet(*func)(TArgs...), void** args, std::index_sequence<Ns...>) {
+        static void* static_invoke(TRet(*func)(TArgs&&...), void** args, std::index_sequence<Ns...>) {
             if constexpr (std::is_same_v<TRet, void>) {
                 func(
                     std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
@@ -301,7 +351,7 @@ namespace custom_types {
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
-            auto func = reinterpret_cast<TRet(*)(TArgs...)>(ptr);
+            auto func = reinterpret_cast<TRet(*)(TArgs&&...)>(ptr);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
 
@@ -318,7 +368,11 @@ namespace custom_types {
         static inline const std::vector<ParameterInfo> get_params() {
             std::vector<ParameterInfo> vec = parameter_converter<TArgs...>::get();
             for (std::size_t i = 0; i < vec.size(); i++) {
-                vec[i].name = string_format("param_%u", i).c_str();
+                auto str = string_format("param_%u", i);
+                char* buff = static_cast<char*>(calloc(str.size() + 1, sizeof(char)));
+                str.copy(buff, str.size());
+                buff[str.size()] = '\0';
+                vec[i].name = buff;
                 vec[i].position = i;
             }
             return vec;
@@ -326,7 +380,7 @@ namespace custom_types {
         template<TRet(T::* member)(TArgs...)>
         [[gnu::noinline]]
         static inline TRet wrap(T* self, TArgs&& ...args) {
-            return (self->*member)(std::forward<TArgs>(args)...);
+            return (self->*member)(args...);
         }
     };
 
@@ -339,7 +393,11 @@ namespace custom_types {
         static inline const std::vector<ParameterInfo> get_params() {
             std::vector<ParameterInfo> vec = parameter_converter<TArgs...>::get();
             for (std::size_t i = 0; i < vec.size(); i++) {
-                vec[i].name = string_format("param_%u", i).c_str();
+                auto str = string_format("param_%u", i);
+                char* buff = static_cast<char*>(calloc(str.size() + 1, sizeof(char)));
+                str.copy(buff, str.size());
+                buff[str.size()] = '\0';
+                vec[i].name = buff;
                 vec[i].position = i;
             }
             return vec;
