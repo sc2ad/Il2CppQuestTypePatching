@@ -223,13 +223,18 @@ namespace custom_types {
         klass->vtable_count = vtable.size();
         // Use our vtable vector to create our vtable
         for (int i = 0; i < vtable.size(); i++) {
+            // If we come across any vtable items that have null function pointers or other stuff, we become sad.
+            // This means we haven't implemented everything, so we should make a point in ensuring this happens.
+            if (vtable[i].method == nullptr || vtable[i].methodPtr == nullptr) {
+                _logger().critical("Vtable index: %u has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", i);
+                CRASH_UNLESS(false);
+            }
             klass->vtable[i] = vtable[i];
         }
         klass->interface_offsets_count = offsets.size();
         klass->interfaceOffsets = reinterpret_cast<Il2CppRuntimeInterfaceOffsetPair*>(calloc(offsets.size(), sizeof(Il2CppRuntimeInterfaceOffsetPair)));
         for (int i = 0; i < offsets.size(); i++) {
-            klass->interfaceOffsets[i].interfaceType = offsets[i].interfaceType;
-            klass->interfaceOffsets[i].offset = offsets[i].offset;
+            klass->interfaceOffsets[i] = offsets[i];
         }
         // TODO: is this valid?
         klass->token = -1;
