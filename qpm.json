@@ -2,8 +2,8 @@
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
-    "name": "CustomTypes",
-    "id": "CustomTypes",
+    "name": "custom-types",
+    "id": "custom-types",
     "version": "0.1.0",
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
