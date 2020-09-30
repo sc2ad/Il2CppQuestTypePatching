@@ -4,7 +4,7 @@
   "info": {
     "name": "custom-types",
     "id": "custom-types",
-    "version": "0.1.0",
+    "version": "0.2.3",
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
       "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
