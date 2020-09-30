@@ -4,7 +4,9 @@
 namespace custom_types {
 
     const Logger& _logger() {
-        static const Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
+        // File logging is (in general) very dangerous with bs-hook 0.7.0 or 0.7.1
+        // This needs to be fixed as soon as possible.
+        static const Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, false));
         return logger;
     }
 
