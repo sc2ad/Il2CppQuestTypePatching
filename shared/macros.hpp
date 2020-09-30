@@ -102,7 +102,7 @@ template<> \
 struct ::custom_types::name_registry<namespaze::name> { \
     static inline ::custom_types::type_info* get() { \
         _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
-        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, classof(baseT), {}, false); \
+        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, classof(baseT*), {}, false); \
     } \
 }; \
 namespace namespaze { \
@@ -121,40 +121,41 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
     } \
 };
 
-#ifdef DECLARE_CLASS_CODEGEN_INTERFACES
-#error "DECLARE_CLASS_CODEGEN_INTERFACES is already defined! Undefine it before including macros.hpp!"
-#endif
-// Declares a class with the given namespace, name, base type, and interface types.
-// Assumes the class being declared is non-abstract.
-// impl specifies the implementation of the class, the actual definition of the type.
-// It is recommended this hold other DECLARE statements, as defined in macros.hpp
-#define DECLARE_CLASS_CODEGEN_INTERFACES(namespaze, name, baseT, interfaceTs, impl) \
-namespace namespaze { \
-    class name; \
-} \
-template<> \
-struct ::custom_types::name_registry<namespaze::name> { \
-    static inline ::custom_types::type_info* get() { \
-        _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
-        auto interfaces = ::il2cpp_utils::ExtractTypes<interfaceTs>(); \
-        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, classof(baseT), interfaces, false); \
-    } \
-}; \
-namespace namespaze { \
-    class name : public baseT, interfaceTs { \
-        friend ::custom_types::Register; \
-        friend ::custom_types::has_func_register<name, void*>; \
-        public: \
-        static inline const Il2CppClass* klass = nullptr; \
-        impl \
-    }; \
-} \
-template<> \
-struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
-    static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
-    } \
-};
+// TODO: This is not yet implemented, due to extracting Il2CppClass*s from interface types via __VA_ARGS__
+// #ifdef DECLARE_CLASS_CODEGEN_INTERFACES
+// #error "DECLARE_CLASS_CODEGEN_INTERFACES is already defined! Undefine it before including macros.hpp!"
+// #endif
+// // Declares a class with the given namespace, name, base type, and interface types.
+// // Assumes the class being declared is non-abstract.
+// // impl specifies the implementation of the class, the actual definition of the type.
+// // It is recommended this hold other DECLARE statements, as defined in macros.hpp
+// #define DECLARE_CLASS_CODEGEN_INTERFACES(namespaze, name, baseT, interfaceTs, impl) \
+// namespace namespaze { \
+//     class name; \
+// } \
+// template<> \
+// struct ::custom_types::name_registry<namespaze::name> { \
+//     static inline ::custom_types::type_info* get() { \
+//         _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
+//         auto interfaces = ::il2cpp_utils::ExtractTypes<interfaceTs>(); \
+//         return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, classof(baseT), interfaces, false); \
+//     } \
+// }; \
+// namespace namespaze { \
+//     class name : public baseT, interfaceTs { \
+//         friend ::custom_types::Register; \
+//         friend ::custom_types::has_func_register<name, void*>; \
+//         public: \
+//         static inline const Il2CppClass* klass = nullptr; \
+//         impl \
+//     }; \
+// } \
+// template<> \
+// struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
+//     static inline Il2CppClass* get() { \
+//         return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+//     } \
+// };
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
@@ -193,7 +194,7 @@ struct field_wrapper_##name { \
     static inline ::custom_types::field_info* get() { \
         ::il2cpp_functions::Init(); \
         auto* t = ::il2cpp_functions::class_get_type(classof(type)); \
-        uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
+        uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC | FIELD_ATTRIBUTE_STATIC; \
         return new ::custom_types::field_info(#name, t, attrs); \
     } \
     static inline constexpr bool isStatic() { \
@@ -259,16 +260,16 @@ public: \
 methodPrefix name(__VA_ARGS__); \
 __CREATE_METHOD_WRAPPER(name, #name, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, nullptr)
 
-#ifdef DECLARE_INTERFACE_METHOD
-#error "DECLARE_INTERFACE_METHOD is already defined! Undefine it before including macros.hpp!"
+#ifdef DECLARE_OVERRIDE_METHOD
+#error "DECLARE_OVERRIDE_METHOD is already defined! Undefine it before including macros.hpp!"
 #endif
 // Declare an interface method with: methodPrefix, name, method it is implementing, parameters...
 // Methods declared like this must also be registered via REGISTER_METHOD within the REGISTER_FUNCTION macro.
-// This macro matches the DECLARE_METHOD macro except 
-#define DECLARE_INTERFACE_METHOD(methodPrefix, name, interfaceMethodInfo, ...) \
+// This macro matches the DECLARE_METHOD macro except it overrides the provided overriding MethodInfo*.
+#define DECLARE_OVERRIDE_METHOD(methodPrefix, name, overridingMethodInfo, ...) \
 public: \
 methodPrefix name(__VA_ARGS__); \
-__CREATE_METHOD_WRAPPER(name, #name, (interfaceMethodInfo->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, interfaceMethodInfo)
+__CREATE_METHOD_WRAPPER(name, #name, (overridingMethodInfo->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, overridingMethodInfo)
 
 #ifdef REGISTER_FUNCTION
 #error "REGISTER_FUNCTION is already defined! Undefine it before including macros.hpp!"

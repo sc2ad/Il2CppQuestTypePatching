@@ -35,7 +35,7 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
 
     DECLARE_METHOD(int, asdf, int q);
 
-    DECLARE_INTERFACE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));
+    DECLARE_OVERRIDE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));
 
     REGISTER_FUNCTION(MyType,
         modLogger().debug("Registering MyType!");
@@ -91,7 +91,7 @@ DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "S
     il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection"),
     DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
     
-    DECLARE_INTERFACE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
+    DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
     DECLARE_CTOR(ctor, Il2CppArray* originalArray);
     REGISTER_FUNCTION(MyCustomBeatmapLevelPackCollection,
         modLogger().debug("Registering MyCustomBeatmapLevelPackCollection!");

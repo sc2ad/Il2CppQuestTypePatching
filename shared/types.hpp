@@ -304,16 +304,16 @@ namespace custom_types {
     template<typename TRet, typename T, typename ...TArgs>
     struct invoker_creator<TRet(T::*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* instance_invoke(TRet(*func)(T*, TArgs&&...), T* self, void** args, std::index_sequence<Ns...>) {
+        static void* instance_invoke(TRet(*func)(T*, TArgs...), T* self, void** args, std::index_sequence<Ns...>) {
             if constexpr (std::is_same_v<TRet, void>) {
                 func(self,
-                    std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                    arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                 );
                 return nullptr;
             } else {
                 return arg_helper::pack_result(
                     func(self,
-                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                        arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                     )
                 );
             }
@@ -322,7 +322,7 @@ namespace custom_types {
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
-            auto func = reinterpret_cast<TRet(*)(T*, TArgs&&...)>(ptr);
+            auto func = reinterpret_cast<TRet(*)(T*, TArgs...)>(ptr);
             T* self = static_cast<T*>(obj);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
@@ -333,16 +333,16 @@ namespace custom_types {
     template<typename TRet, typename ...TArgs>
     struct invoker_creator<TRet(*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* static_invoke(TRet(*func)(TArgs&&...), void** args, std::index_sequence<Ns...>) {
+        static void* static_invoke(TRet(*func)(TArgs...), void** args, std::index_sequence<Ns...>) {
             if constexpr (std::is_same_v<TRet, void>) {
                 func(
-                    std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                    arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                 );
                 return nullptr;
             } else {
                 return arg_helper::pack_result(
                     func(
-                        std::forward<TArgs>(arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{}))...
+                        arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                     )
                 );
             }
@@ -351,7 +351,7 @@ namespace custom_types {
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
-            auto func = reinterpret_cast<TRet(*)(TArgs&&...)>(ptr);
+            auto func = reinterpret_cast<TRet(*)(TArgs...)>(ptr);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
 
@@ -379,7 +379,7 @@ namespace custom_types {
         }
         template<TRet(T::* member)(TArgs...)>
         [[gnu::noinline]]
-        static inline TRet wrap(T* self, TArgs&& ...args) {
+        static inline TRet wrap(T* self, TArgs ...args) {
             return (self->*member)(args...);
         }
     };
