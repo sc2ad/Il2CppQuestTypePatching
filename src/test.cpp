@@ -50,6 +50,8 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
     )
 )
 
+DEFINE_CLASS(Il2CppNamespace::MyType);
+
 void Il2CppNamespace::MyType::ctor() {
     modLogger().debug("Called Il2CppNamespace::MyType::ctor");
     // y = {1, 2, 3};
@@ -100,6 +102,8 @@ DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "S
         REGISTER_FIELD(wrappedArr);
     )
 )
+
+DEFINE_CLASS(Il2CppNamespace::MyCustomBeatmapLevelPackCollection);
 
 void Il2CppNamespace::MyCustomBeatmapLevelPackCollection::ctor(Il2CppArray* originalArray) {
     // We want to basically wrap the original instance.

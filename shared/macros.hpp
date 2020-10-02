@@ -38,7 +38,7 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static inline const Il2CppClass* klass = nullptr; \
+        static const Il2CppClass* klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -74,7 +74,7 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static inline const Il2CppClass* klass = nullptr; \
+        static const Il2CppClass* klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -110,7 +110,7 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static inline const Il2CppClass* klass = nullptr; \
+        static const Il2CppClass* klass; \
         impl \
     }; \
 } \
@@ -156,6 +156,14 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
 //         return const_cast<Il2CppClass*>(::namespaze::name::klass); \
 //     } \
 // };
+
+
+#ifdef DEFINE_CLASS
+#error "DECLARE_CLASS_CODEGEN is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#define DEFINE_CLASS(type) \
+const Il2CppClass* type::klass = nullptr
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
