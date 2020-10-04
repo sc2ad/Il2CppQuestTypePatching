@@ -210,6 +210,27 @@ struct field_wrapper_##name { \
     } \
 }
 
+#ifdef DECLARE_INSTANCE_FIELD_DEFAULT
+#error "DECLARE_INSTANCE_FIELD_DEFAULT is already defined! Undefine it before including macros.hpp!"
+#endif
+// Declare a field with type, name and set it to value.
+// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
+#define DECLARE_INSTANCE_FIELD_DEFAULT(type, name, value) \
+public: \
+type name = value; \
+private: \
+struct field_wrapper_##name { \
+    static inline ::custom_types::field_info* get() { \
+        ::il2cpp_functions::Init(); \
+        auto* t = ::il2cpp_functions::class_get_type(classof(type)); \
+        uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
+        return new ::custom_types::field_info(#name, t, attrs); \
+    } \
+    static inline constexpr bool isStatic() { \
+        return false; \
+    } \
+}
+
 #ifdef __CREATE_METHOD_WRAPPER
 #error "__CREATE_METHOD_WRAPPER is already defined! Undefine it before including macros.hpp!"
 #endif
