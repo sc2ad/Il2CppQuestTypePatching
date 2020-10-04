@@ -258,7 +258,7 @@ struct method_wrapper_##name { \
             _flags |= METHOD_ATTRIBUTE_STATIC; \
             ptr = (void*)&__DeclType::name; \
         } else { \
-            static_assert(false_t<memberPtr>, "Must define either an instance or a static method! Could not match either!"); \
+            static_assert(::custom_types::false_t<memberPtr>, "Must define either an instance or a static method! Could not match either!"); \
         } \
         return new ::custom_types::method_info(csharpName, ptr, invoker, ret, params, _flags, virtualData); \
     } \
