@@ -7,7 +7,7 @@
     "version": "0.1.0",
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
-      "overrideSoName": "libcustom-types.so"
+      "overrideSoName": "libcustom-types.so",
       "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
       "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so"
     }
