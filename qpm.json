@@ -8,8 +8,9 @@
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
       "overrideSoName": "libcustom-types.so",
-      "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
-      "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so"
+      "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.2.9/libcustom-types.so.so",
+      "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.2.9/debug_libcustom-types.so",
+      "branchName": "version-v0.2.9"
     }
   },
   "dependencies": [
