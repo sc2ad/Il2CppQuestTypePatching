@@ -15,6 +15,11 @@ inline size_t constexpr offset_of(T1 T2::*member) {
     return size_t(&(object.*member)) - size_t(&object);
 }
 
+template<typename T>
+inline size_t constexpr offset_of(T t) {
+    return 0;
+}
+
 #ifdef DECLARE_CLASS
 #error "DECLARE_CLASS is already defined! Undefine it before including macros.hpp!"
 #endif
