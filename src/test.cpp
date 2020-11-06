@@ -35,6 +35,8 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
 
     DECLARE_METHOD(int, asdf, int q);
 
+    DECLARE_STATIC_FIELD(int, x);
+
     DECLARE_OVERRIDE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));
 
     REGISTER_FUNCTION(MyType,
@@ -46,6 +48,7 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
         REGISTER_METHOD(Test);
         REGISTER_METHOD(asdf);
         REGISTER_METHOD(ToString);
+        REGISTER_FIELD(x);
         // REGISTER_METHOD(asdf);
     )
 )
