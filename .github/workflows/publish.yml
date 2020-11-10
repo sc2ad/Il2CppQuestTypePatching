@@ -24,6 +24,8 @@ jobs:
       with:
         ndk-version: r21
       
+    - name: Enable untrusted output
+      run: echo "::stop-commands::`echo -n ${{ github.token }} | sha256sum | head -c 64`"
     - name: Create ndkpath.txt
       run: echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
         
@@ -111,8 +113,7 @@ jobs:
       uses: octokit/request-action@v2.x
       id: get_release
       with:
-          route: GET /repos/:repository/releases/tags/${{ steps.get_tag_version.outputs.TAG }}
-          repository: ${{ github.repository }}
+          route: GET /repos/${{ github.repository }}/releases/tags/${{ steps.get_tag_version.outputs.TAG }}
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Get Release Upload URL
@@ -122,7 +123,7 @@ jobs:
         echo $url
         echo "::set-output name=upload_url::$url"
       env: 
-          response:  ${{ steps.get_release.outputs.data }}
+          response: ${{ steps.get_release.outputs.data }}
     - name: Get Library Name
       id: libname
       run: |
@@ -139,7 +140,7 @@ jobs:
       with:
         upload_url: ${{ steps.get_upload_url.outputs.upload_url }}
         asset_path: ./libs/arm64-v8a/${{ steps.libname.outputs.NAME }}
-        asset_name: ${{ steps.libname.outputs.NAME }}.so
+        asset_name: ${{ steps.libname.outputs.NAME }}
         asset_content_type: application/octet-stream
     - name: Upload Debug Asset
       id: upload_debug_asset
