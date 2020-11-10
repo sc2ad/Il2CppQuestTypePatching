@@ -3,7 +3,7 @@
     {
       "defines": [
         "ID=\"CustomTypes\"",
-        "VERSION=\"0.1.0\"",
+        "VERSION=\"0.2.12\"",
         "__GNUC__",
         "__aarch64__",
         "NEED_UNSAFE_CSHARP",

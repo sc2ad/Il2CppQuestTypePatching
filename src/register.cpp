@@ -25,6 +25,24 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     return klass;
 }
 
+MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
+    // If we are attempting to call Class::Init() on an Il2CppClass* that is a custom Il2CppClass*, we need to ignore.
+    if (!klass) {
+        // We will provide some useful debug info here
+        ::custom_types::_logger().critical("Class::Init called with a null Il2CppClass*!");
+        CRASH_UNLESS(false);
+    }
+    auto typ = klass->this_arg;
+    if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
+        // This is a custom class. Skip it.
+        auto idx = kTypeDefinitionIndexInvalid - typ.data.klassIndex;
+        ::custom_types::_logger().debug("(Class::Init) custom idx: %u", idx);
+        return true;
+    } else {
+        return Class_Init(klass);
+    }
+}
+
 MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, TypeDefinitionIndex index) {
     if (index < 0) {
         // index is either invalid or one of ours
@@ -95,6 +113,7 @@ namespace custom_types {
             _logger().debug("Installing FromIl2CppType hook...");
             INSTALL_HOOK_DIRECT(FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
             INSTALL_HOOK_DIRECT(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
+            INSTALL_HOOK_DIRECT(Class_Init, (void*)il2cpp_functions::Class_Init);
             installed = true;
         }
     }
