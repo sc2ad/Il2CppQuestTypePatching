@@ -65,6 +65,8 @@ namespace custom_types {
         constexpr void setClass(Il2CppClass* klass) const {
             info->klass = klass;
         }
+        /// @brief Fixes any references to ourselves in either our return type or parameters.
+        void fixSelf(Il2CppType* type);
         public:
         /// @brief Copy constructor.
         method_info(method_info&&) = default;
@@ -124,6 +126,9 @@ namespace custom_types {
         std::vector<field_info*> staticFields;
         std::vector<method_info*> methods;
 
+        /// @brief Checks all valid virtual methods on the given info for a matching MethodInfo* with the given klass namespace, name, and methodName
+        /// with an optional parameter count match.
+        bool checkVirtualsForMatch(custom_types::method_info* info, std::string_view namespaze, std::string_view name, std::string_view methodName, int paramCount = -1);
         void getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets);
         void setupTypeHierarchy(Il2CppClass* base);
         void populateMethods();
@@ -221,11 +226,11 @@ namespace custom_types {
     // Several of these concepts originally created by DaNike, modifications made by Sc2ad
 
     /// @struct A helper structure for getting parameters, return type, and function pointer from an instance method
-    template<typename T>
+    template<typename Decl, typename T>
     struct method_info_template_instance {};
 
     /// @struct A helper structure for getting parameters, return type, and function pointer from a static method
-    template<typename T>
+    template<typename Decl, typename T>
     struct method_info_template_static {};
 
     /// @struct A helper structure for getting the name of the type.
@@ -240,24 +245,29 @@ namespace custom_types {
     template<typename T> struct type_tag {};
 
     /// @struct A helper structure for converting parameter types to il2cpp types.
-    template<typename... Ps>
+    template<typename Decl, typename... Ps>
     struct parameter_converter;
 
     // Create a vector of ParameterInfo objects (good ol tail recursion)
     // 1 or more parameters
-    template<typename P, typename... Ps>
-    struct parameter_converter<P, Ps...> {
+    template<typename Decl, typename P, typename... Ps>
+    struct parameter_converter<Decl, P, Ps...> {
         static inline std::vector<ParameterInfo> get() {
             std::vector<ParameterInfo> params;
             auto& info = params.emplace_back();
-            il2cpp_functions::Init();
-            auto type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
+            const Il2CppType* type;
+            if constexpr (std::is_same_v<Decl, P>) {
+                type = nullptr;
+            } else {
+                il2cpp_functions::Init();
+                type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
+            }
             // Ignore name, it will be set when we iterate over all of them (param_1, param_2, etc.)
             // Ignore position, it will also be set on iteration.
             // TODO: Maybe some day we can actually use the parameters names themselves!
             info.parameter_type = type;
             info.token = -1;
-            for (const auto& q : parameter_converter<Ps...>::get()) {
+            for (const auto& q : parameter_converter<Decl, Ps...>::get()) {
                 params.push_back(q);
             }
             return std::move(params);
@@ -265,8 +275,8 @@ namespace custom_types {
     };
 
     // 0 parameters
-    template<>
-    struct parameter_converter<> {
+    template<typename Decl>
+    struct parameter_converter<Decl> {
         static inline std::vector<ParameterInfo> get() {
             return std::vector<ParameterInfo>();
         }
@@ -359,14 +369,14 @@ namespace custom_types {
         }
     };
 
-    template<typename TRet, typename T, typename... TArgs>
-    struct method_info_template_instance<TRet(T::*)(TArgs...)> {
+    template<typename Decl, typename TRet, typename T, typename... TArgs>
+    struct method_info_template_instance<Decl, TRet(T::*)(TArgs...)> {
         static inline const Il2CppType* get() {
             il2cpp_functions::Init();
             return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TRet>::get());
         }
         static inline const std::vector<ParameterInfo> get_params() {
-            std::vector<ParameterInfo> vec = parameter_converter<TArgs...>::get();
+            std::vector<ParameterInfo> vec = parameter_converter<Decl, TArgs...>::get();
             for (std::size_t i = 0; i < vec.size(); i++) {
                 auto str = string_format("param_%u", i);
                 char* buff = static_cast<char*>(calloc(str.size() + 1, sizeof(char)));
@@ -384,14 +394,19 @@ namespace custom_types {
         }
     };
 
-    template<typename TRet, typename... TArgs>
-    struct method_info_template_static<TRet(*)(TArgs...)> {
+    template<typename Decl, typename TRet, typename... TArgs>
+    struct method_info_template_static<Decl, TRet(*)(TArgs...)> {
         static inline const Il2CppType* get() {
-            il2cpp_functions::Init();
-            return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TRet>::get());
+            if constexpr (std::is_same_v<Decl, TRet>) {
+                // Special case return for return types that are ourselves
+                return nullptr;
+            } else {
+                il2cpp_functions::Init();
+                return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TRet>::get());
+            }
         }
         static inline const std::vector<ParameterInfo> get_params() {
-            std::vector<ParameterInfo> vec = parameter_converter<TArgs...>::get();
+            std::vector<ParameterInfo> vec = parameter_converter<Decl, TArgs...>::get();
             for (std::size_t i = 0; i < vec.size(); i++) {
                 auto str = string_format("param_%u", i);
                 char* buff = static_cast<char*>(calloc(str.size() + 1, sizeof(char)));

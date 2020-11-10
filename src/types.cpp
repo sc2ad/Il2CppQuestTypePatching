@@ -52,3 +52,18 @@
     // info->slot = virtual_data ? virtual_data->slot : kInvalidIl2CppMethodSlot;
     // TODO: set more data on method, perhaps pass in less?
 }
+
+void ::custom_types::method_info::fixSelf(Il2CppType* type) {
+    // Iterate over all parameters and return type and check to see if they are nullptr.
+    // If they are, make the assumption that they were supposed to be self references.
+    for (auto& itr : params) {
+        if (itr.parameter_type == nullptr) {
+            _logger().debug("Assuming parameter: %s has self referencing type!", itr.name);
+            itr.parameter_type = type;
+        }
+    }
+    if (info->return_type == nullptr) {
+        _logger().debug("Assuming return type has self referencing type!");
+        info->return_type = type;
+    }
+}

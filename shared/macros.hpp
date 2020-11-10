@@ -107,7 +107,7 @@ template<> \
 struct ::custom_types::name_registry<namespaze::name> { \
     static inline ::custom_types::type_info* get() { \
         _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
-        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, classof(baseT*), {}, false); \
+        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get(), {}, false); \
     } \
 }; \
 namespace namespaze { \
@@ -185,7 +185,7 @@ private: \
 struct field_wrapper_##name { \
     static inline ::custom_types::field_info* get() { \
         ::il2cpp_functions::Init(); \
-        auto* t = ::il2cpp_functions::class_get_type(classof(type)); \
+        auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
         uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
         return new ::custom_types::field_info(#name, t, attrs); \
     } \
@@ -206,7 +206,7 @@ private: \
 struct field_wrapper_##name { \
     static inline ::custom_types::field_info* get() { \
         ::il2cpp_functions::Init(); \
-        auto* t = ::il2cpp_functions::class_get_type(classof(type)); \
+        auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
         uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC | FIELD_ATTRIBUTE_STATIC; \
         return new ::custom_types::field_info(#name, t, attrs); \
     } \
@@ -227,7 +227,7 @@ private: \
 struct field_wrapper_##name { \
     static inline ::custom_types::field_info* get() { \
         ::il2cpp_functions::Init(); \
-        auto* t = ::il2cpp_functions::class_get_type(classof(type)); \
+        auto* t = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type>::get()); \
         uint16_t attrs = FIELD_ATTRIBUTE_PUBLIC; \
         return new ::custom_types::field_info(#name, t, attrs); \
     } \
@@ -246,8 +246,8 @@ template<typename __DeclType, class __Discard = void> \
 struct method_wrapper_##name { \
     static inline ::custom_types::method_info* get() { \
         using memberPtr = decltype(&__DeclType::name); \
-        using instanceClass = ::custom_types::method_info_template_instance<memberPtr>; \
-        using staticClass = ::custom_types::method_info_template_static<memberPtr>; \
+        using instanceClass = ::custom_types::method_info_template_instance<__DeclType, memberPtr>; \
+        using staticClass = ::custom_types::method_info_template_static<__DeclType, memberPtr>; \
         const Il2CppType* ret; \
         std::vector<ParameterInfo> params; \
         uint16_t _flags = flags; \

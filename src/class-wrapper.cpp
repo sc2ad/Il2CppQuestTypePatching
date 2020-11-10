@@ -243,7 +243,7 @@ namespace custom_types {
         // Just assume we always have references. This is mostly unused anyways.
         klass->has_references = 1;
         // logger().debug("Deleting Il2CppType! Ptr: %p", type);
-        // delete type;
+        delete type;
     }
 
     ClassWrapper::~ClassWrapper() {
@@ -312,8 +312,18 @@ namespace custom_types {
         klass->static_fields_size = 0;
     }
 
+    bool ClassWrapper::checkVirtualsForMatch(custom_types::method_info* info, std::string_view namespaze, std::string_view name, std::string_view methodName, int paramCount) {
+        // For now, we only match the highest level virtual data.
+        // Any sub-level virtuals are missed/ignored.
+        // This SHOULD be good enough for Finalize.
+        if (info->virtual_data) {
+            auto* k = info->virtual_data->klass;
+            return namespaze == k->namespaze && name == k->name && methodName == info->virtual_data->name && (paramCount >= 0 ? info->virtual_data->parameters_count == paramCount : true);
+        }
+        return false;
+    }
+
     void ClassWrapper::populateMethods() {
-        // TODO: Should ensure this value from cross checking it against methods.
         // If any method exists that has a Finalize name, should use it
         klass->has_finalize = false;
         // TODO: Allow cctor to exist someday
@@ -323,17 +333,15 @@ namespace custom_types {
         klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
         for (auto i = 0; i < klass->method_count; i++) {
             methods[i]->setClass(klass);
+            // As we iterate here, it's important for us to know if the method has references to ourselves in it.
+            // If it does, we need to fix that with a PROPER reference to ourselves.
+            methods[i]->fixSelf(&klass->byval_arg);
             auto* info = methods[i]->get();
             // TODO: Populate other fields as necessary
             klass->methods[i] = info;
-            // We also need to do two things:
-            // First, check to see if we explicitly are an interface method
-            // (methods[i]->virtual_info)
-            // If we are, we set the MethodInfo of our vtable slot for this method to virtual_info
-            // and set the method pointer to info->methodPointer
-            // If not, check to see if we are IMPLICITLY an interface method (share a name) and it hasn't been mapped to
-            // Set our methodPointer (using the MethodInfo* that this method should map to based off of names and interfaces)
-            // If we have a duplicate name, we need to handle this specially. For now, that isn't important.
+            if (!klass->has_finalize && checkVirtualsForMatch(methods[i], "System", "Object", "Finalize", 0)) {
+                klass->has_finalize = true;
+            }
         }
     }
 

@@ -120,6 +120,20 @@ Il2CppArray* Il2CppNamespace::MyCustomBeatmapLevelPackCollection::get_beatmapLev
     return wrappedArr;
 }
 
+DECLARE_CLASS(SmallTest, Test, "System", "Object", sizeof(Il2CppObject),
+    DECLARE_METHOD(static SmallTest::Test*, SelfRef, int x);
+
+    REGISTER_FUNCTION(Test,
+        REGISTER_METHOD(SelfRef);
+    )
+)
+
+DEFINE_CLASS(SmallTest::Test);
+
+SmallTest::Test* SmallTest::Test::SelfRef(int x) {
+    return CRASH_UNLESS(il2cpp_utils::New<SmallTest::Test*>());
+}
+
 // DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyBeatmapObjectManager, "", "BeatmapObjectManager",
 //     il2cpp_utils::GetClassFromName("", "IBeatmapObjectSpawner"),
 //     DECLARE_CTOR(ctor);
@@ -220,6 +234,7 @@ extern "C" void load() {
     klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>());
     INSTALL_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 2));
     CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>());
+    CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>());
     INSTALL_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
     // auto k = CRASH_UNLESS(custom_types::Register::RegisterType<Il2CppNamespace::MyBeatmapObjectManager>());
     // INSTALL_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnNote", 2));

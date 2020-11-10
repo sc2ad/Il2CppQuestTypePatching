@@ -9,9 +9,13 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
         shouldBeOurs = true;
         // If the type matches our type
         auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
+        #ifndef NO_VERBOSE_LOGS
         ::custom_types::_logger().debug("(FromIl2CppType) custom idx: %u for type: %p", idx, typ);
+        #endif
         if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
+            #ifndef NO_VERBOSE_LOGS
             ::custom_types::_logger().debug("(FromIl2CppType) Returning custom class with idx %i!", idx);
+            #endif
             auto* wrapper = ::custom_types::Register::classes[idx];
             return const_cast<Il2CppClass*>(wrapper->get());
         }
@@ -36,7 +40,9 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
     if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
         // This is a custom class. Skip it.
         auto idx = kTypeDefinitionIndexInvalid - typ.data.klassIndex;
+        #ifndef NO_VERBOSE_LOGS
         ::custom_types::_logger().debug("(Class::Init) custom idx: %u", idx);
+        #endif
         return true;
     } else {
         return Class_Init(klass);
