@@ -9,9 +9,9 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
         shouldBeOurs = true;
         // If the type matches our type
         auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
-        ::custom_types::_logger().debug("custom idx: %u for type: %p", idx, typ);
-        if (idx < ::custom_types::Register::classes.size()) {
-            ::custom_types::_logger().debug("Returning custom class with idx %i!", idx);
+        ::custom_types::_logger().debug("(FromIl2CppType) custom idx: %u for type: %p", idx, typ);
+        if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
+            ::custom_types::_logger().debug("(FromIl2CppType) Returning custom class with idx %i!", idx);
             auto* wrapper = ::custom_types::Register::classes[idx];
             return const_cast<Il2CppClass*>(wrapper->get());
         }
@@ -29,9 +29,9 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, 
     if (index < 0) {
         // index is either invalid or one of ours
         auto idx = kTypeDefinitionIndexInvalid - index;
-        ::custom_types::_logger().debug("custom idx: %u", idx);
-        if (idx < ::custom_types::Register::classes.size()) {
-            ::custom_types::_logger().debug("Returning custom class with idx %i!", idx);
+        ::custom_types::_logger().debug("(MetadataCache) custom idx: %u", idx);
+        if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
+            ::custom_types::_logger().debug("(MetadataCache) Returning custom class with idx %i!", idx);
             auto* wrapper = ::custom_types::Register::classes[idx];
             return const_cast<Il2CppClass*>(wrapper->get());
         }

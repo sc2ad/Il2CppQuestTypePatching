@@ -58,8 +58,9 @@ namespace custom_types {
         static void UnregisterAll() {
             ClassWrapper::typeIdx = kTypeDefinitionIndexInvalid;
             for (auto* wrapper : classes) {
-                wrapper->~ClassWrapper();
+                delete wrapper;
             }
+            classes.clear();
             // We also need to correctly delete any created images or assemblies.
             // These need to deleted in a very delicate way so as not to have any dangling references.
         }
