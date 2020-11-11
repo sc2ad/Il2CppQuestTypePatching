@@ -18,16 +18,34 @@ jobs:
     - name: Install Powershell
       run: sudo apt-get install -y powershell
     
-    - name: Setup NDK
-      id: setup-ndk
-      uses: nttld/setup-ndk@v1.0.0
+    - name: Cache Android NDK
+      id: cache-ndk
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-ndk
+        ndkname: android-ndk-r21
       with:
-        ndk-version: r21
+        path: ndk
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.ndkname }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ env.ndkname }}
+      
+    - name: Install Android NDK
+      if: steps.cache-ndk.outputs.cache-hit != 'true'
+      env:
+        ndkname: android-ndk-r21
+      run: |
+        wget -q -O ndk.zip https://dl.google.com/android/repository/${ndkname}-linux-x86_64.zip
+        unzip -q ndk.zip
+        mv ${ndkname} ndk
+      
+    - name: Create ndkpath.txt
+      run: |
+        cd ndk
+        pwd > ${GITHUB_WORKSPACE}/ndkpath.txt
       
     - name: Enable untrusted output
       run: echo "::stop-commands::`echo -n ${{ github.token }} | sha256sum | head -c 64`"
-    - name: Create ndkpath.txt
-      run: echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
         
 #     - name: Cache QPM
 #       id: cache-qpm
