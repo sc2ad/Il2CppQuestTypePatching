@@ -7,6 +7,8 @@ on:
 
 jobs:
   publish:
+    env:
+      module_id: custom-types
     runs-on: ubuntu-latest
     
     steps:
@@ -146,7 +148,7 @@ jobs:
       id: libname
       run: |
         cd ./libs/arm64-v8a/
-        pattern="libcustom-types*.so"
+        pattern="lib${module_id}*.so"
         files=( $pattern )
         echo ::set-output name=NAME::"${files[0]}"
     # Upload our release assets
