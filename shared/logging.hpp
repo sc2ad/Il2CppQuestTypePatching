@@ -16,7 +16,7 @@ struct Il2CppRuntimeInterfaceOffsetPair;
 namespace custom_types {
     /// @brief Returns the logger used within custom types. Should not be called publicly.
     /// @return The logger used internally
-    const Logger& _logger();
+    Logger& _logger();
 
     /// @brief Logs the provided Il2CppAssemblyName* with a provided label.
     /// @param name The Il2CppAssemblyName* to log all fields on.
@@ -30,7 +30,7 @@ namespace custom_types {
     /// @brief Logs the provided Il2CppCodeGenModule* with a provided label.
     /// @param module The Il2CppCodeGenModule* to log all fields on.
     /// @param s The label for the logging.
-    void logCodegen(const Il2CppCodeGenModule* module, std::string_view s);
+    void logCodegen(const Il2CppCodeGenModule* m, std::string_view s);
 
     /// @brief Logs the provided Il2CppImage*
     /// @param img The Il2CppImage* to log all fields on.
@@ -43,6 +43,9 @@ namespace custom_types {
 
     /// @brief Logs the provided Il2CppClass*'s vtable
     void logVtable(const VirtualInvokeData* invokeData);
+
+    /// @brief Logs various information about the fields of the provided Il2CppClass*
+    void logFields(const Il2CppClass* klass);
 
     /// @brief Logs the provided Il2CppRuntimeInterfaceOffsetPair
     void logInterfaceOffset(const Il2CppRuntimeInterfaceOffsetPair* pair);

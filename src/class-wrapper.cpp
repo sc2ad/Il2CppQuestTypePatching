@@ -9,6 +9,7 @@ namespace custom_types {
     }
 
     void ClassWrapper::getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets) {
+        static auto logger = _logger().WithContext("ClassWrapper").WithContext("getVtable");
         // First, we want to iterate over our methods
         // With these methods, we want to determine if any of them have virtual data
         // If they do, we want to look in our existing vtable if they exist. If they do, remap the methodPointer
@@ -38,11 +39,11 @@ namespace custom_types {
             // Logically speaking, the easiest approach we can follow is:
             // Copy over our base vtable
             // Change single values as we see them.
-            _logger().debug("Copying base offsets...");
+            logger.debug("Copying base offsets...");
             for (uint16_t offIdx = 0; offIdx < info->base->interface_offsets_count; offIdx++) {
                 offsets.push_back(info->base->interfaceOffsets[offIdx]);
             }
-            _logger().debug("Copying base vtable...");
+            logger.debug("Copying base vtable...");
             for (uint16_t i = 0; i < info->base->vtable_count; i++) {
                 vtable.push_back(info->base->vtable[i]);
             }
@@ -52,7 +53,7 @@ namespace custom_types {
                 if (m->virtual_data != nullptr) {
                     bool set = false;
                     if (m->virtual_data->slot < 0) {
-                        _logger().critical("Virtual data: %p has slot: %u which is invalid!", m->virtual_data, m->virtual_data->slot);
+                        logger.critical("Virtual data: %p has slot: %u which is invalid!", m->virtual_data, m->virtual_data->slot);
                         CRASH_UNLESS(false);
                     }
                     for (auto& inter : offsets) {
@@ -63,10 +64,10 @@ namespace custom_types {
                             m->info->slot = m->virtual_data->slot + inter.offset;
                             if (m->info->slot >= vtable.size() || m->info->slot < 0) {
                                 // Our corrected slot is invalid!
-                                _logger().critical("Existing interface slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
+                                logger.critical("Existing interface slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
                                 CRASH_UNLESS(false);
                             }
-                            _logger().debug("Using slot: %u", m->info->slot);
+                            logger.debug("Using slot: %u", m->info->slot);
                             vtable[m->info->slot].method = m->get();
                             vtable[m->info->slot].methodPtr = m->get()->methodPointer;
                             set = true;
@@ -80,16 +81,16 @@ namespace custom_types {
                         auto* b = info->base;
                         while (b != nullptr) {
                             if (m->virtual_data->klass == b) {
-                                _logger().debug("Matching base type: %p for method: %p", b, m->virtual_data);
+                                logger.debug("Matching base type: %p for method: %p", b, m->virtual_data);
                                 // We are implementing an abstract method from our abstract base. Use the virtual_data's slot exactly.
-                                _logger().debug("Using base slot: %u for method: %p", m->virtual_data->slot, m->get());
+                                logger.debug("Using base slot: %u for method: %p", m->virtual_data->slot, m->get());
                                 m->info->slot = m->virtual_data->slot;
                                 if (m->info->slot >= vtable.size() || m->info->slot < 0) {
                                     // Our corrected slot is invalid!
-                                    _logger().critical("virtual_data slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
+                                    logger.critical("virtual_data slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
                                     CRASH_UNLESS(false);
                                 }
-                                _logger().debug("Using slot: %u", m->info->slot);
+                                logger.debug("Using slot: %u", m->info->slot);
                                 vtable[m->info->slot].method = m->get();
                                 vtable[m->info->slot].methodPtr = m->get()->methodPointer;
                                 set = true;
@@ -106,13 +107,13 @@ namespace custom_types {
                                     if (inter->method_count < m->virtual_data->slot) {
                                         // For some reason, the interface has a lower method count than the slot of the method we are looking for...
                                         // This could theoretically be the case when we have an interface that implements multiple interfaces?
-                                        _logger().critical("Interface: %p method count: %u < virtual data: %p slot: %u", inter, inter->method_count, m->virtual_data, m->virtual_data->slot);
+                                        logger.critical("Interface: %p method count: %u < virtual data: %p slot: %u", inter, inter->method_count, m->virtual_data, m->virtual_data->slot);
                                         CRASH_UNLESS(false);
                                     }
                                     auto& off = offsets.emplace_back();
                                     off.interfaceType = inter;
                                     off.offset = vtable.size();
-                                    _logger().debug("Made new interface offset for type: %p, offset: %u", off.interfaceType, off.offset);
+                                    logger.debug("Made new interface offset for type: %p, offset: %u", off.interfaceType, off.offset);
                                     // Now we need to add to vtable to ensure we have all of our interface methods
                                     // for this interface properly added.
                                     // TODO: We should do an assertion here to make sure that we actually properly implement each method.
@@ -124,10 +125,10 @@ namespace custom_types {
                                     m->info->slot = off.offset + m->virtual_data->slot;
                                     if (m->info->slot >= vtable.size() || m->info->slot < 0) {
                                         // Our corrected slot is invalid!
-                                        _logger().critical("New interface slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
+                                        logger.critical("New interface slot: %u invalid! vtable size: %u", m->info->slot, vtable.size());
                                         CRASH_UNLESS(false);
                                     }
-                                    _logger().debug("Using slot: %u", m->info->slot);
+                                    logger.debug("Using slot: %u", m->info->slot);
                                     vtable[m->info->slot].method = m->get();
                                     vtable[m->info->slot].methodPtr = m->get()->methodPointer;
                                     set = true;
@@ -139,8 +140,8 @@ namespace custom_types {
                     if (!set) {
                         // We should be implementing the interface.
                         // If we reach here, we don't implement or extend the virtual method we want to implement.
-                        _logger().critical("Method: %p needs virtual_data: %p which requires type: %p which does not exist!", m->get(), m->virtual_data, m->virtual_data->klass);
-                        _logger().critical("Ensure all of your virtual methods' types are defined in the interfaces in DECLARE_CLASS_INTERFACES!");
+                        logger.critical("Method: %p needs virtual_data: %p which requires type: %p which does not exist!", m->get(), m->virtual_data, m->virtual_data->klass);
+                        logger.critical("Ensure all of your virtual methods' types are defined in the interfaces in DECLARE_CLASS_INTERFACES!");
                         CRASH_UNLESS(false);
                     }
                 }
@@ -148,7 +149,7 @@ namespace custom_types {
         } else {
             // We have no base type.
             // For now, we will simply throw in such a case.
-            _logger().critical("Cannot create a vtable without a base type!");
+            logger.critical("Cannot create a vtable without a base type!");
             CRASH_UNLESS(false);
         }
     }
@@ -249,16 +250,16 @@ namespace custom_types {
     ClassWrapper::~ClassWrapper() {
         // static_assert(false, "asdf");
         // We need to delete info, all of the fields, methods, typeHierarchy, staticFields
-
-        _logger().debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
+        static auto logger = _logger().WithContext("~ClassWrapper");
+        logger.debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
         delete klass->typeHierarchy;
-        _logger().debug("Deleting Il2CppClass*! Ptr: %p", klass);
+        logger.debug("Deleting Il2CppClass*! Ptr: %p", klass);
         delete klass;
-        _logger().debug("Deleting fields...");
+        logger.debug("Deleting fields...");
         fields.clear();
-        _logger().debug("Deleting static fields...");
+        logger.debug("Deleting static fields...");
         staticFields.clear();
-        _logger().debug("Deleting methods...");
+        logger.debug("Deleting methods...");
         methods.clear();
     }
 

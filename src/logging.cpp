@@ -3,10 +3,8 @@
 
 namespace custom_types {
 
-    const Logger& _logger() {
-        // File logging is (in general) very dangerous with bs-hook 0.7.0 or 0.7.1
-        // This needs to be fixed as soon as possible.
-        static const Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, false));
+    Logger& _logger() {
+        static Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
         return logger;
     }
 
@@ -31,6 +29,31 @@ namespace custom_types {
         _logger().debug("0 ======================END ASSEMBLY NAME INFO======================");
     }
 
+    void logFields(const Il2CppClass* klass) {
+        if (!klass) {
+            _logger().debug("NULL IL2CPPCLASS* FOR LOG FIELDS!", klass);
+            return;
+        }
+        _logger().debug("0 ======================FIELDS FOR: %p======================", klass);
+        _logger().debug("field_count: %u", klass->field_count);
+        if (klass->fields) {
+            for (uint16_t i = 0; i < klass->field_count; i++) {
+                _logger().debug("0 ======================FIELD: %u======================", i);
+                auto* fieldRef = &klass->fields[i];
+                _logger().debug("name: %s", fieldRef->name);
+                _logger().debug("offset: 0x%x", fieldRef->offset);
+                _logger().debug("parent: %p", fieldRef->parent);
+                _logger().debug("token: %u", fieldRef->token);
+                _logger().debug("type: %p", fieldRef->type);
+                if (fieldRef->type) {
+                    logType(fieldRef->type, "Field Type");
+                }
+                _logger().debug("0 ======================END FIELD: %u======================", i);
+            }
+        }
+        _logger().debug("0 ======================END FIELDS======================");
+    }
+
     void logAsm(const Il2CppAssembly* assem) {
         if (!assem) {
             _logger().debug("NULL ASSEMBLY!");
@@ -45,23 +68,23 @@ namespace custom_types {
         _logger().debug("0 ======================END ASSEMBLY INFO======================");
     }
 
-    void logCodegen(const Il2CppCodeGenModule* module, std::string_view s) {
-        if (!module) {
+    void logCodegen(const Il2CppCodeGenModule* m, std::string_view s) {
+        if (!m) {
             _logger().debug("%s: NULL MODULE!", s.data());
             return;
         }
-        _logger().debug("0 ======================CODEGEN INFO FOR: %p, %s======================", module, s.data());
-        _logger().debug("moduleName: %s", module->moduleName ? module->moduleName : "NULL");
-        _logger().debug("methodPointerCount: %u", module->methodPointerCount);
-        _logger().debug("methodPointers: %p", module->methodPointers);
-        _logger().debug("invokerIndices: %p", module->invokerIndices);
-        _logger().debug("reversePInvokeWrapperCount: %u", module->reversePInvokeWrapperCount);
-        _logger().debug("reversePInvokeWrapperIndices: %p", module->reversePInvokeWrapperIndices);
-        _logger().debug("rgctxRangesCount: %u", module->rgctxRangesCount);
-        _logger().debug("rgctxRanges: %p", module->rgctxRanges);
-        _logger().debug("rgctxsCount: %u", module->rgctxsCount);
-        _logger().debug("rgctxs: %p", module->rgctxs);
-        _logger().debug("debuggerMetadata: %p", module->debuggerMetadata);
+        _logger().debug("0 ======================CODEGEN INFO FOR: %p, %s======================", m, s.data());
+        _logger().debug("moduleName: %s", m->moduleName ? m->moduleName : "NULL");
+        _logger().debug("methodPointerCount: %u", m->methodPointerCount);
+        _logger().debug("methodPointers: %p", m->methodPointers);
+        _logger().debug("invokerIndices: %p", m->invokerIndices);
+        _logger().debug("reversePInvokeWrapperCount: %u", m->reversePInvokeWrapperCount);
+        _logger().debug("reversePInvokeWrapperIndices: %p", m->reversePInvokeWrapperIndices);
+        _logger().debug("rgctxRangesCount: %u", m->rgctxRangesCount);
+        _logger().debug("rgctxRanges: %p", m->rgctxRanges);
+        _logger().debug("rgctxsCount: %u", m->rgctxsCount);
+        _logger().debug("rgctxs: %p", m->rgctxs);
+        _logger().debug("debuggerMetadata: %p", m->debuggerMetadata);
         _logger().debug("0 ======================END CODEGEN INFO======================");
     }
 
