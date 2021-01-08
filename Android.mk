@@ -35,8 +35,8 @@ LOCAL_SRC_FILES := $(call rwildcard,src/**,*.cpp)
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_0_4
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_LDLIBS += -llog
-LOCAL_CFLAGS += -std=c++2a -O3 -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.2.14"' -DNO_VERBOSE_LOGS
-# LOCAL_CFLAGS += -DLOCAL_TEST
+LOCAL_CFLAGS += -std=c++2a -O3 -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.3.0"' -DNO_VERBOSE_LOGS
 LOCAL_C_INCLUDES += ./include ./src
+# LOCAL_CFLAGS += -DLOCAL_TEST
 LOCAL_CPP_FLAGS += -Wall -Werror
 include $(BUILD_SHARED_LIBRARY)
