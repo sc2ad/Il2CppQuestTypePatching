@@ -170,8 +170,8 @@ extern "C" void setup(ModInfo& info) {
     modLogger().debug("Completed setup!");
 }
 
-MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, int activationType) {
-    MainMenuViewController_DidActivate(self, firstActivation, activationType);
+MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+    MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     modLogger().debug("Getting GO...");
     auto* go = RET_V_UNLESS(il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
     modLogger().debug("Got GO: %p", go);
@@ -232,7 +232,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     modLogger().debug("Registering types!");
     klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>());
-    INSTALL_HOOK_OFFSETLESS(modLogger(), MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 2));
+    INSTALL_HOOK_OFFSETLESS(modLogger(), MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
     CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>());
     CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>());
     INSTALL_HOOK_OFFSETLESS(modLogger(), BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
