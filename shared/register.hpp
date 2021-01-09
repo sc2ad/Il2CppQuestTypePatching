@@ -42,7 +42,8 @@ namespace custom_types {
                     classWrapper->populateFields();
                     classWrapper->populateMethods();
                     // Return for extra modification
-                    _logger().WithContext("RegisterType").debug("Registered type: %s::%s at idx: %u", type->namespaze.c_str(), type->name.c_str(), classes.size());
+                    static auto logger = _logger().WithContext("RegisterType");
+                    logger.debug("Registered type: %s::%s at idx: %u", type->namespaze.c_str(), type->name.c_str(), classes.size());
                     // Set the klass static inline field on the type
                     classes.push_back(classWrapper);
                     return classWrapper;

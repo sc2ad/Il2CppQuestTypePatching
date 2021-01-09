@@ -9,7 +9,7 @@ namespace custom_types {
     }
 
     void ClassWrapper::getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets) {
-        static auto logger = _logger().WithContext("ClassWrapper").WithContext("getVtable");
+        static auto logger = _logger().WithContext("ClassWrapper::getVtable");
         // First, we want to iterate over our methods
         // With these methods, we want to determine if any of them have virtual data
         // If they do, we want to look in our existing vtable if they exist. If they do, remap the methodPointer

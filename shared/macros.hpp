@@ -1,24 +1,9 @@
 #pragma once
 #include "types.hpp"
 #include <stdint.h>
+#include <stddef.h>
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
-
-template <typename T1, typename T2>
-/// @brief Returns the offset of a provided member pointer.
-/// This constructs an instance and subtracts sizes to compare validity.
-/// @tparam T1 Type of the member
-/// @tparam T2 Type the member is in
-/// @returns Offset of the particular member.
-inline size_t constexpr offset_of(T1 T2::*member) {
-    constexpr T2 object {};
-    return size_t(&(object.*member)) - size_t(&object);
-}
-
-template<typename T>
-inline size_t constexpr offset_of(T t) {
-    return 0;
-}
 
 #ifdef DECLARE_CLASS
 #error "DECLARE_CLASS is already defined! Undefine it before including macros.hpp!"
@@ -328,7 +313,7 @@ do { \
         val->setOffset(0); \
     } \
     else { \
-        val->setOffset(offset_of(&TargetType::name)); \
+        val->setOffset(offsetof(TargetType, name)); \
     } \
     fields.push_back(std::move(val)); \
 } while (0)
