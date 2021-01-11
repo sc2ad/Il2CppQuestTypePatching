@@ -20,8 +20,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := beatsaber-hook_1_0_7
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_1_0_7.so
+LOCAL_CPP_FEATURES += exceptions
 LOCAL_EXPORT_C_FLAGS := -DNEED_UNSAFE_CSHARP -DUNITY_2019
-LOCAL_CPP_FEATURES := exceptions
 include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: modloader - version: 1.0.4
 include $(CLEAR_VARS)
@@ -32,12 +32,12 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
-LOCAL_SRC_FILES := $(call rwildcard,src/**,*.cpp)
+LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook/,*.cpp)
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_1_0_7
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_LDLIBS += -llog
-LOCAL_CFLAGS += -std=c++2a -O3 -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.2.14"' -DNO_VERBOSE_LOGS
+LOCAL_CFLAGS += -std=c++2a -O3 -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.3.4"' -DNO_VERBOSE_LOGS
 LOCAL_C_INCLUDES += ./include ./src
 # LOCAL_CFLAGS += -DLOCAL_TEST
 LOCAL_CPP_FLAGS += -Wall -Werror
