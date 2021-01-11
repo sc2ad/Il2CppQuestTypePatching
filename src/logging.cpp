@@ -4,8 +4,8 @@
 namespace custom_types {
 
     Logger& _logger() {
-        static Logger logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
-        return logger;
+        static auto logger = new Logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
+        return *logger;
     }
 
     void logAname(const Il2CppAssemblyName* name, std::string_view anameLabel) {

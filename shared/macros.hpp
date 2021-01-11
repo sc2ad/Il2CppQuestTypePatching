@@ -25,6 +25,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 }; \
 namespace namespaze { \
     class name { \
+        using ___Target__Type = name; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -61,6 +62,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 }; \
 namespace namespaze { \
     class name { \
+        using ___Target__Type = name; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -97,6 +99,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 }; \
 namespace namespaze { \
     class name : public baseT { \
+        using ___Target__Type = name; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -177,6 +180,9 @@ struct field_wrapper_##name { \
     static inline constexpr bool isStatic() { \
         return false; \
     } \
+    static inline auto offset() { \
+        return offsetof(___Target__Type, name); \
+    } \
 }
 
 #ifdef DECLARE_STATIC_FIELD
@@ -198,6 +204,9 @@ struct field_wrapper_##name { \
     static inline constexpr bool isStatic() { \
         return true; \
     } \
+    static inline auto offset() { \
+        return 0; \
+    } \
 }
 
 #ifdef DECLARE_INSTANCE_FIELD_DEFAULT
@@ -218,6 +227,9 @@ struct field_wrapper_##name { \
     } \
     static inline constexpr bool isStatic() { \
         return false; \
+    } \
+    static inline auto offset() { \
+        return offsetof(___Target__Type, name); \
     } \
 }
 
@@ -294,9 +306,9 @@ __CREATE_METHOD_WRAPPER(name, #name, (overridingMethodInfo->flags & ~METHOD_ATTR
 #error "REGISTER_FUNCTION is already defined! Undefine it before including macros.hpp!"
 #endif
 // Creates static inline _register function used to register type within il2cpp
+// TODO: Remove typeN from this call
 #define REGISTER_FUNCTION(typeN, innards) \
 static inline void _register(std::vector<::custom_types::field_info*>& fields, std::vector<::custom_types::field_info*>& staticFields, std::vector<::custom_types::method_info*>& methods) { \
-    using TargetType = typeN; \
     innards \
 }
 
@@ -310,11 +322,8 @@ do { \
     auto val = field_wrapper_##name::get(); \
     if constexpr (field_wrapper_##name::isStatic()) { \
         staticFields.push_back(std::move(val)); \
-        val->setOffset(0); \
     } \
-    else { \
-        val->setOffset(offsetof(TargetType, name)); \
-    } \
+    val->setOffset(field_wrapper_##name::offset()); \
     fields.push_back(std::move(val)); \
 } while (0)
 
@@ -324,4 +333,4 @@ do { \
 // Registers a method to be attached to this type.
 // Must be called within the REGISTER_FUNCTION macro.
 #define REGISTER_METHOD(name) \
-methods.push_back(std::move(method_wrapper_##name<TargetType>::get()))
+methods.push_back(std::move(method_wrapper_##name<___Target__Type>::get()))

@@ -18,8 +18,8 @@
 ModInfo modInfo;
 
 Logger& modLogger() {
-    static Logger myLogger(modInfo);
-    return myLogger;
+    static auto myLogger = new Logger(modInfo);
+    return *myLogger;
 }
 
 DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*),
@@ -173,18 +173,18 @@ extern "C" void setup(ModInfo& info) {
 MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     modLogger().debug("Getting GO...");
-    auto* go = RET_V_UNLESS(il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
+    auto* go = RET_V_UNLESS(modLogger(), il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
     modLogger().debug("Got GO: %p", go);
     auto* customType = il2cpp_utils::GetSystemType(klassWrapper->get());
     modLogger().debug("Custom System.Type: %p", customType);
-    auto* strType = RET_V_UNLESS(il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
+    auto* strType = RET_V_UNLESS(modLogger(), il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
     modLogger().debug("ToString: %s", to_utf8(csstrtostr(strType)).data());
-    auto* name = RET_V_UNLESS(il2cpp_utils::GetPropertyValue<Il2CppString*>(customType, "Name"));
+    auto* name = RET_V_UNLESS(modLogger(), il2cpp_utils::GetPropertyValue<Il2CppString*>(customType, "Name"));
     modLogger().debug("Name: %s", to_utf8(csstrtostr(name)).c_str());
     modLogger().debug("Actual type: %p", &klassWrapper->get()->byval_arg);
     modLogger().debug("Type: %p", customType->type);
     // crashNow = true;
-    auto* comp = RET_V_UNLESS(il2cpp_utils::RunMethod(go, "AddComponent", customType));
+    auto* comp = RET_V_UNLESS(modLogger(), il2cpp_utils::RunMethod(go, "AddComponent", customType));
     modLogger().debug("Custom Type added as a component: %p", comp);
 }
 
@@ -230,24 +230,25 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 }
 
 extern "C" void load() {
-    modLogger().debug("Registering types!");
+    static auto logger = modLogger().WithContext("Load");
+    logger.debug("Registering types!");
     klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>());
-    INSTALL_HOOK_OFFSETLESS(modLogger(), MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
+    INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
     CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>());
     CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>());
-    INSTALL_HOOK_OFFSETLESS(modLogger(), BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
+    INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
     // auto k = CRASH_UNLESS(custom_types::Register::RegisterType<Il2CppNamespace::MyBeatmapObjectManager>());
     // INSTALL_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnNote", 2));
     // il2cpp_utils::LogClass(il2cpp_utils::GetClassFromName("Il2CppNamespace", "MyBeatmapObjectManager"));
-    // modLogger().debug("Vtables for MyBeatmapObjectManager: %u", k->get()->vtable_count);
-    modLogger().debug("Custom types size: %u", custom_types::Register::classes.size());
-    modLogger().debug("Logging vtables for custom type! There are: %u vtables", klassWrapper->get()->vtable_count);
-    il2cpp_utils::LogClass(const_cast<Il2CppClass*>(klassWrapper->get()));
+    // logger.debug("Vtables for MyBeatmapObjectManager: %u", k->get()->vtable_count);
+    logger.debug("Custom types size: %u", custom_types::Register::classes.size());
+    logger.debug("Logging vtables for custom type! There are: %u vtables", klassWrapper->get()->vtable_count);
+    il2cpp_utils::LogClass(logger, const_cast<Il2CppClass*>(klassWrapper->get()));
     // for (int i = 0; i < k->get()->vtable_count; i++) {
     //     custom_types::logVtable(&k->get()->vtable[i]);
     // }
 
-    // modLogger().debug("Vtables for parent: %u", k->get()->parent->vtable_count);
+    // logger.debug("Vtables for parent: %u", k->get()->parent->vtable_count);
     // for (int i = 0; i < k->get()->parent->vtable_count; i++) {
     //     custom_types::logVtable(&k->get()->parent->vtable[i]);
     // }
