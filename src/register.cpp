@@ -35,8 +35,8 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
     // If we are attempting to call Class::Init() on an Il2CppClass* that is a custom Il2CppClass*, we need to ignore.
     if (!klass) {
         // We will provide some useful debug info here
-        logger.critical("Class::Init called with a null Il2CppClass*!");
-        CRASH_UNLESS(false);
+        logger.warning("Called with a null Il2CppClass*! (Specifically: %p)", klass);
+        return Class_Init(klass);
     }
     auto typ = klass->this_arg;
     if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
