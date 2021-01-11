@@ -11,20 +11,26 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
         // If the type matches our type
         auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
         #ifndef NO_VERBOSE_LOGS
-        logger.debug("(FromIl2CppType) custom idx: %u for type: %p", idx, typ);
+        logger.debug("Custom idx: %u for type: %p", idx, typ);
         #endif
         if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
             #ifndef NO_VERBOSE_LOGS
-            logger.debug("(FromIl2CppType) Returning custom class with idx %i!", idx);
+            logger.debug("Returning custom class with idx %i!", idx);
             #endif
             auto* wrapper = ::custom_types::Register::classes[idx];
+            if (wrapper == nullptr) {
+                logger.warning("Wrapper at idx: %u is null!", idx);
+            }
+            if (wrapper->get() == nullptr) {
+                logger.warning("Wrapper value is null at idx: %u!", idx);
+            }
             return const_cast<Il2CppClass*>(wrapper->get());
         }
     }
     // Otherwise, return orig
     auto klass = FromIl2CppType(typ);
     if (shouldBeOurs) {
-        logger.debug("FromIl2CppType called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
+        logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
         il2cpp_utils::LogClass(logger, klass, false);
     }
     return klass;
@@ -36,14 +42,14 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
     if (!klass) {
         // We will provide some useful debug info here
         logger.warning("Called with a null Il2CppClass*! (Specifically: %p)", klass);
-        return Class_Init(klass);
+        CRASH_UNLESS(false);
     }
     auto typ = klass->this_arg;
     if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
         // This is a custom class. Skip it.
         auto idx = kTypeDefinitionIndexInvalid - typ.data.klassIndex;
         #ifndef NO_VERBOSE_LOGS
-        logger.debug("(Class::Init) custom idx: %u", idx);
+        logger.debug("custom idx: %u", idx);
         #endif
         return true;
     } else {
