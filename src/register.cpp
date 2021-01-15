@@ -4,6 +4,11 @@
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
     // _logger().debug("FromIl2CppType: %p", typ);
+    if (typ == nullptr) {
+        // Extra error checking to avoid unknown null derefs.
+        logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
+        return nullptr;
+    }
     bool shouldBeOurs = false;
     // klassIndex is only meaningful for these types
     if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {

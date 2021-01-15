@@ -232,10 +232,10 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types!");
-    klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>());
+    klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>()[0]);
     INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
-    CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>());
-    CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>());
+    CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>().size() == 1);
+    CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>().size() == 1);
     INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
     // auto k = CRASH_UNLESS(custom_types::Register::RegisterType<Il2CppNamespace::MyBeatmapObjectManager>());
     // INSTALL_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnNote", 2));
