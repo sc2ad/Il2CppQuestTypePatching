@@ -106,7 +106,7 @@ namespace custom_types {
         template<typename T>
         static ClassWrapper* RegisterType() {
             auto* wrapper = RegisterSingle<T>();
-            ResolveSingle(wrapper);
+            ResolveSingle<T>(wrapper);
             return wrapper;
         }
 
