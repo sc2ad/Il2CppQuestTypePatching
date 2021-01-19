@@ -81,10 +81,10 @@ namespace custom_types {
         public:
         // All of the ClassWrapper*s that are accessible
         static std::vector<ClassWrapper*> classes;
-        /// @brief Registers the provided type within the il2cpp domain, 
+        /// @brief Registers the provided types within the il2cpp domain, 
         /// resolving fields and methods after registering all provided types.
         /// @tparam TArgs Types to register within il2cpp.
-        /// @return A vector reference for further type modification/access.
+        /// @return A vector for further type modification/access.
         template<typename... TArgs>
         static const std::vector<ClassWrapper*> RegisterTypes() {
             if constexpr (sizeof...(TArgs) == 0) {
@@ -97,6 +97,17 @@ namespace custom_types {
                 ResolveMany<sizeof...(TArgs), TArgs...>(createdTypes);
                 return createdTypes;
             }
+        }
+
+        /// @brief Registers the provided type within the il2cpp domain.
+        /// Please use RegisterTypes if you register more than one type.
+        /// @tparam T The type to register within il2cpp.
+        /// @return A ClassWrapper* for future reference/modification.
+        template<typename T>
+        static ClassWrapper* RegisterType() {
+            auto* wrapper = RegisterSingle<T>();
+            ResolveSingle(wrapper);
+            return wrapper;
         }
 
         /// @brief Unregisters all custom types, deleting all associated data.
