@@ -32,7 +32,7 @@ namespace custom_types {
                 auto type = ::custom_types::name_registry<T>::get();
                 if constexpr (::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value) {
                     ClassWrapper* classWrapper = new ClassWrapper(type);
-                    // Iterate over all methods, all fields
+                    // We need to determine the vtable size.
                     classWrapper->createClass(sizeof(T));
                     T::klass = classWrapper->get();
                     // Return for extra modification

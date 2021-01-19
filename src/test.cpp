@@ -122,13 +122,17 @@ Il2CppArray* Il2CppNamespace::MyCustomBeatmapLevelPackCollection::get_beatmapLev
 
 DECLARE_CLASS(SmallTest, Test, "System", "Object", sizeof(Il2CppObject),
     DECLARE_METHOD(static SmallTest::Test*, SelfRef, int x);
+    DECLARE_STATIC_FIELD(Il2CppNamespace::MyType*, AnotherRef);
 
     REGISTER_FUNCTION(Test,
         REGISTER_METHOD(SelfRef);
+        REGISTER_FIELD(AnotherRef);
     )
 )
 
 DEFINE_CLASS(SmallTest::Test);
+
+Il2CppNamespace::MyType* SmallTest::Test::AnotherRef;
 
 SmallTest::Test* SmallTest::Test::SelfRef(int x) {
     return CRASH_UNLESS(il2cpp_utils::New<SmallTest::Test*>());
@@ -232,10 +236,9 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types!");
-    klassWrapper = CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyType>()[0]);
+    auto vec = custom_types::Register::RegisterType<::Il2CppNamespace::MyType, ::SmallTest::Test>();
+    klassWrapper = vec[0];
     INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
-    CRASH_UNLESS(custom_types::Register::RegisterType<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection>().size() == 1);
-    CRASH_UNLESS(custom_types::Register::RegisterType<::SmallTest::Test>().size() == 1);
     INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
     // auto k = CRASH_UNLESS(custom_types::Register::RegisterType<Il2CppNamespace::MyBeatmapObjectManager>());
     // INSTALL_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnNote", 2));
@@ -244,6 +247,7 @@ extern "C" void load() {
     logger.debug("Custom types size: %u", custom_types::Register::classes.size());
     logger.debug("Logging vtables for custom type! There are: %u vtables", klassWrapper->get()->vtable_count);
     il2cpp_utils::LogClass(logger, const_cast<Il2CppClass*>(klassWrapper->get()));
+    il2cpp_utils::LogClass(logger, const_cast<Il2CppClass*>(vec[1]->get()));
     // for (int i = 0; i < k->get()->vtable_count; i++) {
     //     custom_types::logVtable(&k->get()->vtable[i]);
     // }

@@ -8,6 +8,44 @@ namespace custom_types {
         this->info = info;
     }
 
+    bool hasInterfaceIn(Il2CppClass* klass, Il2CppClass* inter) {
+        for (uint16_t i = 0; i < klass->interfaces_count; i++) {
+            if (klass->implementedInterfaces[i] == inter) {
+                return true;
+            }
+        }
+        if (klass->parent) {
+            return hasInterfaceIn(klass->parent, inter);
+        }
+        return false;
+    }
+
+    int ClassWrapper::getVtableSize() {
+        static auto logger = _logger().WithContext("ClassWrapper::getVtableSize");
+
+        int vtableSize = 0;
+        if (info->base) {
+            vtableSize = info->base->vtable_count;
+            // After everything is copied, we can easily iterate over our methods, find any that are virtual
+            // Add each of our interface method counts to our vtable
+            // ASSUMING THEY ARE UNIQUE INTERFACES!
+            for (auto& inter : info->interfaces) {
+                if (!hasInterfaceIn(info->base, inter)) {
+                    // If we have an interface that isn't unique, as in, it is implemented by one of our base types
+                    // Then we do NOT add to our vtable size.
+                    vtableSize += inter->method_count;
+                }
+            }
+        } else {
+            // We have no base type.
+            // For now, we will simply throw in such a case.
+            logger.critical("Cannot create a vtable without a base type!");
+            CRASH_UNLESS(false);
+        }
+        logger.debug("vtable size: %u", vtableSize);
+        return vtableSize;
+    }
+
     void ClassWrapper::getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets) {
         static auto logger = _logger().WithContext("ClassWrapper::getVtable");
         // First, we want to iterate over our methods
@@ -155,13 +193,10 @@ namespace custom_types {
     }
 
     void ClassWrapper::createClass(std::size_t size) {
-        // After this, we have out vtable vector fully populated. The size of it will be correct.
-        std::vector<VirtualInvokeData> vtable;
-        std::vector<Il2CppRuntimeInterfaceOffsetPair> offsets;
-        getVtable(vtable, offsets);
-
+        // At this point in time, we only need the SIZE of our vtable.
+        auto vtableSize = getVtableSize();
         // Create the class
-        klass = static_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass) + vtable.size() * sizeof(VirtualInvokeData)));
+        klass = static_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass) + vtableSize * sizeof(VirtualInvokeData)));
         auto* type = createType(info->typeEnum);
         setupTypeHierarchy(info->base);
         // Create image from namespace
@@ -219,24 +254,6 @@ namespace custom_types {
         if (type->type == Il2CppTypeEnum::IL2CPP_TYPE_VALUETYPE) {
             klass->valuetype = true;
         }
-        // Method creation should happen around now
-        klass->is_vtable_initialized = true;
-        klass->vtable_count = vtable.size();
-        // Use our vtable vector to create our vtable
-        for (int i = 0; i < vtable.size(); i++) {
-            // If we come across any vtable items that have null function pointers or other stuff, we become sad.
-            // This means we haven't implemented everything, so we should make a point in ensuring this happens.
-            if (vtable[i].method == nullptr || vtable[i].methodPtr == nullptr) {
-                _logger().critical("Vtable index: %u has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", i);
-                CRASH_UNLESS(false);
-            }
-            klass->vtable[i] = vtable[i];
-        }
-        klass->interface_offsets_count = offsets.size();
-        klass->interfaceOffsets = reinterpret_cast<Il2CppRuntimeInterfaceOffsetPair*>(calloc(offsets.size(), sizeof(Il2CppRuntimeInterfaceOffsetPair)));
-        for (int i = 0; i < offsets.size(); i++) {
-            klass->interfaceOffsets[i] = offsets[i];
-        }
         // TODO: is this valid?
         klass->token = -1;
         // TODO: See if this is always the case
@@ -252,14 +269,23 @@ namespace custom_types {
         // We need to delete info, all of the fields, methods, typeHierarchy, staticFields
         static auto logger = _logger().WithContext("~ClassWrapper");
         logger.debug("Deleting typeHierarchy! Ptr: %p", klass->typeHierarchy);
-        delete klass->typeHierarchy;
+        free(klass->typeHierarchy);
         logger.debug("Deleting Il2CppClass*! Ptr: %p", klass);
-        delete klass;
+        free(klass);
         logger.debug("Deleting fields...");
+        for (auto& f : fields) {
+            free(f);
+        }
         fields.clear();
         logger.debug("Deleting static fields...");
+        for (auto& sf : staticFields) {
+            free(sf);
+        }
         staticFields.clear();
         logger.debug("Deleting methods...");
+        for (auto& m : methods) {
+            free(m);
+        }
         methods.clear();
     }
 
@@ -325,6 +351,29 @@ namespace custom_types {
     }
 
     void ClassWrapper::populateMethods() {
+        // After this, we have out vtable vector fully populated. The size of it will be correct.
+        std::vector<VirtualInvokeData> vtable;
+        std::vector<Il2CppRuntimeInterfaceOffsetPair> offsets;
+        getVtable(vtable, offsets);
+
+        // Method creation should happen around now
+        klass->is_vtable_initialized = true;
+        klass->vtable_count = vtable.size();
+        // Use our vtable vector to create our vtable
+        for (int i = 0; i < vtable.size(); i++) {
+            // If we come across any vtable items that have null function pointers or other stuff, we become sad.
+            // This means we haven't implemented everything, so we should make a point in ensuring this happens.
+            if (vtable[i].method == nullptr || vtable[i].methodPtr == nullptr) {
+                _logger().critical("Vtable index: %u has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", i);
+                CRASH_UNLESS(false);
+            }
+            klass->vtable[i] = vtable[i];
+        }
+        klass->interface_offsets_count = offsets.size();
+        klass->interfaceOffsets = reinterpret_cast<Il2CppRuntimeInterfaceOffsetPair*>(calloc(offsets.size(), sizeof(Il2CppRuntimeInterfaceOffsetPair)));
+        for (int i = 0; i < offsets.size(); i++) {
+            klass->interfaceOffsets[i] = offsets[i];
+        }
         // If any method exists that has a Finalize name, should use it
         klass->has_finalize = false;
         // TODO: Allow cctor to exist someday
