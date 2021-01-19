@@ -43,6 +43,24 @@ namespace custom_types {
         std::vector<Il2CppClass*> interfaces;
         bool abst = false;
         public:
+        constexpr const Il2CppTypeEnum getEnum() const {
+            return typeEnum;
+        }
+        constexpr const Il2CppClass* getBase() const {
+            return base;
+        }
+        std::string getNamespace() const {
+            return namespaze;
+        }
+        std::string getName() const {
+            return name;
+        }
+        constexpr bool isAbstract() const {
+            return abst;
+        }
+        std::vector<Il2CppClass*> getInterfaces() const {
+            return interfaces;
+        }
         /// @brief Copy constructor.
         type_info(type_info&&) = default;
         /// @brief Construct a type_info from some information.
