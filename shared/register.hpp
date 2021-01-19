@@ -86,7 +86,7 @@ namespace custom_types {
         /// @tparam TArgs Types to register within il2cpp.
         /// @return A vector reference for further type modification/access.
         template<typename... TArgs>
-        static const std::vector<ClassWrapper*> RegisterType() {
+        static const std::vector<ClassWrapper*> RegisterTypes() {
             if constexpr (sizeof...(TArgs) == 0) {
                 // Allow for a registration of 0 types to happen
                 return {};
