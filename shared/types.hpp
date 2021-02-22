@@ -201,22 +201,25 @@ namespace custom_types {
 
     #if __has_include(<concepts>)
     #include <concepts>
+    #include <type_traits>
     template<typename T>
     constexpr bool has_get = requires(const T& t) {
         t.get();
     };
 
-    template<typename T, typename Ret, typename... Args>
-    constexpr bool has_func_register = requires(const T& t) {
-        t.._register(std::declval<Args>()...);
-    }
+    template<typename T>
+    concept has_func_register = requires(std::vector<field_info*>& x, std::vector<method_info*>& y) {
+        {T::_register(x, x, y)} -> std::same_as<void>;
+    };
+
+    #ifndef CUSTOM_TYPES_NO_CONCEPTS
+    #define CUSTOM_TYPES_USE_CONCEPTS
+    #endif
 
     #elif __has_include(<experimental/type_traits>)
     #include <experimental/type_traits>
     template<typename T>
     using get_type = decltype(T::get());
-
-    template <class...> constexpr std::false_type false_t{};
 
     template<typename T>
     constexpr bool has_get = std::experimental::is_detected_v<get_type, T>;
@@ -248,6 +251,7 @@ namespace custom_types {
     #else
     #error No libraries for the implementation of "has_" anything available!
     #endif
+    template <class...> constexpr std::false_type false_t{};
     // Several of these concepts originally created by DaNike, modifications made by Sc2ad
 
     /// @struct A helper structure for getting parameters, return type, and function pointer from an instance method

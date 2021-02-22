@@ -8,6 +8,7 @@
 #ifdef DECLARE_CLASS
 #error "DECLARE_CLASS is already defined! Undefine it before including macros.hpp!"
 #endif
+#ifndef CUSTOM_TYPES_USE_CONCEPTS
 // Declares a class with the given namespace, name, base namespace, base name, and baseSize..
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
@@ -42,9 +43,46 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
     } \
 };
 
+#else
+// Declares a class with the given namespace, name, base namespace, base name, and baseSize..
+// Assumes the class being declared is non-abstract.
+// impl specifies the implementation of the class, the actual definition of the type.
+// It is recommended this holds DECLARE statements, as defined in macros.hpp
+#define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, baseSize, impl) \
+namespace namespaze { \
+    class name; \
+} \
+template<> \
+struct ::custom_types::name_registry<namespaze::name> { \
+    static inline ::custom_types::type_info* get() { \
+        _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
+        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName), {}, false); \
+    } \
+}; \
+namespace namespaze { \
+    class name { \
+        using ___Target__Type = name; \
+        friend ::custom_types::Register; \
+        public: \
+        static const Il2CppClass* klass; \
+        private: \
+        uint8_t _baseFields[baseSize]; \
+        impl \
+    }; \
+} \
+template<> \
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
+    static inline Il2CppClass* get() { \
+        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+    } \
+};
+#endif
+
 #ifdef DECLARE_CLASS_INTERFACES
 #error "DECLARE_CLASS_INTERFACES is already defined! Undefine it before including macros.hpp!"
 #endif
+
+#ifndef CUSTOM_TYPES_USE_CONCEPTS
 // Declares a class with the given namespace, name, base namespace, base name, baseSize, and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
@@ -78,10 +116,45 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
         return const_cast<Il2CppClass*>(::namespaze::name::klass); \
     } \
 };
+#else
+// Declares a class with the given namespace, name, base namespace, base name, baseSize, and interface list.
+// Assumes the class being declared is non-abstract.
+// impl specifies the implementation of the class, the actual definition of the type.
+// It is recommended this holds DECLARE statements, as defined in macros.hpp
+#define DECLARE_CLASS_INTERFACES(namespaze, name, baseNamespaze, baseName, baseSize, interfaces, impl) \
+namespace namespaze { \
+    class name; \
+} \
+template<> \
+struct ::custom_types::name_registry<namespaze::name> { \
+    static inline ::custom_types::type_info* get() { \
+        _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
+        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName), {interfaces}, false); \
+    } \
+}; \
+namespace namespaze { \
+    class name { \
+        using ___Target__Type = name; \
+        friend ::custom_types::Register; \
+        public: \
+        static const Il2CppClass* klass; \
+        private: \
+        uint8_t _baseFields[baseSize]; \
+        impl \
+    }; \
+} \
+template<> \
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
+    static inline Il2CppClass* get() { \
+        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+    } \
+};
+#endif
 
 #ifdef DECLARE_CLASS_CODEGEN
 #error "DECLARE_CLASS_CODEGEN is already defined! Undefine it before including macros.hpp!"
 #endif
+#ifndef CUSTOM_TYPES_USE_CONCEPTS
 // Declares a class with the given namespace, name, and base type.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
@@ -113,6 +186,39 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
         return const_cast<Il2CppClass*>(::namespaze::name::klass); \
     } \
 };
+#else
+
+// Declares a class with the given namespace, name, and base type.
+// Assumes the class being declared is non-abstract.
+// impl specifies the implementation of the class, the actual definition of the type.
+// It is recommended this hold other DECLARE statements, as defined in macros.hpp
+#define DECLARE_CLASS_CODEGEN(namespaze, name, baseT, impl) \
+namespace namespaze { \
+    class name; \
+} \
+template<> \
+struct ::custom_types::name_registry<namespaze::name> { \
+    static inline ::custom_types::type_info* get() { \
+        _logger().debug("returning type_info for: %s::%s", #namespaze, #name); \
+        return new ::custom_types::type_info(Il2CppTypeEnum::IL2CPP_TYPE_CLASS, #namespaze, #name, ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get(), {}, false); \
+    } \
+}; \
+namespace namespaze { \
+    class name : public baseT { \
+        using ___Target__Type = name; \
+        friend ::custom_types::Register; \
+        public: \
+        static const Il2CppClass* klass; \
+        impl \
+    }; \
+} \
+template<> \
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
+    static inline Il2CppClass* get() { \
+        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+    } \
+};
+#endif
 
 // TODO: This is not yet implemented, due to extracting Il2CppClass*s from interface types via __VA_ARGS__
 // #ifdef DECLARE_CLASS_CODEGEN_INTERFACES

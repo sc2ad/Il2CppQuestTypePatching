@@ -20,7 +20,12 @@ namespace custom_types {
         /// @brief Register a single type and return a ClassWrapper* to it.
         /// @tparam T The type to register. Must be a valid custom type from macros.hpp
         /// @return A ClassWrapper* for further modification/access.
+        #ifndef CUSTOM_TYPES_USE_CONCEPTS
         template<typename T>
+        #else
+        template<::custom_types::has_func_register T>
+        requires (::custom_types::has_get<::custom_types::name_registry<T>>)
+        #endif
         static inline ClassWrapper* RegisterSingle() {
             il2cpp_functions::Init();
             EnsureHooks();
@@ -30,7 +35,9 @@ namespace custom_types {
             else {
                 // Create our type
                 auto type = ::custom_types::name_registry<T>::get();
+                #ifndef CUSTOM_TYPES_USE_CONCEPTS
                 if constexpr (::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value) {
+                #endif    
                     ClassWrapper* classWrapper = new ClassWrapper(type);
                     // We need to determine the vtable size.
                     classWrapper->createClass(sizeof(T));
@@ -41,9 +48,11 @@ namespace custom_types {
                     // Set the klass static inline field on the type
                     classes.push_back(classWrapper);
                     return classWrapper;
+                #ifndef CUSTOM_TYPES_USE_CONCEPTS
                 } else {
                     static_assert(::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value, "Must have a REGISTER_FUNCTION within the type!");
                 }
+                #endif
             }
             return nullptr;
         }
@@ -51,7 +60,12 @@ namespace custom_types {
         /// @brief Resolves the fields and methods of a registered type.
         /// Should only be done after all types provided are registered.
         /// @tparam T The type to resolve.
+        #ifndef CUSTOM_TYPES_USE_CONCEPTS
         template<typename T>
+        #else
+        template<::custom_types::has_func_register T>
+        requires (::custom_types::has_get<::custom_types::name_registry<T>>)
+        #endif
         static inline void ResolveSingle(ClassWrapper* classWrapper) {
             if constexpr (!::custom_types::has_get<::custom_types::name_registry<T>>) {
                 static_assert(false_t<T>, "Must have a DECLARE_ to start the type!");
@@ -85,7 +99,12 @@ namespace custom_types {
         /// resolving fields and methods after registering all provided types.
         /// @tparam TArgs Types to register within il2cpp.
         /// @return A vector for further type modification/access.
+        #ifndef CUSTOM_TYPES_USE_CONCEPTS
         template<typename... TArgs>
+        #else
+        template<::custom_types::has_func_register... TArgs>
+        requires (... && ::custom_types::has_get<::custom_types::name_registry<TArgs>>)
+        #endif
         static const std::vector<ClassWrapper*> RegisterTypes() {
             if constexpr (sizeof...(TArgs) == 0) {
                 // Allow for a registration of 0 types to happen
@@ -103,7 +122,12 @@ namespace custom_types {
         /// Please use RegisterTypes if you register more than one type.
         /// @tparam T The type to register within il2cpp.
         /// @return A ClassWrapper* for future reference/modification.
+        #ifndef CUSTOM_TYPES_USE_CONCEPTS
         template<typename T>
+        #else
+        template<::custom_types::has_func_register T>
+        requires (::custom_types::has_get<::custom_types::name_registry<T>>)
+        #endif
         static ClassWrapper* RegisterType() {
             auto* wrapper = RegisterSingle<T>();
             ResolveSingle<T>(wrapper);
