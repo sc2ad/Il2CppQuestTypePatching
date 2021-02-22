@@ -30,7 +30,8 @@ namespace custom_types {
             else {
                 // Create our type
                 auto type = ::custom_types::name_registry<T>::get();
-                if constexpr (::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value) {
+
+                if constexpr (::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>) {
                     ClassWrapper* classWrapper = new ClassWrapper(type);
                     // We need to determine the vtable size.
                     classWrapper->createClass(sizeof(T));
@@ -42,7 +43,7 @@ namespace custom_types {
                     classes.push_back(classWrapper);
                     return classWrapper;
                 } else {
-                    static_assert(::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>::value, "Must have a REGISTER_FUNCTION within the type!");
+                    static_assert(::custom_types::has_func_register<T, void(std::vector<::custom_types::field_info*>&, std::vector<::custom_types::field_info*>&, std::vector<::custom_types::method_info*>&)>, "Must have a REGISTER_FUNCTION within the type!");
                 }
             }
             return nullptr;
