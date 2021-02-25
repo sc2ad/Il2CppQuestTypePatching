@@ -26,7 +26,7 @@ jobs:
       uses: actions/cache@v2
       env:
         cache-name: cache-ndk
-        ndkname: android-ndk-r21
+        ndkname: android-ndk-r22
       with:
         path: ndk
         key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.ndkname }}
