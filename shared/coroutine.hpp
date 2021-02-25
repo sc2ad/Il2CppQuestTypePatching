@@ -268,7 +268,7 @@ namespace custom_types::Helpers {
             if (!res) {
                 throw CoroutineAllocationFailed();
             }
-            return res;
+            return res.value();
         }
 
         /// @brief Creates a new ResetableCoroutine from the provided Coroutine creator function, which is copied.
@@ -282,7 +282,7 @@ namespace custom_types::Helpers {
             if (!res) {
                 throw CoroutineAllocationFailed();
             }
-            return res;
+            return res.value();
         }
 
         /// @brief Creates a new ResetableCoroutine from the provided Coroutine creator function and arguments used to invoke it.
