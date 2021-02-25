@@ -1,19 +1,5 @@
 #include "register.hpp"
 #include "logging.hpp"
-#if __has_include(<coroutine>)
-#include "coroutine.hpp"
-
-void inline RegisterHelpers() {
-    custom_types::Register::RegisterTypes<
-        custom_types::Helpers::ResetableCoroutine,
-        custom_types::Helpers::StandardCoroutine
-    >();
-}
-#else
-void inline RegisterHelpers() {
-
-}
-#endif
 
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
@@ -150,9 +136,6 @@ namespace custom_types {
             INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
             INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::Class_Init);
             installed = true;
-
-            // Also register types that would otherwise be never registered (see: all Helper types)
-            RegisterHelpers();
         }
     }
 }

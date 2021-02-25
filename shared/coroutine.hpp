@@ -257,6 +257,10 @@ namespace custom_types::Helpers {
     /// @brief A helper type for creating custom coroutines C# from C++.
     /// See ResetableCoroutine and StandardCoroutine for more info.
     struct CoroutineHelper {
+        private:
+        static void EnsureCoroutines();
+        
+        public:
         /// @brief Creates a new StandardCoroutine from the provided Coroutine instance, which is immediately rendered invalid.
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
         /// @tparam cType The creation type of the created coroutine.
@@ -264,11 +268,12 @@ namespace custom_types::Helpers {
         /// @return The created coroutine instance.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
         static inline StandardCoroutine* New(Coroutine&& c) {
+            EnsureCoroutines();
             auto res = il2cpp_utils::New<StandardCoroutine*, cType>(new Coroutine(std::move(c)));
             if (!res) {
                 throw CoroutineAllocationFailed();
             }
-            return res;
+            return *res;
         }
 
         /// @brief Creates a new ResetableCoroutine from the provided Coroutine creator function, which is copied.
@@ -278,11 +283,12 @@ namespace custom_types::Helpers {
         /// @return The created coroutine instance.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
         static inline ResetableCoroutine* New(CoroFuncType func) {
+            EnsureCoroutines();
             auto res = il2cpp_utils::New<ResetableCoroutine*, cType>(&func);
             if (!res) {
                 throw CoroutineAllocationFailed();
             }
-            return res;
+            return *res;
         }
 
         /// @brief Creates a new ResetableCoroutine from the provided Coroutine creator function and arguments used to invoke it.

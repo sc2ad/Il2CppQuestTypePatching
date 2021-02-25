@@ -1,4 +1,5 @@
 #include "coroutine.hpp"
+#include "register.hpp"
 
 namespace custom_types::Helpers {
     DEFINE_CLASS(ResetableCoroutine);
@@ -101,5 +102,12 @@ namespace custom_types::Helpers {
         valid = false;
         delete currentCoro;
         // It does not matter what current is, as GC will no longer see this reference and it will get cleaned up later.
+    }
+
+    void CoroutineHelper::EnsureCoroutines() {
+        custom_types::Register::RegisterTypes<
+            ResetableCoroutine,
+            StandardCoroutine
+        >();
     }
 }
