@@ -2,9 +2,9 @@ name: NDK build
 
 on:
   push:
-    branches: [ master, so-update ]
+    branches: master
   pull_request:
-    branches: [ master, so-update ]
+    branches: master
 
 jobs:
   build:
@@ -36,7 +36,7 @@ jobs:
     - name: Install Android NDK
       if: steps.cache-ndk.outputs.cache-hit != 'true'
       env:
-        ndkname: android-ndk-r21
+        ndkname: android-ndk-r22
       run: |
         wget -q -O ndk.zip https://dl.google.com/android/repository/${ndkname}-linux-x86_64.zip
         unzip -q ndk.zip
