@@ -1,6 +1,7 @@
 // If LOCAL_TEST is defined, create a mod that uses custom types.
 // Otherwise, it will be built as a library.
 #ifdef LOCAL_TEST
+#include "coroutine.hpp"
 #include "register.hpp"
 #include "macros.hpp"
 #include "logging.hpp"
