@@ -6,7 +6,7 @@ namespace custom_types::Helpers {
     DEFINE_CLASS(StandardCoroutine);
 
     struct InternalHelper {
-        static bool MoveNextHelper(Coroutine* currentCoro, enumeratorT* current) {
+        static bool MoveNextHelper(Coroutine* currentCoro, enumeratorT*& current) {
             // Each call to MoveNext performs the following:
             // If we have an object that is current, wait on it until complete, fallthrough:
             // If we have no object, advance our own until we are complete, fallthough:
