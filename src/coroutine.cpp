@@ -104,10 +104,15 @@ namespace custom_types::Helpers {
         // It does not matter what current is, as GC will no longer see this reference and it will get cleaned up later.
     }
 
+    bool initialized = false;
+
     void CoroutineHelper::EnsureCoroutines() {
-        custom_types::Register::RegisterTypes<
-            ResetableCoroutine,
-            StandardCoroutine
-        >();
+        if (!initialized) {
+            custom_types::Register::RegisterTypes<
+                ResetableCoroutine,
+                StandardCoroutine
+            >();
+            initialized = true;
+        }
     }
 }
