@@ -210,6 +210,8 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "O
         REGISTER_METHOD(Finalize);
     )
 )
+    
+inline const Il2CppClass* custom_types::Helpers::ResetableCoroutine::klass = nullptr;
 
 DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Object", sizeof(Il2CppObject), 
         il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator"),
@@ -243,6 +245,8 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Ob
         REGISTER_METHOD(Finalize);
     )
 )
+    
+inline const Il2CppClass* custom_types::Helpers::StandardCoroutine::klass = nullptr;
 
 namespace custom_types::Helpers {
     /// @brief Represents an allocation failure when creating a new coroutine.
