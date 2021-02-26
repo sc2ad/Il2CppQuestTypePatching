@@ -6,26 +6,34 @@ namespace custom_types::Helpers {
     DEFINE_CLASS(StandardCoroutine);
 
     struct InternalHelper {
-        static bool MoveNextHelper(Coroutine* currentCoro, enumeratorT*& current) {
+        static bool MoveNextHelper(Coroutine*& currentCoro, enumeratorT*& current) {
+            if (!currentCoro) {
+                // If we do not have a current coroutine, we exit immediately.
+                custom_types::_logger().debug("redundant MoveNext call!");
+                return false;
+            }
             // Each call to MoveNext performs the following:
-            // If we have an object that is current, wait on it until complete, fallthrough:
+            // If we have an object that is current, wait on it until complete, fallthrough (this is performed by C#):
             // If we have no object, advance our own until we are complete, fallthough:
             // If we are complete, return false
-            if (current) {
-                // current will never be GC'd, as it is a field on a custom type.
-                // current will also always be an enumeratorT*. This will allow us to call RunMethod(current, "MoveNext") (possibly "System.Collections.IEnumerator.MoveNext")
-                if (THROW_UNLESS(il2cpp_utils::RunMethod<bool>(current, "MoveNext"))) {
-                    // If we are waiting on our current object, wait until it is complete
-                    return true;
-                }
-                // Our current instance is complete, run ourselves now.
-                current = nullptr;
-            }
+
+            // if (current) {
+            //     // current will never be GC'd, as it is a field on a custom type.
+            //     // current will also always be an enumeratorT*. This will allow us to call RunMethod(current, "MoveNext") (possibly "System.Collections.IEnumerator.MoveNext")
+            //     if (THROW_UNLESS(il2cpp_utils::RunMethod<bool>(current, "MoveNext"))) {
+            //         // If we are waiting on our current object, wait until it is complete
+            //         return true;
+            //     }
+            //     // Our current instance is complete, run ourselves now.
+            //     current = nullptr;
+            // }
             currentCoro->m_coroutine.resume();
             if (currentCoro->m_coroutine.done()) {
                 current = nullptr;
                 // If we have an exception, throw it
                 currentCoro->m_coroutine.promise().rethrow_if_exception();
+                // Set currentCoro to nullptr, so that we failsafe exit
+                currentCoro = nullptr;
                 return false;
             }
             // Otherwise, get the next current value
