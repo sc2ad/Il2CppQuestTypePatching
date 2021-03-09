@@ -16,8 +16,7 @@ namespace custom_types {
         _logger().debug("0 ======================ASSEMBLY NAME INFO FOR: %s======================", anameLabel.data());
         _logger().debug("name: %s", name->name ? name->name : "NULL");
         _logger().debug("culture: %s", name->culture ? name->culture : "NULL");
-        _logger().debug("hash_value: %s", name->hash_value ? name->hash_value : "NULL");
-        _logger().debug("public_key: %s", name->public_key ? name->public_key : "NULL");
+        _logger().debug("public_key: %s", name->public_key ? (char*)name->public_key : "NULL");
         _logger().debug("hash_alg: %u", name->hash_alg);
         _logger().debug("hash_len: %u", name->hash_len);
         _logger().debug("flags: 0x%x", name->flags);
