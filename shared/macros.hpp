@@ -30,7 +30,7 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -39,7 +39,7 @@ namespace namespaze { \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 
@@ -64,7 +64,7 @@ namespace namespaze { \
         using ___Target__Type = name; \
         friend ::custom_types::Register; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -73,7 +73,7 @@ namespace namespaze { \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 #endif
@@ -104,7 +104,7 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -113,7 +113,7 @@ namespace namespaze { \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 #else
@@ -137,7 +137,7 @@ namespace namespaze { \
         using ___Target__Type = name; \
         friend ::custom_types::Register; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         private: \
         uint8_t _baseFields[baseSize]; \
         impl \
@@ -146,7 +146,7 @@ namespace namespaze { \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 #endif
@@ -176,14 +176,14 @@ namespace namespaze { \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         impl \
     }; \
 } \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 #else
@@ -208,14 +208,14 @@ namespace namespaze { \
         using ___Target__Type = name; \
         friend ::custom_types::Register; \
         public: \
-        static const Il2CppClass* klass; \
+        static const Il2CppClass* __klass; \
         impl \
     }; \
 } \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
     static inline Il2CppClass* get() { \
-        return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+        return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
     } \
 };
 #endif
@@ -245,14 +245,14 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
 //         friend ::custom_types::Register; \
 //         friend ::custom_types::has_func_register<name, void*>; \
 //         public: \
-//         static inline const Il2CppClass* klass = nullptr; \
+//         static inline const Il2CppClass* __klass = nullptr; \
 //         impl \
 //     }; \
 // } \
 // template<> \
 // struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*> { \
 //     static inline Il2CppClass* get() { \
-//         return const_cast<Il2CppClass*>(::namespaze::name::klass); \
+//         return const_cast<Il2CppClass*>(::namespaze::name::__klass); \
 //     } \
 // };
 
@@ -262,7 +262,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze::name*
 #endif
 
 #define DEFINE_CLASS(type) \
-const Il2CppClass* type::klass = nullptr
+const Il2CppClass* type::__klass = nullptr
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
