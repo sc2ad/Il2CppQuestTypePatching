@@ -41,7 +41,7 @@ namespace custom_types {
                     ClassWrapper* classWrapper = new ClassWrapper(type);
                     // We need to determine the vtable size.
                     classWrapper->createClass(sizeof(T));
-                    T::klass = classWrapper->get();
+                    T::__klass = classWrapper->get();
                     // Return for extra modification
                     static auto logger = _logger().WithContext("RegisterType");
                     logger.debug("Registered type: %s::%s at idx: %u", type->namespaze.c_str(), type->name.c_str(), classes.size());
