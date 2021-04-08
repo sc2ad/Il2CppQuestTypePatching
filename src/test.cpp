@@ -54,7 +54,7 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
     )
 )
 
-DEFINE_CLASS(Il2CppNamespace::MyType);
+DEFINE_TYPE(Il2CppNamespace::MyType);
 
 void Il2CppNamespace::MyType::ctor() {
     modLogger().debug("Called Il2CppNamespace::MyType::ctor");
@@ -71,8 +71,8 @@ void Il2CppNamespace::MyType::Start() {
     // However, we ARE able to get our Il2CppClass* via the klass private static field of this type.
     auto* il2cppKlass = il2cpp_utils::GetClassFromName("Il2CppNamespace", "MyType");
     modLogger().debug("il2cpp obtained klass: %p", il2cppKlass);
-    modLogger().debug("klass: %p", klass);
-    auto* asdfMethod = il2cpp_utils::FindMethodUnsafe(const_cast<Il2CppClass*>(klass), "asdf", 1);
+    modLogger().debug("klass: %p", __klass);
+    auto* asdfMethod = il2cpp_utils::FindMethodUnsafe(const_cast<Il2CppClass*>(__klass), "asdf", 1);
     modLogger().debug("asdf method info: %p", asdfMethod);
     // modLogger().debug("x: %u", x);
     // modLogger().debug("y: (%f, %f, %f)", y.x, y.y, y.z);
@@ -107,7 +107,7 @@ DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "S
     )
 )
 
-DEFINE_CLASS(Il2CppNamespace::MyCustomBeatmapLevelPackCollection);
+DEFINE_TYPE(Il2CppNamespace::MyCustomBeatmapLevelPackCollection);
 
 void Il2CppNamespace::MyCustomBeatmapLevelPackCollection::ctor(Il2CppArray* originalArray) {
     // We want to basically wrap the original instance.
@@ -131,7 +131,21 @@ DECLARE_CLASS(SmallTest, Test, "System", "Object", sizeof(Il2CppObject),
     )
 )
 
-DEFINE_CLASS(SmallTest::Test);
+DEFINE_TYPE(SmallTest::Test);
+
+DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0,
+    DECLARE_INSTANCE_FIELD(int, x);
+    DECLARE_INSTANCE_FIELD(int, y);
+    DECLARE_INSTANCE_FIELD(int, z);
+
+    REGISTER_FUNCTION(Test,
+        REGISTER_FIELD(x);
+        REGISTER_FIELD(y);
+        REGISTER_FIELD(z);
+    )
+)
+
+DEFINE_TYPE(ValueTest::Test);
 
 Il2CppNamespace::MyType* SmallTest::Test::AnotherRef;
 
@@ -237,7 +251,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types!");
-    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyType, ::SmallTest::Test>();
+    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyType, ::SmallTest::Test, ::ValueTest::Test>();
     klassWrapper = vec[0];
     INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
     INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));

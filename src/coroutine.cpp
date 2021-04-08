@@ -2,8 +2,8 @@
 #include "register.hpp"
 
 namespace custom_types::Helpers {
-    DEFINE_CLASS(ResetableCoroutine);
-    DEFINE_CLASS(StandardCoroutine);
+    DEFINE_TYPE(ResetableCoroutine);
+    DEFINE_TYPE(StandardCoroutine);
 
     struct InternalHelper {
         static bool MoveNextHelper(Coroutine*& currentCoro, enumeratorT*& current) {

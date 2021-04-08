@@ -38,6 +38,7 @@ LOCAL_LDLIBS += -llog
 LOCAL_CFLAGS += -std=c++20 -O3 -Wno-invalid-offsetof -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.4.6"' -DNO_VERBOSE_LOGS
 LOCAL_C_INCLUDES += ./include ./src
 LOCAL_CPP_FEATURES += exceptions
+# LOCAL_CFLAGS += -DLOCAL_TEST
 # LOCAL_CFLAGS += -DLOCAL_TEST_COROUTINE
 LOCAL_CPP_FLAGS += -Wall -Werror -fcoroutines
 include $(BUILD_SHARED_LIBRARY)
