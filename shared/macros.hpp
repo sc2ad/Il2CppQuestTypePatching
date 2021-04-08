@@ -2,6 +2,7 @@
 #include "types.hpp"
 #include <stdint.h>
 #include <stddef.h>
+#include <new>
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -598,6 +599,39 @@ methods.push_back(std::move(method_wrapper_##name<___Target__Type>::get()))
 #error "DESTRUCTOR is already defined! Undefine it before including macros.hpp!"
 #endif
 
+// Declares a destructor with a given name for use when destructing non-trivial custom types.
+// Should still be registered in the REGISTER_FUNCTION macro, just like any other method.
 #define DESTRUCTOR(name) \
 void name(); \
 __CREATE_METHOD_WRAPPER(name, #name, (::il2cpp_utils::FindMethod("System", "Object", "Finalize")->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, ::il2cpp_utils::FindMethod("System", "Object", "Finalize"))
+
+#ifdef DECLARE_SIMPLE_DTOR
+#error "DECLARE_SIMPLE_DTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Declares a simple destructor that simply forwards to the C++ destructor.
+// This should be used if you do not wish to create your own destructor and explicitly call your own destructor.
+// This method is __Finalize, and should not conflict with any existing declarations.
+#define DECLARE_SIMPLE_DTOR(typeName) \
+void __Finalize() { \
+    this->~typeName(); \
+} \
+__CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("System", "Object", "Finalize")->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, ::il2cpp_utils::FindMethod("System", "Object", "Finalize"))
+
+#ifdef REGISTER_SIMPLE_DTOR
+#error "REGISTER_SIMPLE_DTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Registers the simple dtor.
+// Should only be used if DECLARE_SIMPLE_DTOR is also present.
+#define REGISTER_SIMPLE_DTOR REGISTER_METHOD(__Finalize)
+
+#ifdef INVOKE_CTOR
+#error "INVOKE_CTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Invokes the C++ constructor of the provided typeName and arguments.
+// Small performance overhead due to placement new.
+// This can be done in order to explicitly initialize non-trivially constructible types, such as vectors
+// within a C# ctor (declared with DECLARE_CTOR).
+#define INVOKE_CTOR(typeName, ...) new (this) typeName(__VA_ARGS__)

@@ -147,6 +147,26 @@ DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0,
 
 DEFINE_TYPE(ValueTest::Test);
 
+DECLARE_CLASS(SmallTest, TestIt2, "System", "Object", sizeof(Il2CppObject),
+    std::vector<void*> allocField;
+    int x = 3;
+    DECLARE_CTOR(ctor);
+    DECLARE_SIMPLE_DTOR(TestIt2);
+
+    REGISTER_FUNCTION(Test,
+        REGISTER_METHOD(ctor);
+        REGISTER_SIMPLE_DTOR;
+    )
+)
+
+DEFINE_TYPE(SmallTest::TestIt2);
+
+void SmallTest::TestIt2::ctor() {
+    // This invokes the C++ constructor for this type
+    INVOKE_CTOR(TestIt2);
+    modLogger().debug("X is: %d", x);
+}
+
 Il2CppNamespace::MyType* SmallTest::Test::AnotherRef;
 
 SmallTest::Test* SmallTest::Test::SelfRef(int x) {
@@ -251,7 +271,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types!");
-    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyType, ::SmallTest::Test, ::ValueTest::Test>();
+    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyType, ::SmallTest::Test, ::ValueTest::Test, ::SmallTest::TestIt2>();
     klassWrapper = vec[0];
     INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
     INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
