@@ -77,14 +77,13 @@ namespace custom_types {
         friend Register;
         friend ClassWrapper;
         private:
+        std::string name;
         std::vector<ParameterInfo> params;
         const MethodInfo* virtual_data;
         MethodInfo* info;
         constexpr void setClass(Il2CppClass* klass) const {
             info->klass = klass;
         }
-        /// @brief Fixes any references to ourselves in either our return type or parameters.
-        void fixSelf(Il2CppType* type);
         public:
         /// @brief Copy constructor.
         method_info(method_info&&) = default;
@@ -285,11 +284,13 @@ namespace custom_types {
             std::vector<ParameterInfo> params;
             auto& info = params.emplace_back();
             il2cpp_functions::Init();
-            _logger().debug("Getting class type of parameter!");
             const Il2CppType* type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
             // Ignore name, it will be set when we iterate over all of them (param_1, param_2, etc.)
             // Ignore position, it will also be set on iteration.
             // TODO: Maybe some day we can actually use the parameters names themselves!
+            if (type == nullptr) {
+                _logger().warning("Failed to get type of parameter!");
+            }
             info.parameter_type = type;
             info.token = -1;
             for (const auto& q : parameter_converter<Decl, Ps...>::get()) {

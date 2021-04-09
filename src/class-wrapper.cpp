@@ -383,9 +383,6 @@ namespace custom_types {
         klass->methods = reinterpret_cast<const MethodInfo**>(calloc(klass->method_count, sizeof(MethodInfo*)));
         for (auto i = 0; i < klass->method_count; i++) {
             methods[i]->setClass(klass);
-            // As we iterate here, it's important for us to know if the method has references to ourselves in it.
-            // If it does, we need to fix that with a PROPER reference to ourselves.
-            methods[i]->fixSelf(&klass->byval_arg);
             auto* info = methods[i]->get();
             // TODO: Populate other fields as necessary
             klass->methods[i] = info;

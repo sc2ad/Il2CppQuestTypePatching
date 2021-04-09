@@ -70,9 +70,11 @@ namespace custom_types {
             if constexpr (!::custom_types::has_get<::custom_types::name_registry<T>>) {
                 static_assert(false_t<T>, "Must have a DECLARE_ to start the type!");
             } else {
+                logger.debug("Resolving type: %s::%s at idx: %u", classWrapper->info->namespaze.c_str(), classWrapper->info->name.c_str(), classWrapper->typeIdx);
                 T::_register(classWrapper->fields, classWrapper->staticFields, classWrapper->methods);
                 classWrapper->populateFields();
                 classWrapper->populateMethods();
+                logger.debug("Resolved type!");
             }
         }
 
