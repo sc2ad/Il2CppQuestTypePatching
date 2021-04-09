@@ -271,7 +271,7 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types!");
-    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyType, ::SmallTest::Test, ::ValueTest::Test, ::SmallTest::TestIt2>();
+    auto vec = custom_types::Register::RegisterTypes<::Il2CppNamespace::MyCustomBeatmapLevelPackCollection, ::Il2CppNamespace::MyType, ::SmallTest::Test, ::ValueTest::Test, ::SmallTest::TestIt2>();
     klassWrapper = vec[0];
     INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
     INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
@@ -283,6 +283,7 @@ extern "C" void load() {
     logger.debug("Logging vtables for custom type! There are: %u vtables", klassWrapper->get()->vtable_count);
     il2cpp_utils::LogClass(logger, const_cast<Il2CppClass*>(klassWrapper->get()));
     il2cpp_utils::LogClass(logger, const_cast<Il2CppClass*>(vec[1]->get()));
+    il2cpp_utils::New<SmallTest::TestIt2*>();
     // for (int i = 0; i < k->get()->vtable_count; i++) {
     //     custom_types::logVtable(&k->get()->vtable[i]);
     // }

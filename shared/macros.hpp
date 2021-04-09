@@ -659,4 +659,24 @@ __CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("S
 // Small performance overhead due to placement new.
 // This can be done in order to explicitly initialize non-trivially constructible types, such as vectors
 // within a C# ctor (declared with DECLARE_CTOR).
-#define INVOKE_CTOR(typeName, ...) new (this) typeName(__VA_ARGS__)
+// This should ONLY be called on types that inherit Il2CppObject.
+// For value types, try placement new instead, or INVOKE_VALUE_CTOR.
+#define INVOKE_CTOR(typeName, ...) \
+do { \
+char buff[sizeof(Il2CppObject)]; \
+memcpy(buff, this, sizeof(Il2CppObject)); \
+new (this) typeName(__VA_ARGS__); \
+memcpy(this, buff, sizeof(Il2CppObject)); \
+} while (0)
+
+#ifdef INVOKE_VALUE_CTOR
+#error "INVOKE_VALUE_CTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Invokes the C++ constructor of the provided typeName and arguments.
+// Small performance overhead due to placement new.
+// This can be done in order to explicitly initialize non-trivially constructible types, such as vectors
+// within a C# ctor (declared with DECLARE_CTOR).
+// Note that value type constructors are much less likely to be called and no existing code will provide them.
+// This function simply calls the placement new operator, so should NOT be used for anything that inherits Il2CppObject.
+#define INVOKE_VALUE_CTOR(typeName, ...) new (this) typeName(__VA_ARGS__)
