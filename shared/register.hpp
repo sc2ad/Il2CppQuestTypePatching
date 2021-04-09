@@ -67,6 +67,7 @@ namespace custom_types {
         requires (::custom_types::has_get<::custom_types::name_registry<T>>)
         #endif
         static inline void ResolveSingle(ClassWrapper* classWrapper) {
+            static auto logger = _logger().WithContext("ResolveSingle");
             if constexpr (!::custom_types::has_get<::custom_types::name_registry<T>>) {
                 static_assert(false_t<T>, "Must have a DECLARE_ to start the type!");
             } else {
