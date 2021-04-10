@@ -705,7 +705,7 @@ memcpy(this, ___buff, ___Base__Size); \
 // This is ONLY valid if there is a default C++ constructor with 0 args.
 // Otherwise, consider using DECLARE_CTOR and INVOKE_CTOR.
 #define DECLARE_DEFAULT_CTOR() \
-void __ctor() \
+void __ctor() { \
     INVOKE_CTOR(); \
 } \
 DECLARE_CTOR(__ctor)

@@ -40,7 +40,7 @@ DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il
 
     DECLARE_OVERRIDE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));
 
-    REGISTER_FUNCTION(MyType,
+    REGISTER_FUNCTION(
         modLogger().debug("Registering MyType!");
         // REGISTER_FIELD(x);
         // REGISTER_FIELD(y);
@@ -99,7 +99,7 @@ DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "S
     
     DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
     DECLARE_CTOR(ctor, Il2CppArray* originalArray);
-    REGISTER_FUNCTION(MyCustomBeatmapLevelPackCollection,
+    REGISTER_FUNCTION(
         modLogger().debug("Registering MyCustomBeatmapLevelPackCollection!");
         REGISTER_METHOD(get_beatmapLevelPacks);
         REGISTER_METHOD(ctor);
@@ -125,7 +125,7 @@ DECLARE_CLASS(SmallTest, Test, "System", "Object", sizeof(Il2CppObject),
     DECLARE_METHOD(static SmallTest::Test*, SelfRef, int x);
     DECLARE_STATIC_FIELD(Il2CppNamespace::MyType*, AnotherRef);
 
-    REGISTER_FUNCTION(Test,
+    REGISTER_FUNCTION(
         REGISTER_METHOD(SelfRef);
         REGISTER_FIELD(AnotherRef);
     )
@@ -138,7 +138,7 @@ DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0,
     DECLARE_INSTANCE_FIELD(int, y);
     DECLARE_INSTANCE_FIELD(int, z);
 
-    REGISTER_FUNCTION(Test,
+    REGISTER_FUNCTION(
         REGISTER_FIELD(x);
         REGISTER_FIELD(y);
         REGISTER_FIELD(z);
@@ -151,11 +151,11 @@ DECLARE_CLASS(SmallTest, TestIt2, "System", "Object", sizeof(Il2CppObject),
     std::vector<void*> allocField;
     int x = 3;
     DECLARE_CTOR(ctor);
-    DECLARE_SIMPLE_DTOR(TestIt2);
+    DECLARE_SIMPLE_DTOR();
 
-    REGISTER_FUNCTION(Test,
+    REGISTER_FUNCTION(
         REGISTER_METHOD(ctor);
-        REGISTER_SIMPLE_DTOR;
+        REGISTER_SIMPLE_DTOR();
     )
 )
 
@@ -166,6 +166,21 @@ void SmallTest::TestIt2::ctor() {
     INVOKE_CTOR();
     modLogger().debug("X is: %d", x);
 }
+
+DECLARE_CLASS(SmallTest, TestIt3, "System", "Object", sizeof(Il2CppObject),
+    // These fields are initialized in the DEFAULT_CTOR
+    std::vector<void*> allocField;
+    int x = 3;
+    DECLARE_DEFAULT_CTOR();
+    DECLARE_SIMPLE_DTOR();
+
+    REGISTER_FUNCTION(
+        REGISTER_DEFAULT_CTOR();
+        REGISTER_SIMPLE_DTOR();
+    )
+)
+
+DEFINE_TYPE(SmallTest::TestIt3);
 
 Il2CppNamespace::MyType* SmallTest::Test::AnotherRef;
 
