@@ -197,9 +197,9 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "O
     DECLARE_OVERRIDE_METHOD(bool, MoveNext, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "MoveNext"));
     DECLARE_OVERRIDE_METHOD(Il2CppObject*, get_Current, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "get_Current"));
     DECLARE_OVERRIDE_METHOD(void, Reset, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "Reset"));
-    DECLARE_OVERRIDE_METHOD(void, Finalize, il2cpp_utils::FindMethod("System", "Object", "Finalize"));
+    DESTRUCTOR(Finalize);
 
-    REGISTER_FUNCTION(ResetableCoroutine,
+    REGISTER_FUNCTION(
         REGISTER_FIELD(currentCoro);
         REGISTER_FIELD(current);
         REGISTER_FIELD(valid);
@@ -230,9 +230,9 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Ob
     DECLARE_OVERRIDE_METHOD(bool, MoveNext, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "MoveNext"));
     DECLARE_OVERRIDE_METHOD(Il2CppObject*, get_Current, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "get_Current"));
     DECLARE_OVERRIDE_METHOD(void, Reset, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "Reset"));
-    DECLARE_OVERRIDE_METHOD(void, Finalize, il2cpp_utils::FindMethod("System", "Object", "Finalize"));
+    DESTRUCTOR(Finalize);
 
-    REGISTER_FUNCTION(ResetableCoroutine,
+    REGISTER_FUNCTION(
         REGISTER_FIELD(currentCoro);
         REGISTER_FIELD(current);
         REGISTER_FIELD(valid);

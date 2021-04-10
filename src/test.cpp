@@ -163,7 +163,7 @@ DEFINE_TYPE(SmallTest::TestIt2);
 
 void SmallTest::TestIt2::ctor() {
     // This invokes the C++ constructor for this type
-    INVOKE_CTOR(TestIt2);
+    INVOKE_CTOR();
     modLogger().debug("X is: %d", x);
 }
 

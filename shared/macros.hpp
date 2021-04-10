@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <new>
+#include <utility>
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -51,6 +52,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -86,6 +88,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -121,6 +124,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name : public baseT { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -155,6 +159,8 @@ struct ::custom_types::name_registry<namespaze::name> { \
 }; \
 namespace namespaze { \
     class name : public baseT { \
+        using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -187,6 +193,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     struct name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -222,6 +229,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name : public baseT { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         friend ::custom_types::has_func_register<name, void*>; \
         public: \
@@ -254,6 +262,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         public: \
         static const Il2CppClass* __klass; \
@@ -288,6 +297,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         public: \
         static const Il2CppClass* __klass; \
@@ -322,6 +332,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name : public baseT { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         public: \
         static const Il2CppClass* __klass; \
@@ -355,6 +366,8 @@ struct ::custom_types::name_registry<namespaze::name> { \
 }; \
 namespace namespaze { \
     class name : public baseT { \
+        using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         public: \
         static inline const Il2CppClass* __klass = nullptr; \
@@ -386,6 +399,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     struct name { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         public: \
         static const Il2CppClass* __klass; \
@@ -420,6 +434,7 @@ struct ::custom_types::name_registry<namespaze::name> { \
 namespace namespaze { \
     class name : public baseT { \
         using ___Target__Type = name; \
+        constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         public: \
         static const Il2CppClass* __klass; \
@@ -592,9 +607,9 @@ __CREATE_METHOD_WRAPPER(name, #name, (overridingMethodInfo->flags & ~METHOD_ATTR
 #endif
 // Creates static inline _register function used to register type within il2cpp
 // TODO: Remove typeN from this call
-#define REGISTER_FUNCTION(typeN, innards) \
+#define REGISTER_FUNCTION(...) \
 static inline void _register(std::vector<::custom_types::field_info*>& fields, std::vector<::custom_types::field_info*>& staticFields, std::vector<::custom_types::method_info*>& methods) { \
-    innards \
+    __VA_ARGS__ \
 }
 
 #ifdef REGISTER_FIELD
@@ -637,9 +652,9 @@ __CREATE_METHOD_WRAPPER(name, #name, (::il2cpp_utils::FindMethod("System", "Obje
 // Declares a simple destructor that simply forwards to the C++ destructor.
 // This should be used if you do not wish to create your own destructor and explicitly call your own destructor.
 // This method is __Finalize, and should not conflict with any existing declarations.
-#define DECLARE_SIMPLE_DTOR(typeName) \
+#define DECLARE_SIMPLE_DTOR() \
 void __Finalize() { \
-    this->~typeName(); \
+    this->~___Target__Type(); \
 } \
 __CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("System", "Object", "Finalize")->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, ::il2cpp_utils::FindMethod("System", "Object", "Finalize"))
 
@@ -661,12 +676,12 @@ __CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("S
 // within a C# ctor (declared with DECLARE_CTOR).
 // This should ONLY be called on types that inherit Il2CppObject.
 // For value types, try placement new instead, or INVOKE_VALUE_CTOR.
-#define INVOKE_CTOR(typeName, ...) \
+#define INVOKE_CTOR(...) \
 do { \
-char buff[sizeof(Il2CppObject)]; \
-memcpy(buff, this, sizeof(Il2CppObject)); \
-new (this) typeName(__VA_ARGS__); \
-memcpy(this, buff, sizeof(Il2CppObject)); \
+char buff[___Base__Size]; \
+memcpy(buff, this, ___Base__Size); \
+new (this) ___Target__Type(__VA_ARGS__); \
+memcpy(this, buff, ___Base__Size); \
 } while (0)
 
 #ifdef INVOKE_VALUE_CTOR
@@ -679,4 +694,4 @@ memcpy(this, buff, sizeof(Il2CppObject)); \
 // within a C# ctor (declared with DECLARE_CTOR).
 // Note that value type constructors are much less likely to be called and no existing code will provide them.
 // This function simply calls the placement new operator, so should NOT be used for anything that inherits Il2CppObject.
-#define INVOKE_VALUE_CTOR(typeName, ...) new (this) typeName(__VA_ARGS__)
+#define INVOKE_VALUE_CTOR(...) new (this) ___Target__Type(__VA_ARGS__)
