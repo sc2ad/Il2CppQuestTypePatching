@@ -664,7 +664,7 @@ __CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("S
 
 // Registers the simple dtor.
 // Should only be used if DECLARE_SIMPLE_DTOR is also present.
-#define REGISTER_SIMPLE_DTOR REGISTER_METHOD(__Finalize)
+#define REGISTER_SIMPLE_DTOR() REGISTER_METHOD(__Finalize)
 
 #ifdef INVOKE_CTOR
 #error "INVOKE_CTOR is already defined! Undefine it before including macros.hpp!"
@@ -678,10 +678,10 @@ __CREATE_METHOD_WRAPPER(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod("S
 // For value types, try placement new instead, or INVOKE_VALUE_CTOR.
 #define INVOKE_CTOR(...) \
 do { \
-char buff[___Base__Size]; \
-memcpy(buff, this, ___Base__Size); \
+char ___buff[___Base__Size]; \
+memcpy(___buff, this, ___Base__Size); \
 new (this) ___Target__Type(__VA_ARGS__); \
-memcpy(this, buff, ___Base__Size); \
+memcpy(this, ___buff, ___Base__Size); \
 } while (0)
 
 #ifdef INVOKE_VALUE_CTOR
@@ -695,3 +695,25 @@ memcpy(this, buff, ___Base__Size); \
 // Note that value type constructors are much less likely to be called and no existing code will provide them.
 // This function simply calls the placement new operator, so should NOT be used for anything that inherits Il2CppObject.
 #define INVOKE_VALUE_CTOR(...) new (this) ___Target__Type(__VA_ARGS__)
+
+#ifdef DECLARE_DEFAULT_CTOR()
+#error "DECLARE_DEFAULT_CTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Declares a default C# constructor that simply forwards to the C++ constructor.
+// Note that this does NOT call any base constructors (which may or may not be necessary).
+// This is ONLY valid if there is a default C++ constructor with 0 args.
+// Otherwise, consider using DECLARE_CTOR and INVOKE_CTOR.
+#define DECLARE_DEFAULT_CTOR() \
+void __ctor() \
+    INVOKE_CTOR(); \
+} \
+DECLARE_CTOR(__ctor)
+
+#ifdef REGISTER_DEFAULT_CTOR
+#error "REGISTER_DEFAULT_CTOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Registers a default C# constructor that simply forwards to the C++ constructor.
+// Should only be used if DECLARE_DEFAULT_CTOR is also present.
+#define REGISTER_DEFAULT_CTOR() REGISTER_METHOD(__ctor)
