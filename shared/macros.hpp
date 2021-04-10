@@ -708,7 +708,7 @@ memcpy(this, ___buff, ___Base__Size); \
 void __ctor() { \
     INVOKE_CTOR(); \
 } \
-DECLARE_CTOR(__ctor)
+__CREATE_METHOD_WRAPPER(__ctor, ".ctor", METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME | METHOD_ATTRIBUTE_RT_SPECIAL_NAME, nullptr)
 
 #ifdef REGISTER_DEFAULT_CTOR
 #error "REGISTER_DEFAULT_CTOR is already defined! Undefine it before including macros.hpp!"
