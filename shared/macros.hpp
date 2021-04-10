@@ -635,13 +635,13 @@ do { \
 #define REGISTER_METHOD(name) \
 methods.push_back(std::move(method_wrapper_##name<___Target__Type>::get()))
 
-#ifdef DESTRUCTOR
-#error "DESTRUCTOR is already defined! Undefine it before including macros.hpp!"
+#ifdef DECLARE_DTOR
+#error "DECLARE_DTOR is already defined! Undefine it before including macros.hpp!"
 #endif
 
 // Declares a destructor with a given name for use when destructing non-trivial custom types.
 // Should still be registered in the REGISTER_FUNCTION macro, just like any other method.
-#define DESTRUCTOR(name) \
+#define DECLARE_DTOR(name) \
 void name(); \
 __CREATE_METHOD_WRAPPER(name, #name, (::il2cpp_utils::FindMethod("System", "Object", "Finalize")->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, ::il2cpp_utils::FindMethod("System", "Object", "Finalize"))
 
