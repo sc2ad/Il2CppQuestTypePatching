@@ -696,7 +696,7 @@ memcpy(this, ___buff, ___Base__Size); \
 // This function simply calls the placement new operator, so should NOT be used for anything that inherits Il2CppObject.
 #define INVOKE_VALUE_CTOR(...) new (this) ___Target__Type(__VA_ARGS__)
 
-#ifdef DECLARE_DEFAULT_CTOR()
+#ifdef DECLARE_DEFAULT_CTOR
 #error "DECLARE_DEFAULT_CTOR is already defined! Undefine it before including macros.hpp!"
 #endif
 
