@@ -217,7 +217,7 @@ namespace custom_types {
         // Where each static field is laid out with their offset mapping to the correct location.
         il2cpp_functions::Init();
         if (il2cpp_functions::GarbageCollector_AllocateFixed) {
-            static_fields() = il2cpp_functions::GarbageCollector_AllocateFixed(static_fields_size(), nullptr);
+            static_fields() = reinterpret_cast<char*>(il2cpp_functions::GarbageCollector_AllocateFixed(static_fields_size(), nullptr));
         } else {
             static_fields() = new char[static_fields_size()];
         }
