@@ -3,7 +3,7 @@
     {
       "defines": [
         "ID=\"CustomTypes\"",
-        "VERSION=\"0.2.12\"",
+        "VERSION=\"0.4.6\"",
         "__GNUC__",
         "__aarch64__",
         "NEED_UNSAFE_CSHARP",
@@ -12,9 +12,8 @@
       ],
       "includePath": [
         "${workspaceFolder}/**",
-        "c:/Program Files/Unity/Editor/Data/il2cpp/libil2cpp",
-        "c:/android-ndk-r21d/**",
-        "${workspaceFolder}/include",
+        "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp",
+        "c:/android-ndk-r22/**",
         "${workspaceFolder}/extern",
         "${workspaceFolder}/shared"
       ],

@@ -2,8 +2,8 @@
 #include "register.hpp"
 
 namespace custom_types::Helpers {
-    DEFINE_TYPE(ResetableCoroutine);
-    DEFINE_TYPE(StandardCoroutine);
+    DEFINE_TYPE(custom_types::Helpers, ResetableCoroutine);
+    DEFINE_TYPE(custom_types::Helpers, StandardCoroutine);
 
     struct InternalHelper {
         static bool MoveNextHelper(Coroutine*& currentCoro, enumeratorT*& current) {
@@ -116,10 +116,7 @@ namespace custom_types::Helpers {
 
     void CoroutineHelper::EnsureCoroutines() {
         if (!initialized) {
-            custom_types::Register::RegisterTypes<
-                ResetableCoroutine,
-                StandardCoroutine
-            >();
+            custom_types::Register::ExplicitRegister({&__registration_instance_ResetableCoroutine, &__registration_instance_StandardCoroutine});
             initialized = true;
         }
     }

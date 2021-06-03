@@ -181,7 +181,7 @@ namespace custom_types::Helpers {
 }
 
 DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "Object", sizeof(Il2CppObject), 
-        il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator"),
+        {il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator")},
     private:
     custom_types::Helpers::CoroFuncType coroCreator;
     // Explicitly delete copy constructor
@@ -198,21 +198,10 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "O
     DECLARE_OVERRIDE_METHOD(Il2CppObject*, get_Current, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "get_Current"));
     DECLARE_OVERRIDE_METHOD(void, Reset, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "Reset"));
     DECLARE_DTOR(Finalize);
-
-    REGISTER_FUNCTION(
-        REGISTER_FIELD(currentCoro);
-        REGISTER_FIELD(current);
-        REGISTER_FIELD(valid);
-        REGISTER_METHOD(ctor);
-        REGISTER_METHOD(MoveNext);
-        REGISTER_METHOD(get_Current);
-        REGISTER_METHOD(Reset);
-        REGISTER_METHOD(Finalize);
-    )
 )
 
 DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Object", sizeof(Il2CppObject), 
-        il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator"),
+        {il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator")},
     struct CoroutineNotResettable : std::runtime_error {
         CoroutineNotResettable() : std::runtime_error("StandardCoroutine is not resettable!") {}
     };
@@ -231,17 +220,6 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Ob
     DECLARE_OVERRIDE_METHOD(Il2CppObject*, get_Current, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "get_Current"));
     DECLARE_OVERRIDE_METHOD(void, Reset, il2cpp_utils::FindMethod("System.Collections", "IEnumerator", "Reset"));
     DECLARE_DTOR(Finalize);
-
-    REGISTER_FUNCTION(
-        REGISTER_FIELD(currentCoro);
-        REGISTER_FIELD(current);
-        REGISTER_FIELD(valid);
-        REGISTER_METHOD(ctor);
-        REGISTER_METHOD(MoveNext);
-        REGISTER_METHOD(get_Current);
-        REGISTER_METHOD(Reset);
-        REGISTER_METHOD(Finalize);
-    )
 )
 
 namespace custom_types::Helpers {
