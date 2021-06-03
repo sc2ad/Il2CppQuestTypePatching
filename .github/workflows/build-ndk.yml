@@ -21,34 +21,14 @@ jobs:
     - name: Install Powershell
       run: sudo apt-get install -y powershell
     
-    - name: Cache Android NDK
-      id: cache-ndk
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-ndk
-        ndkname: android-ndk-r22
+    - name: Setup NDK
+      id: setup-ndk
+      uses: nttld/setup-ndk@v1.0.3
       with:
-        path: ndk
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.ndkname }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ env.ndkname }}
-      
-    - name: Install Android NDK
-      if: steps.cache-ndk.outputs.cache-hit != 'true'
-      env:
-        ndkname: android-ndk-r22
-      run: |
-        wget -q -O ndk.zip https://dl.google.com/android/repository/${ndkname}-linux-x86_64.zip
-        unzip -q ndk.zip
-        mv ${ndkname} ndk
+        ndk-version: r22
       
     - name: Create ndkpath.txt
-      run: |
-        cd ndk
-        pwd > ${GITHUB_WORKSPACE}/ndkpath.txt
-      
-    - name: Enable untrusted output
-      run: echo "::stop-commands::`echo -n ${{ github.token }} | sha256sum | head -c 64`"
+      run: echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
         
 #     - name: Cache QPM
 #       id: cache-qpm
@@ -71,25 +51,31 @@ jobs:
         path: QPM
         repo: sc2ad/QuestPackageManager
         
-#     - name: QPM Dependencies Cache
-#       id: cache-qpm-deps
-#       uses: actions/cache@v2
-#       env:
-#         cache-name: cache-qpm-deps
-#       with:
-#         path: ~/.config/QPM
-#         key: ${{ runner.os }}-${{ env.cache-name }}
-#         restore-keys: |
-#           ${{ runner.os }}-${{ env.cache-name }}
+    - name: QPM Collect
+      run: |
+        chmod +x ./QPM/QPM
+        ./QPM/QPM collect
+    
+    - name: QPM Dependencies Cache
+      id: cache-qpm-deps
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-qpm-deps
+      with:
+        path: QPM_Temp
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('qpm.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
       
     - name: QPM Restore
 #       if: steps.cache-qpm-deps.outputs.cache-hit != 'true'
+      run: ./QPM/QPM restore
+    - name: List Post Restore
       run: |
-        chmod +x ./QPM/QPM
-        ./QPM/QPM restore
-    - name: test
-      run: |
-        ls ./QPM/QPM_Temp
+        ls -la ${GITHUB_WORKSPACE}/extern/
+        ls -la QPM_Temp
     - name: Build
       run: |
         cd ${GITHUB_WORKSPACE}
@@ -113,3 +99,4 @@ jobs:
         name: debug_${{ steps.libname.outputs.NAME }}
         path: ./obj/local/arm64-v8a/${{ steps.libname.outputs.NAME }}
         if-no-files-found: error
+    # TODO: Add auto-populating releases, auto update versions, auto publish package on release
