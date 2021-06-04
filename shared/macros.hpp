@@ -144,7 +144,7 @@ namespace namespaze_ { \
     class name_; \
 } \
 namespace namespaze_ { \
-    class name_ : baseT { \
+    class name_ : public baseT { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
