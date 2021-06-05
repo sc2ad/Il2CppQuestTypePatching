@@ -262,14 +262,29 @@ namespace custom_types {
         // If we have any matching interface methods (ex: virtual_data->klass == interface, virtual_data->slot == i - interface_offset)
         // Then we overwrite it, yay!
         // Otherwise, we copy it over
+
+        // If we have a custom base type, we must populate its methods and fields now before we attempt to inherit its vtable
+        auto* cb = customBase();
+        if (cb) {
+            logger.debug("Initializing custom base: %p", cb);
+            cb->populateFields();
+            cb->populateMethods();
+        }
         auto* baseT = baseType();
         if (baseT) {
             // Logically speaking, the easiest approach we can follow is:
             // Copy over our base vtable
             // Change single values as we see them.
-            logger.debug("Copying base offsets...");
-            for (uint16_t offIdx = 0; offIdx < baseT->interface_offsets_count; ++offIdx) {
-                offsets.push_back(baseT->interfaceOffsets[offIdx]);
+            // If we have a base type and we aren't a custom type, attempt to initialize the base type (just in case)
+            if (!cb && !baseT->initialized_and_no_error) {
+                logger.debug("Initializing base type: %p", baseT);
+                il2cpp_functions::Class_Init(baseT);
+            }
+            if (baseT->interfaceOffsets) {
+                logger.debug("Copying base offsets...");
+                for (uint16_t offIdx = 0; offIdx < baseT->interface_offsets_count; ++offIdx) {
+                    offsets.push_back(baseT->interfaceOffsets[offIdx]);
+                }
             }
             logger.debug("Copying base vtable...");
             for (uint16_t i = 0; i < baseT->vtable_count; ++i) {
