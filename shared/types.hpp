@@ -80,9 +80,9 @@ namespace custom_types {
     struct TypeRegistration {
         friend Register;
 
-        virtual std::vector<FieldRegistrator*> const& getFields() const = 0;
-        virtual std::vector<StaticFieldRegistrator*> const& getStaticFields() const = 0;
-        virtual std::vector<MethodRegistrator*> const& getMethods() const = 0;
+        virtual std::vector<FieldRegistrator*> const getFields() const = 0;
+        virtual std::vector<StaticFieldRegistrator*> const getStaticFields() const = 0;
+        virtual std::vector<MethodRegistrator*> const getMethods() const = 0;
         virtual char*& static_fields() = 0;
         virtual size_t static_fields_size() const = 0;
 

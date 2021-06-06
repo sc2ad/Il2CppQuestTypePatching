@@ -67,16 +67,28 @@ namespace namespaze_ { \
                 instance = this; \
             } \
             static std::vector<::custom_types::FieldRegistrator*> fields; \
-            std::vector<::custom_types::FieldRegistrator*> const& getFields() const override { \
+            std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
                 return fields; \
             } \
+            static void addField(::custom_types::FieldRegistrator* inst) { \
+                fields.push_back(inst); \
+                ::custom_types::_logger().debug("Adding instance field: %s.%s", #name_, inst->name()); \
+            } \
             static std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
-            std::vector<::custom_types::StaticFieldRegistrator*> const& getStaticFields() const override { \
+            std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
                 return staticFields; \
             } \
+            static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
+                staticFields.push_back(inst); \
+                ::custom_types::_logger().debug("Adding static field: %s.%s", #name_, inst->name()); \
+            } \
             static std::vector<::custom_types::MethodRegistrator*> methods; \
-            std::vector<::custom_types::MethodRegistrator*> const& getMethods() const override { \
+            std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
                 return methods; \
+            } \
+            static void addMethod(::custom_types::MethodRegistrator* inst) { \
+                methods.push_back(inst); \
+                ::custom_types::_logger().debug("Adding method: %s", inst->name()); \
             } \
             static size_t staticFieldOffset; \
             static size_t addStaticField(size_t sz) { \
@@ -155,16 +167,28 @@ namespace namespaze_ { \
                 instance = this; \
             } \
             static std::vector<::custom_types::FieldRegistrator*> fields; \
-            std::vector<::custom_types::FieldRegistrator*> const& getFields() const override { \
+            std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
                 return fields; \
             } \
+            static void addField(::custom_types::FieldRegistrator* inst) { \
+                fields.push_back(inst); \
+                ::custom_types::_logger().debug("Adding instance field: %s.%s", #name_, inst->name()); \
+            } \
             static std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
-            std::vector<::custom_types::StaticFieldRegistrator*> const& getStaticFields() const override { \
+            std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
                 return staticFields; \
             } \
+            static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
+                staticFields.push_back(inst); \
+                ::custom_types::_logger().debug("Adding static field: %s.%s", #name_, inst->name()); \
+            } \
             static std::vector<::custom_types::MethodRegistrator*> methods; \
-            std::vector<::custom_types::MethodRegistrator*> const& getMethods() const override { \
+            std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
                 return methods; \
+            } \
+            static void addMethod(::custom_types::MethodRegistrator* inst) { \
+                methods.push_back(inst); \
+                ::custom_types::_logger().debug("Adding method: %s.%s", #name_, inst->name()); \
             } \
             static size_t staticFieldOffset; \
             static size_t addStaticField(size_t sz) { \
@@ -309,7 +333,7 @@ size_t namespaze::name::___TypeRegistration::staticFieldOffset = 0
 private: \
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
     ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::fields.push_back(this); \
+        ___TargetType::___TypeRegistration::addField(this); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -337,7 +361,7 @@ type_ name_ = value
 private: \
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
     ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::fields.push_back(this); \
+        ___TargetType::___TypeRegistration::addField(this); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -369,7 +393,7 @@ struct ___StaticFieldRegistrator_##name_ : ::custom_types::StaticFieldRegistrato
     size_t oft; \
     ___StaticFieldRegistrator_##name_() { \
         oft = ___TargetType::___TypeRegistration::addStaticField(size()); \
-        ___TargetType::___TypeRegistration::staticFields.push_back(this); \
+        ___TargetType::___TypeRegistration::addStaticFieldInstance(this); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -406,7 +430,7 @@ struct ___MethodRegistrator_##name_; \
 template<typename R, typename T, typename... TArgs> \
 struct ___MethodRegistrator_##name_<R (T::*)(TArgs...)> : ::custom_types::MethodRegistrator { \
     ___MethodRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::methods.push_back(this); \
+        ___TargetType::___TypeRegistration::addMethod(this); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -553,7 +577,7 @@ struct ___MethodRegistrator_##name_; \
 template<typename R, typename... TArgs> \
 struct ___MethodRegistrator_##name_<R (*)(TArgs...)> : ::custom_types::MethodRegistrator { \
     ___MethodRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::methods.push_back(this); \
+        ___TargetType::___TypeRegistration::addMethod(this); \
     } \
     constexpr const char* name() const override { \
         return #name_; \

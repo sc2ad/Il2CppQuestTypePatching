@@ -103,6 +103,7 @@ namespace custom_types {
             // Attempt to load the custom base if we haven't already.
             cb->createClass();
         }
+        _logger().debug("Creating type: %s::%s with: %u methods, %u static fields, %u fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
         auto vtableSize = getVtableSize();
         // Create the Il2CppClass instance that will represent this custom type.
         auto* k = static_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass) + vtableSize * sizeof(VirtualInvokeData)));
@@ -264,6 +265,7 @@ namespace custom_types {
         // Otherwise, we copy it over
 
         // If we have a custom base type, we must populate its methods and fields now before we attempt to inherit its vtable
+        logger.debug("Setting up vtable for type: %s::%s", namespaze(), name());
         auto* cb = customBase();
         if (cb) {
             logger.debug("Initializing custom base: %p", cb);
@@ -292,7 +294,8 @@ namespace custom_types {
             }
             // After everything is copied, we can easily iterate over our methods, find any that are virtual
             // If we find a virtual method, see if we are overriding a base interface, or making a new one
-            for (auto m : getMethods()) {
+            auto methods = getMethods();
+            for (auto m : methods) {
                 auto* vMethod = m->virtualMethod();
                 if (vMethod != nullptr) {
                     bool set = false;
@@ -414,7 +417,7 @@ namespace custom_types {
             // If we come across any vtable items that have null function pointers or other stuff, we become sad.
             // This means we haven't implemented everything, so we should make a point in ensuring this happens.
             if (vtable[i].method == nullptr || vtable[i].methodPtr == nullptr) {
-                _logger().critical("Vtable index: %u has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", i);
+                _logger().critical("Type: %s::%s has Vtable index: %u has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", namespaze(), name(), i);
                 SAFE_ABORT();
             }
             k->vtable[i] = vtable[i];
