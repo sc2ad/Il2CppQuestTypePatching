@@ -66,31 +66,31 @@ namespace namespaze_ { \
                 ::custom_types::Register::AddType(this); \
                 instance = this; \
             } \
-            static std::vector<::custom_types::FieldRegistrator*> fields; \
+            static inline std::vector<::custom_types::FieldRegistrator*> fields; \
             std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
                 return fields; \
             } \
             static void addField(::custom_types::FieldRegistrator* inst) { \
                 fields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding instance field: %s.%s", #name_, inst->name()); \
+                ::custom_types::_logger().debug("Adding instance field: %s.%s new size: %u", #name_, inst->name(), fields.size()); \
             } \
-            static std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
+            static inline std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
             std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
                 return staticFields; \
             } \
             static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
                 staticFields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding static field: %s.%s", #name_, inst->name()); \
+                ::custom_types::_logger().debug("Adding static field: %s.%s new size: %u", #name_, inst->name(), staticFields.size()); \
             } \
-            static std::vector<::custom_types::MethodRegistrator*> methods; \
+            static inline std::vector<::custom_types::MethodRegistrator*> methods; \
             std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
                 return methods; \
             } \
             static void addMethod(::custom_types::MethodRegistrator* inst) { \
                 methods.push_back(inst); \
-                ::custom_types::_logger().debug("Adding method: %s", inst->name()); \
+                ::custom_types::_logger().debug("Adding method: %s.%s new size: %u", #name_, inst->name(), methods.size()); \
             } \
-            static size_t staticFieldOffset; \
+            static inline size_t staticFieldOffset; \
             static size_t addStaticField(size_t sz) { \
                 auto tmp = staticFieldOffset; \
                 staticFieldOffset += sz; \
@@ -166,31 +166,31 @@ namespace namespaze_ { \
                 ::custom_types::Register::AddType(this); \
                 instance = this; \
             } \
-            static std::vector<::custom_types::FieldRegistrator*> fields; \
+            static inline std::vector<::custom_types::FieldRegistrator*> fields; \
             std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
                 return fields; \
             } \
             static void addField(::custom_types::FieldRegistrator* inst) { \
                 fields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding instance field: %s.%s", #name_, inst->name()); \
+                ::custom_types::_logger().debug("Adding instance field: %s.%s new size: %u", #name_, inst->name(), fields.size()); \
             } \
-            static std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
+            static inline std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
             std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
                 return staticFields; \
             } \
             static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
                 staticFields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding static field: %s.%s", #name_, inst->name()); \
+                ::custom_types::_logger().debug("Adding static field: %s.%s new size: %u", #name_, inst->name(), staticFields.size()); \
             } \
-            static std::vector<::custom_types::MethodRegistrator*> methods; \
+            static inline std::vector<::custom_types::MethodRegistrator*> methods; \
             std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
                 return methods; \
             } \
             static void addMethod(::custom_types::MethodRegistrator* inst) { \
                 methods.push_back(inst); \
-                ::custom_types::_logger().debug("Adding method: %s.%s", #name_, inst->name()); \
+                ::custom_types::_logger().debug("Adding method: %s.%s new size: %u", #name_, inst->name(), methods.size()); \
             } \
-            static size_t staticFieldOffset; \
+            static inline size_t staticFieldOffset; \
             static size_t addStaticField(size_t sz) { \
                 auto tmp = staticFieldOffset; \
                 staticFieldOffset += sz; \
@@ -314,11 +314,7 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 ::custom_types::TypeRegistration* namespaze::name::___TypeRegistration::instance; \
 static namespaze::name::___TypeRegistration __registration_instance_##name; \
 char* namespaze::name::___TypeRegistration::st_fields; \
-Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr; \
-std::vector<::custom_types::FieldRegistrator*> namespaze::name::___TypeRegistration::fields; \
-std::vector<::custom_types::StaticFieldRegistrator*> namespaze::name::___TypeRegistration::staticFields; \
-std::vector<::custom_types::MethodRegistrator*> namespaze::name::___TypeRegistration::methods; \
-size_t namespaze::name::___TypeRegistration::staticFieldOffset = 0
+Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr;
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
