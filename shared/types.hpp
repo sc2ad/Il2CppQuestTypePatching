@@ -108,9 +108,6 @@ namespace custom_types {
         void getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets);
 
         void clear();
-
-        private:
-        static TypeDefinitionIndex typeIdx;
     };
 
     #if __has_include(<concepts>)

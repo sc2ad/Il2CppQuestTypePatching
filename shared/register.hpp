@@ -19,6 +19,7 @@ namespace custom_types {
 
         static std::vector<TypeRegistration*> toRegister;
         static std::vector<TypeRegistration*> registeredTypes;
+        static TypeDefinitionIndex typeIdx;
 
         static Il2CppAssembly* createAssembly(std::string_view name, Il2CppImage* img);
         static Il2CppImage* createImage(std::string_view name);
@@ -80,7 +81,7 @@ namespace custom_types {
         /// You should not (realistically) have a need for this unless you find custom types memory overhead to be significant.
         static void UnregisterAll() {
             std::lock_guard lck(registrationMtx);
-            TypeRegistration::typeIdx = kTypeDefinitionIndexInvalid;
+            Register::typeIdx = kTypeDefinitionIndexInvalid;
             for (auto itr : registeredTypes) {
                 itr->clear();
             }

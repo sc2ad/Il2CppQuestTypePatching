@@ -5,7 +5,7 @@
 #include "register.hpp"
 
 namespace custom_types {
-    TypeDefinitionIndex TypeRegistration::typeIdx = kTypeDefinitionIndexInvalid;
+    TypeDefinitionIndex Register::typeIdx = kTypeDefinitionIndexInvalid;
 
     Il2CppType* TypeRegistration::createType() {
         // Create type using typeIdx
@@ -21,8 +21,7 @@ namespace custom_types {
         // TODO: Change this for value types and other type enums
         type->type = typeEnum();
         // This should be a unique number, assigned when each new type is created.
-        type->data.klassIndex = typeIdx;
-        typeIdx--;
+        type->data.klassIndex = Register::typeIdx--;
         return type;
     }
 
