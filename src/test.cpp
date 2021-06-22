@@ -270,6 +270,10 @@ extern "C" void load() {
     il2cpp_utils::LogClass(logger, custom_types::Register::classes[0]);
     il2cpp_utils::LogClass(logger, custom_types::Register::classes[1]);
     il2cpp_utils::New<SmallTest::TestIt2*>();
+    for (auto itr : custom_types::Register::classes) {
+        logger.debug("Image for custom type: %s::%s %p", itr->namespaze, itr->name, itr->image);
+    }
+    // custom_types::logImage(custom_types::Register::classes[0]->image);
     // for (int i = 0; i < k->get()->vtable_count; i++) {
     //     custom_types::logVtable(&k->get()->vtable[i]);
     // }

@@ -1,5 +1,6 @@
 #include "register.hpp"
 #include "logging.hpp"
+#include "beatsaber-hook/shared/utils/instruction-parsing.hpp"
 
 MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
@@ -44,7 +45,7 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
     if (!klass) {
         // We will provide some useful debug info here
         logger.warning("Called with a null Il2CppClass*! (Specifically: %p)", klass);
-        CRASH_UNLESS(false);
+        SAFE_ABORT();
     }
     auto typ = klass->this_arg;
     if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
@@ -75,17 +76,36 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, 
     return MetadataCache_GetTypeInfoFromTypeDefinitionIndex(index);
 }
 
+// NOTE THAT THIS HOOK DOES NOT PERMIT TYPES OF IDENTICAL NAMESPACE AND NAME BUT IN DIFFERENT IMAGES!
+// This could be worked around if we also have image be a part of the key, but as it stands, that is not necessary.
+MAKE_HOOK(Class_FromName, NULL, Il2CppClass*, Il2CppImage* image, const char* namespaze, const char* name) {
+    #ifndef NO_VERBOSE_LOGS
+    static auto logger = ::custom_types::_logger().WithContext("Class::FromName");
+    #endif
+    auto pair = std::make_pair(std::string(namespaze), std::string(name));
+    auto itr = custom_types::Register::classMapping.find(pair);
+    if (itr != custom_types::Register::classMapping.end()) {
+        #ifndef NO_VERBOSE_LOGS
+        logger.debug("Returning custom class from: %s::%s lookup: %p", namespaze, name, itr->second);
+        #endif
+        return itr->second;
+    }
+    return Class_FromName(image, namespaze, name);
+}
+
 namespace custom_types {
     std::unordered_map<std::string, Il2CppAssembly*> Register::assembs;
     std::unordered_map<std::string, Il2CppImage*> Register::images;
+    std::unordered_map<std::pair<std::string, std::string>, Il2CppClass*> Register::classMapping;
     std::shared_mutex Register::assemblyMtx;
     std::shared_mutex Register::imageMtx;
+    std::mutex Register::classMappingMtx;
     std::mutex Register::registrationMtx;
     std::mutex installationMtx;
     bool Register::installed = false;
     std::vector<Il2CppClass*> Register::classes;
-    std::vector<TypeRegistration*> Register::toRegister;
-    std::vector<TypeRegistration*> Register::registeredTypes;
+    std::unordered_set<TypeRegistration*> Register::toRegister;
+    std::unordered_set<TypeRegistration*> Register::registeredTypes;
 
     Il2CppAssembly* Register::createAssembly(std::string_view name, Il2CppImage* img) {
         // Name is NOT copied, so should be a constant string
@@ -105,19 +125,19 @@ namespace custom_types {
         assemb->aname.name = name.data();
         {
             std::unique_lock lock(assemblyMtx);
+            // Add our new assembly to the collection of all known assemblies
             il2cpp_functions::Assembly_GetAllAssemblies()->push_back(assemb);
+            _logger().debug("Added new assembly image: %p", assemb->image);
             assembs.insert({strName, assemb});
         }
         _logger().debug("Created new assembly: %s, %p", name.data(), assemb);
         return assemb;
     }
 
-    Il2CppImage* Register::createImage(std::string_view name) {
+    const Il2CppImage* Register::createImage(std::string_view name) {
         // Name is NOT copied, so should be a constant string
         // Check to see if an image with the given name already exists.
         // If it does, use that instead.
-        // TODO: WE NEED TO CREATE A non-null culture!
-        // That way il2cpp doesn't hard exit with our image
         std::string strName(name);
         {
             std::shared_lock lock(imageMtx);
@@ -133,7 +153,26 @@ namespace custom_types {
         img->assembly = createAssembly(name, img);
         img->nameToClassHashTable = new Il2CppNameToTypeDefinitionIndexHashTable();
         // Types are pushed here on class creation
-        // TODO: Unclear if more is required
+        // TODO: Avoid copying eventually
+        img->exportedTypeStart = 0;
+        img->exportedTypeCount = 0;
+        // Custom attribute start and count is used somewhere within unity
+        // (which makes a call to: il2cpp_custom_attrs_from_class/il2cpp_custom_attrs_from_method)
+        // These are required to not be undefined (though perhaps a -1 and a 0 would work just as well here?)
+        // RGCTXes are also from codeGenModule, so that must also be defined.
+        img->customAttributeStart = 0;
+        img->customAttributeCount = 0;
+        img->entryPointIndex = 0;
+        // TODO: Populate this in a more reasonable way
+        // auto* codegen = new Il2CppCodeGenModule{Il2CppCodeGenModule{
+        //     .moduleName = name.data(),
+        //     .methodPointerCount = 0,
+        //     .reversePInvokeWrapperCount = 0,
+        //     .rgctxRangesCount = 0,
+        //     .rgctxsCount = 0
+        // }};
+        // img->codeGenModule = codegen;
+        // TOOD: We shall leave the others undefined for now.
         {
             std::lock_guard lock(imageMtx);
             images.insert({strName, img});
@@ -151,6 +190,13 @@ namespace custom_types {
             INSTALL_HOOK_DIRECT(logger, FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
             INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
             INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::Class_Init);
+            {
+                // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
+                // Trace is: il2cpp_class_from_name --> b --> b --> result
+                Instruction inst(reinterpret_cast<const int32_t*>(il2cpp_functions::class_from_name));
+                Instruction inst2(CRASH_UNLESS(inst.label));
+                INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)CRASH_UNLESS(inst2.label));
+            }
             installed = true;
         }
     }

@@ -22,6 +22,7 @@ namespace custom_types {
         type->type = typeEnum();
         // This should be a unique number, assigned when each new type is created.
         type->data.klassIndex = Register::typeIdx--;
+        _logger().debug("Made new type: %p, idx: %i", type, type->data.klassIndex);
         return type;
     }
 
@@ -60,13 +61,37 @@ namespace custom_types {
         static auto logger = _logger().WithContext("getVtableSize");
 
         int vtableSize = 0;
-        if (baseType()) {
-            vtableSize = baseType()->vtable_count;
+        auto* bt = baseType();
+        if (bt) {
+            auto* cb = customBase();
+            if (cb) {
+                // If we have a custom base, we need to ensure our custom base's vtable gets populated
+                // And that our class gets created with the correct vtable count.
+                // We shall do this GREEDILY (for now, at least) by INSTANTLY populating everything in the custom base
+                // This means that the custom base will come into existence in its entirety before all classes are created!
+                // This could spell trouble for types that this custom base uses
+                std::vector<VirtualInvokeData> vtable;
+                std::vector<Il2CppRuntimeInterfaceOffsetPair> offsets;
+                // We can call this even BEFORE our custom base has a klass.
+                cb->getVtable(vtable, offsets);
+                vtableSize = vtable.size();
+            } else {
+                // The base type's vtable_count is set even if the type itself is not initialized.
+                // We can warn the user, however.
+                if (bt->vtable_count == 0 && !bt->initialized_and_no_error) {
+                    // Virtually nothing should have a vtable of 0, so if we find one, try to init it if it hasn't yet been inited.
+                    il2cpp_functions::Class_Init(bt);
+                }
+                vtableSize = bt->vtable_count;
+                if (vtableSize == 0) {
+                    logger.warning("You (%s::%s) are attempting to inherit from a type that has no vtable entries (%s::%s). This is almost always a mistake. Did you mean to declare the base type as a custom base instead?", namespaze(), name(), bt->namespaze, bt->name);
+                }
+            }
             // After everything is copied, we can easily iterate over our methods, find any that are virtual
             // Add each of our interface method counts to our vtable
             // ASSUMING THEY ARE UNIQUE INTERFACES!
             for (auto& inter : interfaces()) {
-                if (!hasInterfaceIn(baseType(), inter)) {
+                if (!hasInterfaceIn(bt, inter)) {
                     // If we have an interface that isn't unique, as in, it is implemented by one of our base types
                     // Then we do NOT add to our vtable size.
                     vtableSize += inter->method_count;
@@ -79,6 +104,9 @@ namespace custom_types {
             SAFE_ABORT();
         }
         logger.debug("vtable size: %u", vtableSize);
+        if (vtableSize == 0) {
+            logger.warning("VTABLE SIZE IS 0! IS THIS CORRECT? (Type: %s::%s)", namespaze(), name());
+        }
         return vtableSize;
     }
 
@@ -100,7 +128,10 @@ namespace custom_types {
                 SAFE_ABORT();
             }
             // Attempt to load the custom base if we haven't already.
-            cb->createClass();
+            if (!cb->initialized()) {
+                _logger().debug("Attempting to create class for custom dependency: %s::%s", cb->namespaze(), cb->name());
+                cb->createClass();
+            }
         }
         _logger().debug("Creating type: %s::%s with: %u methods, %u static fields, %u fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
         auto vtableSize = getVtableSize();
@@ -263,19 +294,22 @@ namespace custom_types {
         // Then we overwrite it, yay!
         // Otherwise, we copy it over
 
-        // If we have a custom base type, we must populate its methods and fields now before we attempt to inherit its vtable
         logger.debug("Setting up vtable for type: %s::%s", namespaze(), name());
         auto* cb = customBase();
         if (cb) {
-            logger.debug("Initializing custom base: %p", cb);
-            cb->populateFields();
-            cb->populateMethods();
+            // If we have a custom base type, we must populate its methods and fields now before we attempt to inherit its vtable
+            if (!cb->initialized()) {
+                logger.debug("Initializing custom base: %p", cb);
+                cb->populateFields();
+                cb->populateMethods();
+                cb->setInitialized();
+            }
         }
         auto* baseT = baseType();
         if (baseT) {
             // Logically speaking, the easiest approach we can follow is:
-            // Copy over our base vtable
-            // Change single values as we see them.
+            // - Copy over our base vtable
+            // - Change single values as we see them.
             // If we have a base type and we aren't a custom type, attempt to initialize the base type (just in case)
             if (!cb && !baseT->initialized_and_no_error) {
                 logger.debug("Initializing base type: %p", baseT);
@@ -446,6 +480,7 @@ namespace custom_types {
     }
 
     void TypeRegistration::clear() {
+        _logger().warning("Clearing type registration: %p", this);
         auto* k = klass();
         if (k) {
             if (k->typeHierarchy) {

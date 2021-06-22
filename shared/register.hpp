@@ -4,6 +4,16 @@
 #include "logging.hpp"
 #include <mutex>
 #include <shared_mutex>
+#include <string>
+
+template<>
+struct std::hash<std::pair<std::string, std::string>> {
+    size_t operator()(const std::pair<std::string, std::string>& item) const noexcept {
+        std::size_t h1 = std::hash<std::string>{}(item.first);
+        std::size_t h2 = std::hash<std::string>{}(item.second);
+        return h1 ^ (h2 << 1);
+    }
+};
 
 namespace custom_types {
     /// @class Public API for registering types
@@ -15,41 +25,63 @@ namespace custom_types {
         static std::shared_mutex assemblyMtx;
         static std::shared_mutex imageMtx;
         static std::mutex registrationMtx;
+        static std::mutex classMappingMtx;
         static bool installed;
 
-        static std::vector<TypeRegistration*> toRegister;
-        static std::vector<TypeRegistration*> registeredTypes;
+        static std::unordered_set<TypeRegistration*> toRegister;
+        static std::unordered_set<TypeRegistration*> registeredTypes;
         static TypeDefinitionIndex typeIdx;
 
         static Il2CppAssembly* createAssembly(std::string_view name, Il2CppImage* img);
-        static Il2CppImage* createImage(std::string_view name);
+        static const Il2CppImage* createImage(std::string_view name);
 
         static void EnsureHooks();
 
+        static void addToMapping(const TypeRegistration* itr) {
+            auto namePair = std::make_pair(std::string(itr->namespaze()), std::string(itr->name()));
+            if (!classMapping.contains(namePair)) {
+                custom_types::_logger().debug("Adding new type to class mapping: %p", itr->klass());
+                // Only add to the class mapping if the exact type created does not already exist.
+                classMapping.insert({namePair, itr->klass()});
+            }
+        }
+
         public:
+        static std::unordered_map<std::pair<std::string, std::string>, Il2CppClass*> classMapping;
         static std::vector<Il2CppClass*> classes;
-        static std::vector<TypeRegistration*> const& getTypes() {
+        static std::unordered_set<TypeRegistration*> const& getTypes() {
             return registeredTypes;
         }
         /// @brief Automatically registers all pending types.
         /// To add a type to be registered, see: AddType
         /// To get the list of all registered types, see: getTypes()
         static void AutoRegister() {
+            EnsureHooks();
             std::lock_guard<std::mutex> lck(registrationMtx);
 
-            for (auto itr : toRegister) {
-                itr->createClass();
+            {
+                std::lock_guard lock(classMappingMtx);
+                for (auto itr : toRegister) {
+                    itr->createClass();
+                    _logger().debug("Created class! registration: %p, %s::%s klass: %p, %s::%s, image: %p", itr, itr->namespaze(), itr->name(), itr->klass(), itr->klass()->namespaze, itr->klass()->name, itr->klass()->image);
+                    addToMapping(itr);
+                }
             }
             for (auto actual : toRegister) {
                 // Populate fields, methods, etc. here
-                actual->populateFields();
-                actual->populateMethods();
-                registeredTypes.push_back(actual);
+                if (!actual->initialized()) {
+                    actual->populateFields();
+                    actual->populateMethods();
+                    actual->setInitialized();
+                }
+                _logger().debug("Registered registration: %p, %s::%s klass: %p, %s::%s, image: %p", actual, actual->namespaze(), actual->name(), actual->klass(), actual->klass()->namespaze, actual->klass()->name, actual->klass()->image);
+                registeredTypes.insert(actual);
             }
             toRegister.clear();
         }
 
         static void ExplicitRegister(std::unordered_set<TypeRegistration*> toAdd) {
+            EnsureHooks();
             std::lock_guard<std::mutex> lck(registrationMtx);
 
             // Remove all instances of the types we are registering from the list of types we would register via an auto pass.
@@ -62,19 +94,26 @@ namespace custom_types {
                     ++itr;
                 }
             }
-            for (auto item : toAdd) {
-                item->createClass();
+            {
+                std::lock_guard lock(classMappingMtx);
+                for (auto itr : toRegister) {
+                    itr->createClass();
+                    addToMapping(itr);
+                }
             }
             for (auto actual : toAdd) {
-                actual->populateFields();
-                actual->populateMethods();
-                registeredTypes.push_back(actual);
+                if (!actual->initialized()) {
+                    actual->populateFields();
+                    actual->populateMethods();
+                    actual->setInitialized();
+                }
+                registeredTypes.insert(actual);
             }
         }
 
         static void AddType(TypeRegistration* type) {
             _logger().debug("Added instance to register: %p", type);
-            toRegister.push_back(type);
+            toRegister.insert(type);
         }
 
         /// @brief Unregisters all custom types, deleting all associated data.
@@ -88,6 +127,7 @@ namespace custom_types {
             registeredTypes.clear();
             // This will obviously cause all sorts of issues if these types are currently being used within il2cpp.
             classes.clear();
+            classMapping.clear();
             // We also need to correctly delete any created images or assemblies.
             // These need to deleted in a very delicate way so as not to have any dangling references.
         }
