@@ -97,6 +97,8 @@ namespace custom_types {
         virtual Il2CppClass*& klass() const = 0;
         virtual size_t size() const = 0;
         virtual TypeRegistration* customBase() const = 0;
+        virtual bool initialized() const = 0;
+        virtual void setInitialized() const = 0;
 
         uint16_t getVtableSize();
         Il2CppType* createType();

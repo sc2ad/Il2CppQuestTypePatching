@@ -132,6 +132,13 @@ namespace namespaze_ { \
             TypeRegistration* customBase() const override { \
                 return nullptr; \
             } \
+            bool initialized() const override { \
+                return init; \
+            } \
+            void setInitialized() const override { \
+                init = true; \
+            } \
+            static bool init; \
             static TypeRegistration* instance; \
             static TypeRegistration* get() { \
                 return instance; \
@@ -232,6 +239,13 @@ namespace namespaze_ { \
             TypeRegistration* customBase() const override { \
                 return baseCustom; \
             } \
+            bool initialized() const override { \
+                return init; \
+            } \
+            void setInitialized() const override { \
+                init = true; \
+            } \
+            static bool init; \
             static TypeRegistration* instance; \
             static TypeRegistration* get() { \
                 return instance; \
@@ -314,7 +328,8 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 ::custom_types::TypeRegistration* namespaze::name::___TypeRegistration::instance; \
 static namespaze::name::___TypeRegistration __registration_instance_##name; \
 char* namespaze::name::___TypeRegistration::st_fields; \
-Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr;
+Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr; \
+bool namespaze::name::___TypeRegistration::init = false;
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
