@@ -43,7 +43,12 @@ namespace custom_types {
 
     void setupTypeHierarchy(Il2CppClass* klass, Il2CppClass* baseClass) {
         klass->parent = baseClass;
-        if (klass->parent) {
+        if (baseClass) {
+            if (!baseClass->initialized_and_no_error) {
+                // Initialize the base class if it hasn't yet been initialized!
+                // We need to ensure it has a valid type hierarchy!
+                il2cpp_functions::Class_Init(baseClass);
+            }
             klass->typeHierarchyDepth = baseClass->typeHierarchyDepth + 1;
         } else {
             klass->typeHierarchyDepth = 1;

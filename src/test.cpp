@@ -196,10 +196,13 @@ extern "C" void setup(ModInfo& info) {
 }
 
 MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+    modLogger().debug("MainMenuViewController.DidActivate!");
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     modLogger().debug("Getting GO...");
     auto* go = RET_V_UNLESS(modLogger(), il2cpp_utils::GetPropertyValue(self, "gameObject").value_or(nullptr));
     modLogger().debug("Got GO: %p", go);
+    custom_types::logAll(classof(Il2CppNamespace::MyType*));
+    custom_types::logAll(classof(Il2CppNamespace::MyType*)->parent);
     auto* customType = il2cpp_utils::GetSystemType(custom_types::Register::classes[0]);
     modLogger().debug("Custom System.Type: %p", customType);
     auto* strType = RET_V_UNLESS(modLogger(), il2cpp_utils::RunMethod<Il2CppString*>(customType, "ToString"));
