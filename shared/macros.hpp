@@ -143,7 +143,6 @@ namespace namespaze_ { \
             static TypeRegistration* get() { \
                 return instance; \
             } \
-            static size_t instance_fld_offt; \
         }; \
         uint8_t _baseFields[baseSize]; \
         public: \
@@ -250,7 +249,6 @@ namespace namespaze_ { \
             static TypeRegistration* get() { \
                 return instance; \
             } \
-            static size_t instance_fld_offt; \
         }; \
         public: \
         __VA_ARGS__ \
@@ -330,8 +328,7 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 static namespaze::name::___TypeRegistration __registration_instance_##name; \
 char* namespaze::name::___TypeRegistration::st_fields; \
 Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr; \
-bool namespaze::name::___TypeRegistration::init = false; \
-size_t namespaze::name::___TypeRegistration::instance_fld_offt = namespaze::name::___Base__Size;
+bool namespaze::name::___TypeRegistration::init = false;
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
@@ -345,11 +342,8 @@ size_t namespaze::name::___TypeRegistration::instance_fld_offt = namespaze::name
 #define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
 private: \
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    size_t offt; \
     ___FieldRegistrator_##name_() { \
         ___TargetType::___TypeRegistration::addField(this); \
-        offt = ___TargetType::___TypeRegistration::instance_fld_offt; \
-        ___TargetType::___TypeRegistration::instance_fld_offt += sizeof(type_); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -365,7 +359,7 @@ struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
         return sizeof(type_); \
     } \
     int32_t offset() const override { \
-        return offt; \
+        return offsetof(___TargetType, name_); \
     } \
 }; \
 static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
@@ -379,11 +373,8 @@ type_ name_ = value
 #define DECLARE_INSTANCE_FIELD(type_, name_) \
 private: \
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    size_t offt; \
     ___FieldRegistrator_##name_() { \
         ___TargetType::___TypeRegistration::addField(this); \
-        offt = ___TargetType::___TypeRegistration::instance_fld_offt; \
-        ___TargetType::___TypeRegistration::instance_fld_offt += sizeof(type_); \
     } \
     constexpr const char* name() const override { \
         return #name_; \
@@ -399,7 +390,7 @@ struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
         return sizeof(type_); \
     } \
     int32_t offset() const override { \
-        return offt; \
+        return offsetof(___TargetType, name_); \
     } \
 }; \
 static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
