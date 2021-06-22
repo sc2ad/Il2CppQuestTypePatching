@@ -27,6 +27,7 @@ namespace custom_types {
         virtual const Il2CppType* type() const = 0;
         virtual size_t size() const = 0;
         virtual uint16_t fieldAttributes() const = 0;
+        virtual int32_t offset() const = 0;
     };
 
     /// @brief An abstract type that holds the information required for a static field.

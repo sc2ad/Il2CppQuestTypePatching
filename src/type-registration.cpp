@@ -158,7 +158,7 @@ namespace custom_types {
         // TODO: Modify this for future usage where byval argument may not match this argument
         k->byval_arg = *type;
         // TODO: Allow for changing flags in the future (avoid copying base flags)
-        k->flags = typeFlags() | baseType()->flags;
+        k->flags = typeFlags() | (baseType()->flags & ~TYPE_ATTRIBUTE_ABSTRACT);
         // This is for arrays, we can safely assume we are not an array so set this to ourselves.
         k->element_class = k;
         // TODO: Determine more information from this
@@ -236,7 +236,8 @@ namespace custom_types {
                     .name = f->name(),
                     .type = f->type(),
                     .parent = k,
-                    .token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes())
+                    .offset = f->offset(),
+                    .token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes()),
                 };
             }
             for (uint16_t i = 0; i < staticFields.size(); ++i) {
