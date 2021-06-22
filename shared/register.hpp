@@ -1,6 +1,8 @@
 #pragma once
 #include "types.hpp"
 #include <unordered_map>
+#include <list>
+#include <vector>
 #include "logging.hpp"
 #include <mutex>
 #include <shared_mutex>
@@ -28,8 +30,8 @@ namespace custom_types {
         static std::mutex classMappingMtx;
         static bool installed;
 
-        static std::unordered_set<TypeRegistration*> toRegister;
-        static std::unordered_set<TypeRegistration*> registeredTypes;
+        static std::vector<TypeRegistration*> toRegister;
+        static std::vector<TypeRegistration*> registeredTypes;
         static TypeDefinitionIndex typeIdx;
 
         static Il2CppAssembly* createAssembly(std::string_view name, Il2CppImage* img);
@@ -49,7 +51,7 @@ namespace custom_types {
         public:
         static std::unordered_map<std::pair<std::string, std::string>, Il2CppClass*> classMapping;
         static std::vector<Il2CppClass*> classes;
-        static std::unordered_set<TypeRegistration*> const& getTypes() {
+        static std::vector<TypeRegistration*> const& getTypes() {
             return registeredTypes;
         }
         /// @brief Automatically registers all pending types.
@@ -75,7 +77,7 @@ namespace custom_types {
                     actual->setInitialized();
                 }
                 _logger().debug("Registered registration: %p, %s::%s klass: %p, %s::%s, image: %p", actual, actual->namespaze(), actual->name(), actual->klass(), actual->klass()->namespaze, actual->klass()->name, actual->klass()->image);
-                registeredTypes.insert(actual);
+                registeredTypes.push_back(actual);
             }
             toRegister.clear();
         }
@@ -107,13 +109,13 @@ namespace custom_types {
                     actual->populateMethods();
                     actual->setInitialized();
                 }
-                registeredTypes.insert(actual);
+                registeredTypes.push_back(actual);
             }
         }
 
         static void AddType(TypeRegistration* type) {
             _logger().debug("Added instance to register: %p", type);
-            toRegister.insert(type);
+            toRegister.push_back(type);
         }
 
         /// @brief Unregisters all custom types, deleting all associated data.

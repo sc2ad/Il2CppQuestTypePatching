@@ -104,8 +104,8 @@ namespace custom_types {
     std::mutex installationMtx;
     bool Register::installed = false;
     std::vector<Il2CppClass*> Register::classes;
-    std::unordered_set<TypeRegistration*> Register::toRegister;
-    std::unordered_set<TypeRegistration*> Register::registeredTypes;
+    std::vector<TypeRegistration*> Register::toRegister;
+    std::vector<TypeRegistration*> Register::registeredTypes;
 
     Il2CppAssembly* Register::createAssembly(std::string_view name, Il2CppImage* img) {
         // Name is NOT copied, so should be a constant string
