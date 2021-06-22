@@ -210,16 +210,15 @@ namespace custom_types {
         _logger().debug("typeDefinition: %p", klass->typeDefinition);
         _logger().debug("interopData: %p", klass->interopData);
         _logger().debug("klass: %p", klass->klass);
-        _logger().debug("fields: %p", klass->fields);
+        logFields(klass);
         _logger().debug("events: %p", klass->events);
         _logger().debug("properties: %p", klass->properties);
+        _logger().debug("methods: %p", klass->methods);
         if (klass->methods) {
-            for (int i = 0; i < klass->method_count; i++) {
+            for (int i = 0; i < klass->method_count; ++i) {
                 logMethod(klass->methods[i]);
                 usleep(5000);  // 0.005s
             }
-        } else {
-            _logger().debug("methods: 0x0");
         }
         _logger().debug("nestedTypes: %p", klass->nestedTypes);
         _logger().debug("implementedInterfaces: %p", klass->implementedInterfaces);
@@ -244,7 +243,6 @@ namespace custom_types {
         _logger().debug("token: %u", klass->token);
         _logger().debug("method_count: %u", klass->method_count);
         _logger().debug("property_count: %u", klass->property_count);
-        _logger().debug("field_count: %u", klass->field_count);
         _logger().debug("event_count: %u", klass->event_count);
         _logger().debug("nested_type_count: %u", klass->nested_type_count);
         _logger().debug("vtable_count: %u", klass->vtable_count);
