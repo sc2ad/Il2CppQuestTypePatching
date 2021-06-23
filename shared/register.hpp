@@ -86,8 +86,8 @@ namespace custom_types {
             EnsureHooks();
             std::lock_guard<std::mutex> lck(registrationMtx);
 
-            // Remove all instances of the types we are registering from the list of types we would register via an auto pass.
-            // This allows us to be explicit.
+            // Remove everything we are explicitly registering from the collection of types that would be auto registered.
+            // This allows us to avoid duplicate registrations.
             auto itr = toRegister.begin();
             while (itr != toRegister.end()) {
                 if (toAdd.contains(*itr)) {
@@ -98,7 +98,7 @@ namespace custom_types {
             }
             {
                 std::lock_guard lock(classMappingMtx);
-                for (auto itr : toRegister) {
+                for (auto itr : toAdd) {
                     itr->createClass();
                     addToMapping(itr);
                 }
