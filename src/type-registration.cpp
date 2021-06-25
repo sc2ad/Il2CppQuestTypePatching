@@ -147,7 +147,7 @@ namespace custom_types {
         auto* type = createType();
         setupTypeHierarchy(k, baseType());
         // Create image from namespace
-        auto img = Register::createImage(namespaze());
+        auto img = Register::createImage(dllName());
         k->image = img;
         // Add ourselves to our image hash table (for class_from_name)
         img->nameToClassHashTable->insert(std::make_pair(std::make_pair(namespaze(), name()), type->data.klassIndex));

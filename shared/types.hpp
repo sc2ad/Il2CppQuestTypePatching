@@ -89,8 +89,7 @@ namespace custom_types {
 
         virtual const char* name() const = 0;
         virtual const char* namespaze() const = 0;
-        // TODO: Currently unused
-        virtual Il2CppAssembly* assembly() const = 0;
+        virtual const char* dllName() const = 0;
         virtual Il2CppClass* baseType() const = 0;
         virtual std::vector<Il2CppClass*> const interfaces() const = 0;
         virtual Il2CppTypeEnum typeEnum() const = 0;

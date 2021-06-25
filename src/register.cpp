@@ -147,10 +147,17 @@ namespace custom_types {
             }
         }
         auto img = new Il2CppImage();
-        img->name = name.data();
-        img->nameNoExt = name.data();
+        std::unique_lock lock(imageMtx);
+        auto res = images.insert({strName, img});
+        lock.unlock();
+        img->name = res.first->first.c_str();
+        auto strToCopy = strName.substr(0, strName.find_last_of('.'));
+        auto* allocNameNoExt = new char[strToCopy.size() + 1];
+        memcpy(allocNameNoExt, strToCopy.c_str(), strToCopy.size());
+        allocNameNoExt[strToCopy.size()] = '\0';
+        img->nameNoExt = allocNameNoExt;
         img->dynamic = true;
-        img->assembly = createAssembly(name, img);
+        img->assembly = createAssembly(allocNameNoExt, img);
         img->nameToClassHashTable = new Il2CppNameToTypeDefinitionIndexHashTable();
         // Types are pushed here on class creation
         // TODO: Avoid copying eventually
@@ -173,10 +180,6 @@ namespace custom_types {
         // }};
         // img->codeGenModule = codegen;
         // TOOD: We shall leave the others undefined for now.
-        {
-            std::lock_guard lock(imageMtx);
-            images.insert({strName, img});
-        }
         _logger().debug("Created new image: %s, %p", name.data(), img);
         return img;
     }

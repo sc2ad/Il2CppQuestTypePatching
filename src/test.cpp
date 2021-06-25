@@ -80,6 +80,17 @@ void Il2CppNamespace::MyType::Test(int x, float y) {
     modLogger().debug("Called Il2CppNamespace::MyType::Test!");
 }
 
+DECLARE_CLASS_DLL(Il2CppNamespace, MyTypeDllTest, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*), "MyCoolDll.dll",
+    DECLARE_CTOR(ctor);
+)
+
+DEFINE_TYPE(Il2CppNamespace, MyTypeDllTest);
+
+void Il2CppNamespace::MyTypeDllTest::ctor() {
+    modLogger().debug("MyTypeDllTest debug call!");
+    custom_types::logImage(classof(MyTypeDllTest*)->image);
+}
+
 DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject),
     {il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")},
     DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
