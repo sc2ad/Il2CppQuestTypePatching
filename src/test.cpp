@@ -15,6 +15,7 @@
 #include "beatsaber-hook/shared/utils/typedefs.h"
 #include "NoteData.hpp"
 #include <unordered_map>
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 
 ModInfo modInfo;
 
@@ -206,7 +207,7 @@ extern "C" void setup(ModInfo& info) {
     modLogger().debug("Completed setup!");
 }
 
-MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "MainMenuViewController", "DidActivate", void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
     modLogger().debug("MainMenuViewController.DidActivate!");
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     modLogger().debug("Getting GO...");
@@ -228,7 +229,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
 }
 
 // static bool first = false;
-// MAKE_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirAngle) {
+// MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapObjectSpawnController_SpawnNote, void, Il2CppObject* self, Il2CppObject* noteData, float cutDirAngle) {
 //     if (!first) {
 //         first = true;
 //         // We log, set the interface field, log, and then call orig.
@@ -252,7 +253,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
 //     }
 // }
 
-MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, Il2CppObject* self) {
+MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, "", "BeatmapLevelModels", "UpdateAllLoadedBeatmapLevelPacks", void, Il2CppObject* self) {
     BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks(self);
     auto* existing = CRASH_UNLESS(il2cpp_utils::GetFieldValue(self, "_allLoadedBeatmapLevelPackCollection"));
     modLogger().debug("Existing: %p", existing);
@@ -270,16 +271,16 @@ MAKE_HOOK_OFFSETLESS(BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, void, 
 
 extern "C" void load() {
     static auto logger = modLogger().WithContext("Load");
-    logger.debug("Registering types! (current size: %u)", custom_types::Register::classes.size());
+    logger.debug("Registering types! (current size: %lu)", custom_types::Register::classes.size());
     custom_types::Register::AutoRegister();
-    logger.debug("Registered: %u types!", custom_types::Register::classes.size());
-    INSTALL_HOOK_OFFSETLESS(logger, MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
-    INSTALL_HOOK_OFFSETLESS(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks, il2cpp_utils::FindMethod("", "BeatmapLevelsModel", "UpdateAllLoadedBeatmapLevelPacks"));
+    logger.debug("Registered: %lu types!", custom_types::Register::classes.size());
+    INSTALL_HOOK(logger, MainMenuViewController_DidActivate);
+    INSTALL_HOOK(logger, BeatmapLevelModels_UpdateAllLoadedBeatmapLevelPacks);
     // auto k = CRASH_UNLESS(custom_types::Register::RegisterType<Il2CppNamespace::MyBeatmapObjectManager>());
     // INSTALL_HOOK_OFFSETLESS(BeatmapObjectSpawnController_SpawnNote, il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectSpawnController", "SpawnNote", 2));
     // il2cpp_utils::LogClass(il2cpp_utils::GetClassFromName("Il2CppNamespace", "MyBeatmapObjectManager"));
     // logger.debug("Vtables for MyBeatmapObjectManager: %u", k->get()->vtable_count);
-    logger.debug("Custom types size: %u", custom_types::Register::classes.size());
+    logger.debug("Custom types size: %lu", custom_types::Register::classes.size());
     logger.debug("Logging vtables for custom type! There are: %u vtables", custom_types::Register::classes[0]->vtable_count);
     il2cpp_utils::LogClass(logger, custom_types::Register::classes[0]);
     il2cpp_utils::LogClass(logger, custom_types::Register::classes[1]);

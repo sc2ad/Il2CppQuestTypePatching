@@ -1,8 +1,9 @@
 #include "register.hpp"
 #include "logging.hpp"
 #include "beatsaber-hook/shared/utils/instruction-parsing.hpp"
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 
-MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
+MAKE_HOOK(FromIl2CppType, nullptr, Il2CppClass*, Il2CppType* typ) {
     static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
     // _logger().debug("FromIl2CppType: %p", typ);
     if (typ == nullptr) {
@@ -39,7 +40,7 @@ MAKE_HOOK(FromIl2CppType, NULL, Il2CppClass*, Il2CppType* typ) {
     return klass;
 }
 
-MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
+MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
     static auto logger = ::custom_types::_logger().WithContext("Class::Init");
     // If we are attempting to call Class::Init() on an Il2CppClass* that is a custom Il2CppClass*, we need to ignore.
     if (!klass) {
@@ -60,7 +61,7 @@ MAKE_HOOK(Class_Init, NULL, bool, Il2CppClass* klass) {
     }
 }
 
-MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, TypeDefinitionIndex index) {
+MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass*, TypeDefinitionIndex index) {
     if (index < 0) {
         static auto logger = ::custom_types::_logger().WithContext("MetadataCache::GetTypeInfoFromTypeDefinitionIndex");
         // index is either invalid or one of ours
@@ -78,7 +79,7 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, NULL, Il2CppClass*, 
 
 // NOTE THAT THIS HOOK DOES NOT PERMIT TYPES OF IDENTICAL NAMESPACE AND NAME BUT IN DIFFERENT IMAGES!
 // This could be worked around if we also have image be a part of the key, but as it stands, that is not necessary.
-MAKE_HOOK(Class_FromName, NULL, Il2CppClass*, Il2CppImage* image, const char* namespaze, const char* name) {
+MAKE_HOOK(Class_FromName, nullptr, Il2CppClass*, Il2CppImage* image, const char* namespaze, const char* name) {
     #ifndef NO_VERBOSE_LOGS
     static auto logger = ::custom_types::_logger().WithContext("Class::FromName");
     #endif

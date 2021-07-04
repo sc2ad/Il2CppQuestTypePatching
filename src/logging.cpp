@@ -30,7 +30,7 @@ namespace custom_types {
 
     void logFields(const Il2CppClass* klass) {
         if (!klass) {
-            _logger().debug("NULL IL2CPPCLASS* FOR LOG FIELDS!", klass);
+            _logger().debug("NULL IL2CPPCLASS* FOR LOG FIELDS!");
             return;
         }
         _logger().debug("0 ======================FIELDS FOR: %p======================", klass);
@@ -230,7 +230,7 @@ namespace custom_types {
         _logger().debug("initializationExceptionGCHandle: %u", klass->initializationExceptionGCHandle);
         _logger().debug("cctor_started: %u", klass->cctor_started);
         _logger().debug("cctor_finished: %u", klass->cctor_finished);
-        _logger().debug("cctor_thread: %u", klass->cctor_thread);
+        _logger().debug("cctor_thread: %zu", klass->cctor_thread);
         _logger().debug("genericContainerIndex: %u", klass->genericContainerIndex);
         _logger().debug("instance_size: %u", klass->instance_size);
         _logger().debug("actualSize: %u", klass->actualSize);

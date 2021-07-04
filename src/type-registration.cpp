@@ -140,7 +140,7 @@ namespace custom_types {
                 cb->createClass();
             }
         }
-        _logger().debug("Creating type: %s::%s with: %u methods, %u static fields, %u fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
+        _logger().debug("Creating type: %s::%s with: %lu methods, %lu static fields, %lu fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
         auto vtableSize = getVtableSize();
         // Create the Il2CppClass instance that will represent this custom type.
         auto* k = static_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass) + vtableSize * sizeof(VirtualInvokeData)));
@@ -352,7 +352,7 @@ namespace custom_types {
                             m->get()->slot = vMethod->slot + inter.offset;
                             if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
                                 // Our corrected slot is invalid!
-                                logger.critical("Existing interface slot: %u invalid! vtable size: %u", m->get()->slot, vtable.size());
+                                logger.critical("Existing interface slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
                                 SAFE_ABORT();
                             }
                             logger.debug("Using slot: %u", m->get()->slot);
@@ -375,7 +375,7 @@ namespace custom_types {
                                 m->get()->slot = vMethod->slot;
                                 if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
                                     // Our corrected slot is invalid!
-                                    logger.critical("virtual_data slot: %u invalid! vtable size: %u", m->get()->slot, vtable.size());
+                                    logger.critical("virtual_data slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
                                     SAFE_ABORT();
                                 }
                                 logger.debug("Using slot: %u", m->get()->slot);
@@ -414,7 +414,7 @@ namespace custom_types {
                                     m->get()->slot = off.offset + vMethod->slot;
                                     if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
                                         // Our corrected slot is invalid!
-                                        logger.critical("New interface slot: %u invalid! vtable size: %u", m->get()->slot, vtable.size());
+                                        logger.critical("New interface slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
                                         SAFE_ABORT();
                                     }
                                     logger.debug("Using slot: %u", m->get()->slot);
