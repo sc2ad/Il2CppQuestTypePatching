@@ -1,6 +1,7 @@
 #ifdef LOCAL_TEST_COROUTINE
 #include "register.hpp"
 #include "coroutine.hpp"
+#include "beatsaber-hook/shared/utils/hooking.hpp"
 
 using namespace custom_types::Helpers;
 
@@ -51,7 +52,7 @@ extern "C" void setup(ModInfo& info) {
     modLogger().debug("Completed setup!");
 }
 
-MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "MainMenuViewController", "DidActivate", void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
     modLogger().debug("Starting coroutine");
@@ -59,7 +60,7 @@ MAKE_HOOK_OFFSETLESS(MainMenuViewController_DidActivate, void, Il2CppObject* sel
 }
 
 extern "C" void load() {
-    INSTALL_HOOK_OFFSETLESS(modLogger(), MainMenuViewController_DidActivate, il2cpp_utils::FindMethodUnsafe("", "MainMenuViewController", "DidActivate", 3));
+    INSTALL_HOOK(modLogger(), MainMenuViewController_DidActivate);
 }
 
 #endif

@@ -6,7 +6,7 @@ namespace custom_types::Helpers {
     DEFINE_TYPE(custom_types::Helpers, StandardCoroutine);
 
     struct InternalHelper {
-        static bool MoveNextHelper(Coroutine*& currentCoro, enumeratorT*& current) {
+        static bool MoveNextHelper(Coroutine*& currentCoro, Wrapper& current) {
             if (!currentCoro) {
                 // If we do not have a current coroutine, we exit immediately.
                 custom_types::_logger().debug("redundant MoveNext call!");
@@ -59,7 +59,7 @@ namespace custom_types::Helpers {
     }
 
     Il2CppObject* ResetableCoroutine::get_Current() {
-        return reinterpret_cast<Il2CppObject*>(current);
+        return reinterpret_cast<Il2CppObject*>(current.instance);
     }
 
     void ResetableCoroutine::Reset() {
@@ -98,7 +98,7 @@ namespace custom_types::Helpers {
     }
 
     Il2CppObject* StandardCoroutine::get_Current() {
-        return reinterpret_cast<Il2CppObject*>(current);
+        return reinterpret_cast<Il2CppObject*>(current.instance);
     }
 
     void StandardCoroutine::Reset() {

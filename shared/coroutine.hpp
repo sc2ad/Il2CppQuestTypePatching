@@ -44,11 +44,17 @@ namespace custom_types::Helpers {
 #include "beatsaber-hook/shared/utils/utils.h"
 
 namespace custom_types::Helpers {
+    struct Wrapper {
+        enumeratorT* instance;
+        constexpr Wrapper(enumeratorT* value) : instance(value) {}
+    };
+    static_assert(sizeof(Wrapper) == sizeof(enumeratorT*));
+
     /// @brief Generator type used as a coroutine
     /// @tparam T The type of the value wrapped in the generator.
     template<typename T>
     class generator;
-    using Coroutine = generator<enumeratorT*>;
+    using Coroutine = generator<Wrapper>;
     using CoroFuncType = std::function<Coroutine ()>;
 }
 // Coroutine* mapped to void*
@@ -184,13 +190,13 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "O
         {il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator")},
     private:
     custom_types::Helpers::CoroFuncType coroCreator;
+    custom_types::Helpers::Wrapper current;
     // Explicitly delete copy constructor
     ResetableCoroutine(const ResetableCoroutine& other) = delete;
     // Explicitly delete move constructor
     ResetableCoroutine(ResetableCoroutine&& other) = delete;
     // These fields exist as C# fields for semantic purposes only
     DECLARE_INSTANCE_FIELD(custom_types::Helpers::Coroutine*, currentCoro);
-    DECLARE_INSTANCE_FIELD(custom_types::Helpers::enumeratorT*, current);
     DECLARE_INSTANCE_FIELD(bool, valid);
 
     DECLARE_CTOR(ctor, custom_types::Helpers::CoroFuncType* creator);
@@ -205,13 +211,13 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Ob
     struct CoroutineNotResettable : std::runtime_error {
         CoroutineNotResettable() : std::runtime_error("StandardCoroutine is not resettable!") {}
     };
+    custom_types::Helpers::Wrapper current;
     // Explicitly delete copy constructor
     StandardCoroutine(const StandardCoroutine& other) = delete;
     // Explicitly delete move constructor
     StandardCoroutine(StandardCoroutine&& other) = delete;
     // These fields exist as C# fields for semantic purposes only
     DECLARE_INSTANCE_FIELD(custom_types::Helpers::Coroutine*, currentCoro);
-    DECLARE_INSTANCE_FIELD(custom_types::Helpers::enumeratorT*, current);
     DECLARE_INSTANCE_FIELD(bool, valid);
 
     // Construct a StandardCoroutine around a provided Coroutine instance.
@@ -239,6 +245,21 @@ namespace custom_types::Helpers {
         static void EnsureCoroutines();
         
         public:
+        /// @brief Creates a new StandardCoroutine from the provided Coroutine instance, which is immediately rendered invalid.
+        /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
+        /// @tparam cType The creation type of the created coroutine.
+        /// @param c The Coroutine instance to construct the instance with.
+        /// @return The created coroutine instance.
+        template<typename... TArgs, il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
+        static inline StandardCoroutine* New(TArgs&&... c) {
+            EnsureCoroutines();
+            auto res = il2cpp_utils::New<StandardCoroutine*, cType>(new Coroutine(c...));
+            if (!res) {
+                throw CoroutineAllocationFailed();
+            }
+            return *res;
+        }
+
         /// @brief Creates a new StandardCoroutine from the provided Coroutine instance, which is immediately rendered invalid.
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
         /// @tparam cType The creation type of the created coroutine.
