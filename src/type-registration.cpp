@@ -125,7 +125,7 @@ namespace custom_types {
         }
         // If we need to load, add ourselves to the list of types currently loading.
         // This locks for the entire duration of the class creation.
-        std::lock_guard lock(loadingLock);
+        std::unique_lock lock(loadingLock);
         loadingTypes.insert(this);
         auto* cb = customBase();
         if (cb) {
@@ -137,7 +137,9 @@ namespace custom_types {
             // Attempt to load the custom base if we haven't already.
             if (!cb->initialized()) {
                 _logger().debug("Attempting to create class for custom dependency: %s::%s", cb->namespaze(), cb->name());
+                lock.unlock();
                 cb->createClass();
+                lock.lock();
             }
         }
         _logger().debug("Creating type: %s::%s with: %lu methods, %lu static fields, %lu fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
@@ -206,6 +208,7 @@ namespace custom_types {
         Register::classes.push_back(k);
         // At the end of our creation, remove ourselves from the load
         loadingTypes.erase(this);
+        lock.unlock();
     }
 
     void TypeRegistration::populateFields() {
