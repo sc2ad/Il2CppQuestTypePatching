@@ -111,7 +111,8 @@
 			"hash_set": "cpp",
 			"__functional_base_03": "cpp",
 			"simd": "cpp",
-			"__memory": "cpp"
+			"__memory": "cpp",
+			"concepts": "cpp"
 		}
 	}
 }

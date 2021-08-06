@@ -2,10 +2,14 @@
   "configurations": [
     {
       "defines": [
-          "VERSION=\"0.1.0\"",
-          "__GNUC__",
-          "__aarch64__",
-          "ID=\"CustomTypes\""
+        "ID=\"CustomTypes\"",
+        "VERSION=\"0.4.6\"",
+        "__GNUC__",
+        "__aarch64__",
+        "NEED_UNSAFE_CSHARP",
+        "UNITY_2019",
+        "LOCAL_TEST",
+        "LOCAL_TEST_COROUTINE"
       ],
       "includePath": [
           "${workspaceFolder}/",

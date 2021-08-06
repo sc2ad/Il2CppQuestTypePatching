@@ -47,3 +47,5 @@ ndkpath.txt
 qpm.shared.json
 extern/
 *.backup
+
+*.log
