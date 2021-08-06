@@ -2,26 +2,26 @@
   "configurations": [
     {
       "defines": [
-        "ID=\"CustomTypes\"",
-        "VERSION=\"0.4.6\"",
-        "__GNUC__",
-        "__aarch64__",
-        "NEED_UNSAFE_CSHARP",
-        "UNITY_2019",
-        "LOCAL_TEST"
+          "VERSION=\"0.1.0\"",
+          "__GNUC__",
+          "__aarch64__",
+          "ID=\"CustomTypes\""
       ],
       "includePath": [
-        "${workspaceFolder}/**",
-        "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp",
-        "c:/android-ndk-r22/**",
-        "${workspaceFolder}/extern",
-        "${workspaceFolder}/shared"
+          "${workspaceFolder}/",
+          "c:/android-ndk-r22/sources/cxx-stl/llvm-libc++abi/include",
+          "c:/android-ndk-r22/sources/cxx-stl/llvm-libc++/include",
+          "c:/android-ndk-r22/sources/cxx-stl/system/include",
+          "c:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/**",
+          "${workspaceFolder}/shared",
+          "${workspaceFolder}/extern"
       ],
       "name": "Quest",
+      "compilerPath": "C:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++",
       "cStandard": "c11",
       "cppStandard": "c++20",
       "intelliSenseMode": "clang-x64"
-    }
+  }
   ],
   "version": 4
 }
