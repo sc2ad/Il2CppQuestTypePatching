@@ -18,7 +18,8 @@
           "c:/android-ndk-r22/sources/cxx-stl/system/include",
           "c:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/**",
           "${workspaceFolder}/shared",
-          "${workspaceFolder}/extern"
+          "${workspaceFolder}/extern",
+          "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp"
       ],
       "name": "Quest",
       "compilerPath": "C:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++",
