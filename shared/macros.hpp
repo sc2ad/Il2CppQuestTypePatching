@@ -548,7 +548,7 @@ ___CREATE_INSTANCE_METHOD(name, specialName, flags | METHOD_ATTRIBUTE_PUBLIC | M
 #define DECLARE_CTOR(name, ...) \
 public: \
 void name(__VA_ARGS__); \
-template<il2cpp_utils::CreationType creationType, class... TArgs> \
+template<::il2cpp_utils::CreationType creationType = ::il2cpp_utils::CreationType::Temporary, class... TArgs> \
 ___TargetType* New_ctor(TArgs&&... args) { \
     static_assert(::custom_types::Decomposer<decltype(&___TargetType::name)>::equal<TArgs...>(), "Arguments provided to New_ctor must match the constructor!"); \
     return THROW_UNLESS(il2cpp_utils::New<___TargetType*, creationType>(___TypeRegistration::klass_ptr, std::forward<TArgs>(args)...)); \
@@ -635,7 +635,7 @@ memcpy(this, ___buff, ___Base__Size); \
 void __ctor() { \
     INVOKE_CTOR(); \
 } \
-template<il2cpp_utils::CreationType creationType, class... TArgs> \
+template<::il2cpp_utils::CreationType creationType = ::il2cpp_utils::CreationType::Temporary, class... TArgs> \
 ___TargetType* New_ctor(TArgs&&... args) { \
     static_assert(::custom_types::Decomposer<decltype(&___TargetType::__ctor)>::equal<TArgs...>(), "Arguments provided to New_ctor must match the constructor!"); \
     return THROW_UNLESS(il2cpp_utils::New<___TargetType*, creationType>(___TypeRegistration::klass_ptr, std::forward<TArgs>(args)...)); \
