@@ -200,8 +200,8 @@ namespace custom_types {
         k->token = -1;
         // TODO: See if this is always the case
         k->unity_user_data = nullptr;
-        // Just assume we always have references. This is mostly unused anyways.
-        k->has_references = 1;
+        // Just assume we DO NOT have references. This is used for cleanup checks.
+        k->has_references = 0;
         // Cleanup and finalization
         delete type;
         klass() = k;
