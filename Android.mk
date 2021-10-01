@@ -27,6 +27,12 @@ LOCAL_MODULE := beatsaber-hook_3_0_6
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_3_0_6.so
 include $(PREBUILT_SHARED_LIBRARY)
+# Creating prebuilt for dependency: capstone - version: 0.1.0
+include $(CLEAR_VARS)
+LOCAL_MODULE := capstone
+LOCAL_EXPORT_C_INCLUDES := extern/capstone
+LOCAL_SRC_FILES := extern/libcapstone.a
+include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
@@ -34,6 +40,7 @@ LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook/,*.cpp)
 LOCAL_SHARED_LIBRARIES += beatsaber-hook_3_0_6
 LOCAL_SHARED_LIBRARIES += modloader
+LOCAL_STATIC_LIBRARIES += capstone
 LOCAL_LDLIBS += -llog
 LOCAL_CFLAGS += -std=c++20 -O3 -Wno-invalid-offsetof -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.4.6"' -DNO_VERBOSE_LOGS
 LOCAL_C_INCLUDES += ./include ./src
