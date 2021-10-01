@@ -27,12 +27,6 @@ LOCAL_MODULE := beatsaber-hook_3_0_6
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
 LOCAL_SRC_FILES := extern/libbeatsaber-hook_3_0_6.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: capstone - version: 0.1.0
-include $(CLEAR_VARS)
-LOCAL_MODULE := capstone
-LOCAL_EXPORT_C_INCLUDES := extern/capstone
-LOCAL_SRC_FILES := extern/libcapstone.a
-include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
