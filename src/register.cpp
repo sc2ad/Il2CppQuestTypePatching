@@ -1,7 +1,10 @@
+#define IL2CPP_FUNC_VISIBILITY public
 #include "register.hpp"
 #include "logging.hpp"
-#include "beatsaber-hook/shared/utils/instruction-parsing.hpp"
+// Ensure we can see the il2cpp-functions "private" held values
+#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
 #include "beatsaber-hook/shared/utils/hooking.hpp"
+#include "beatsaber-hook/shared/utils/capstone-utils.hpp"
 
 MAKE_HOOK(FromIl2CppType, nullptr, Il2CppClass*, Il2CppType* typ) {
     static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
@@ -191,15 +194,13 @@ namespace custom_types {
             il2cpp_functions::Init();
             static auto logger = _logger().WithContext("EnsureHooks");
             logger.debug("Installing FromIl2CppType hook...");
-            INSTALL_HOOK_DIRECT(logger, FromIl2CppType, (void*)il2cpp_functions::Class_FromIl2CppType);
-            INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
-            INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::Class_Init);
+            INSTALL_HOOK_DIRECT(logger, FromIl2CppType, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
+            INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
+            INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
             {
                 // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
                 // Trace is: il2cpp_class_from_name --> b --> b --> result
-                Instruction inst(reinterpret_cast<const int32_t*>(il2cpp_functions::class_from_name));
-                Instruction inst2(CRASH_UNLESS(inst.label));
-                INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)CRASH_UNLESS(inst2.label));
+                INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)cs::findNthB<1>(reinterpret_cast<const uint32_t*>(il2cpp_functions::il2cpp_class_from_name)));
             }
             installed = true;
         }

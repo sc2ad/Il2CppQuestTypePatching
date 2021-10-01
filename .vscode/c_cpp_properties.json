@@ -13,19 +13,20 @@
       ],
       "includePath": [
           "${workspaceFolder}/",
-          "c:/android-ndk-r22/sources/cxx-stl/llvm-libc++abi/include",
-          "c:/android-ndk-r22/sources/cxx-stl/llvm-libc++/include",
-          "c:/android-ndk-r22/sources/cxx-stl/system/include",
-          "c:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/**",
+          "/mnt/c/android-ndk-r23/sources/cxx-stl/llvm-libc++abi/include/",
+          "/mnt/c/android-ndk-r23/sources/cxx-stl/llvm-libc++/include/",
+          "/mnt/c/android-ndk-r23/sources/cxx-stl/system/include/",
+          "/mnt/c/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/",
+          "/mnt/c/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/12.0.5/include/",
           "${workspaceFolder}/shared",
           "${workspaceFolder}/extern",
           "${workspaceFolder}/extern/libil2cpp/il2cpp/libil2cpp"
       ],
       "name": "Quest",
-      "compilerPath": "C:/android-ndk-r22/toolchains/llvm/prebuilt/windows-x86_64/bin/clang++",
+      "compilerPath": "/mnt/c/android-ndk-r23/toolchains/llvm/prebuilt/linux-x86_64/bin/clang-12 -fno-ms-extensions",
       "cStandard": "c11",
       "cppStandard": "c++20",
-      "intelliSenseMode": "clang-x64"
+      "intelliSenseMode": "linux-clang-x64"
   }
   ],
   "version": 4

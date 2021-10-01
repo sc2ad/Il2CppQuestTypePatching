@@ -258,7 +258,7 @@ namespace custom_types {
         // Static fields are more obnoxious, since klass->static_fields is a pointer to a region of memory
         // Where each static field is laid out with their offset mapping to the correct location.
         il2cpp_functions::Init();
-        if (il2cpp_functions::GarbageCollector_AllocateFixed) {
+        if (il2cpp_functions::hasGCFuncs) {
             static_fields() = reinterpret_cast<char*>(il2cpp_functions::GarbageCollector_AllocateFixed(static_fields_size(), nullptr));
         } else {
             static_fields() = new char[static_fields_size()];
@@ -514,7 +514,7 @@ namespace custom_types {
         }
         auto* f = static_fields();
         if (f) {
-            if (il2cpp_functions::GarbageCollector_AllocateFixed) {
+            if (il2cpp_functions::hasGCFuncs) {
                 il2cpp_functions::GC_free(f);
             } else {
                 delete f;
