@@ -25,7 +25,9 @@
     {
       "id": "capstone",
       "versionRange": "^0.1.0",
-      "additionalData": {}
+      "additionalData": {
+        "private": true
+      }
     }
   ],
   "additionalData": {}
