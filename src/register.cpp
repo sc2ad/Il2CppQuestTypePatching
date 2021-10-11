@@ -6,42 +6,52 @@
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/capstone-utils.hpp"
 
-MAKE_HOOK(FromIl2CppType, nullptr, Il2CppClass*, Il2CppType* typ) {
-    static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
-    // _logger().debug("FromIl2CppType: %p", typ);
-    if (typ == nullptr) {
-        // Extra error checking to avoid unknown null derefs.
-        logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
-        return nullptr;
-    }
-    bool shouldBeOurs = false;
-    // klassIndex is only meaningful for these types
-    if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
-        shouldBeOurs = true;
-        // If the type matches our type
-        auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
-        #ifndef NO_VERBOSE_LOGS
-        logger.debug("Custom idx: %u for type: %p", idx, typ);
-        #endif
-        if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
-            #ifndef NO_VERBOSE_LOGS
-            logger.debug("Returning custom class with idx %i!", idx);
-            #endif
-            auto* k = ::custom_types::Register::classes[idx];
-            if (k == nullptr) {
-                logger.warning("Class at idx: %u is null!", idx);
-            }
-            return k;
+template<class... TArgs>
+struct Hook_FromIl2CppTypeMain {
+    constexpr static const char* name() { return "FromIl2CppType"; }
+    constexpr static void* addr() { return nullptr; }
+    using funcType = Il2CppClass* (*)(TArgs...);
+    static funcType* trampoline() { return &FromIl2CppType; }
+    static inline Il2CppClass* (*FromIl2CppType)(TArgs...) = nullptr;
+    static funcType hook() { return hook_FromIl2CppType; }
+    static Il2CppClass* hook_FromIl2CppType(TArgs... args) {
+        static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
+        auto typ = std::get<0>(std::make_tuple(args...));
+        // _logger().debug("FromIl2CppType: %p", typ);
+        if (typ == nullptr) {
+            // Extra error checking to avoid unknown null derefs.
+            logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
+            return nullptr;
         }
+        bool shouldBeOurs = false;
+        // klassIndex is only meaningful for these types
+        if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
+            shouldBeOurs = true;
+            // If the type matches our type
+            auto idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
+            #ifndef NO_VERBOSE_LOGS
+            logger.debug("Custom idx: %u for type: %p", idx, typ);
+            #endif
+            if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
+                #ifndef NO_VERBOSE_LOGS
+                logger.debug("Returning custom class with idx %i!", idx);
+                #endif
+                auto* k = ::custom_types::Register::classes[idx];
+                if (k == nullptr) {
+                    logger.warning("Class at idx: %u is null!", idx);
+                }
+                return k;
+            }
+        }
+        // Otherwise, return orig
+        auto klass = FromIl2CppType(args...);
+        if (shouldBeOurs) {
+            logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
+            il2cpp_utils::LogClass(logger, klass, false);
+        }
+        return klass;
     }
-    // Otherwise, return orig
-    auto klass = FromIl2CppType(typ);
-    if (shouldBeOurs) {
-        logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
-        il2cpp_utils::LogClass(logger, klass, false);
-    }
-    return klass;
-}
+};
 
 MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
     static auto logger = ::custom_types::_logger().WithContext("Class::Init");
@@ -194,7 +204,11 @@ namespace custom_types {
             il2cpp_functions::Init();
             static auto logger = _logger().WithContext("EnsureHooks");
             logger.debug("Installing FromIl2CppType hook...");
-            INSTALL_HOOK_DIRECT(logger, FromIl2CppType, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
+            if constexpr (sizeof(Il2CppCodeGenModule) < 104) {
+                Hooking::InstallHookDirect<Hook_FromIl2CppTypeMain<Il2CppType*>>(logger, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
+            } else {
+                Hooking::InstallHookDirect<Hook_FromIl2CppTypeMain<Il2CppType*, bool>>(logger, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
+            }
             INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
             INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
             {
