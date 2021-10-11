@@ -92,20 +92,20 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass
 
 // NOTE THAT THIS HOOK DOES NOT PERMIT TYPES OF IDENTICAL NAMESPACE AND NAME BUT IN DIFFERENT IMAGES!
 // This could be worked around if we also have image be a part of the key, but as it stands, that is not necessary.
-MAKE_HOOK(Class_FromName, nullptr, Il2CppClass*, Il2CppImage* image, const char* namespaze, const char* name) {
-    #ifndef NO_VERBOSE_LOGS
-    static auto logger = ::custom_types::_logger().WithContext("Class::FromName");
-    #endif
-    auto pair = std::make_pair(std::string(namespaze), std::string(name));
-    auto itr = custom_types::Register::classMapping.find(pair);
-    if (itr != custom_types::Register::classMapping.end()) {
-        #ifndef NO_VERBOSE_LOGS
-        logger.debug("Returning custom class from: %s::%s lookup: %p", namespaze, name, itr->second);
-        #endif
-        return itr->second;
-    }
-    return Class_FromName(image, namespaze, name);
-}
+// MAKE_HOOK(Class_FromName, nullptr, Il2CppClass*, Il2CppImage* image, const char* namespaze, const char* name) {
+//     #ifndef NO_VERBOSE_LOGS
+//     static auto logger = ::custom_types::_logger().WithContext("Class::FromName");
+//     #endif
+//     auto pair = std::make_pair(std::string(namespaze), std::string(name));
+//     auto itr = custom_types::Register::classMapping.find(pair);
+//     if (itr != custom_types::Register::classMapping.end()) {
+//         #ifndef NO_VERBOSE_LOGS
+//         logger.debug("Returning custom class from: %s::%s lookup: %p", namespaze, name, itr->second);
+//         #endif
+//         return itr->second;
+//     }
+//     return Class_FromName(image, namespaze, name);
+// }
 
 namespace custom_types {
     std::unordered_map<std::string, Il2CppAssembly*> Register::assembs;
@@ -211,11 +211,11 @@ namespace custom_types {
             }
             INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
             INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
-            {
-                // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
-                // Trace is: il2cpp_class_from_name --> b --> b --> result
-                INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)cs::findNthB<1>(reinterpret_cast<const uint32_t*>(il2cpp_functions::il2cpp_class_from_name)));
-            }
+            // {
+            //     // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
+            //     // Trace is: il2cpp_class_from_name --> b --> b --> result
+            //     INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)cs::findNthB<1>(reinterpret_cast<const uint32_t*>(il2cpp_functions::il2cpp_class_from_name)));
+            // }
             installed = true;
         }
     }
