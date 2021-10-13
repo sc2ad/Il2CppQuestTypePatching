@@ -21,11 +21,11 @@ LOCAL_MODULE := modloader
 LOCAL_EXPORT_C_INCLUDES := extern/modloader
 LOCAL_SRC_FILES := extern/libmodloader.so
 include $(PREBUILT_SHARED_LIBRARY)
-# Creating prebuilt for dependency: beatsaber-hook - version: 3.0.6
+# Creating prebuilt for dependency: beatsaber-hook - version: 3.3.0
 include $(CLEAR_VARS)
-LOCAL_MODULE := beatsaber-hook_3_0_6
+LOCAL_MODULE := beatsaber-hook_3_3_0
 LOCAL_EXPORT_C_INCLUDES := extern/beatsaber-hook
-LOCAL_SRC_FILES := extern/libbeatsaber-hook_3_0_6.so
+LOCAL_SRC_FILES := extern/libbeatsaber-hook_3_3_0.so
 include $(PREBUILT_SHARED_LIBRARY)
 # Creating prebuilt for dependency: capstone - version: 0.1.0
 include $(CLEAR_VARS)
@@ -38,7 +38,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := custom-types
 LOCAL_SRC_FILES += $(call rwildcard,src/**,*.cpp)
 LOCAL_SRC_FILES += $(call rwildcard,extern/beatsaber-hook/src/inline-hook/,*.cpp)
-LOCAL_SHARED_LIBRARIES += beatsaber-hook_3_0_6
+LOCAL_SHARED_LIBRARIES += beatsaber-hook_3_3_0
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_STATIC_LIBRARIES += capstone
 LOCAL_LDLIBS += -llog

@@ -62,7 +62,6 @@ namespace namespaze_ { \
         constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         public: \
-        void* operator new(std::size_t) = delete; \
         struct ___TypeRegistration : ::custom_types::TypeRegistration { \
             ___TypeRegistration() { \
                 ::custom_types::Register::AddType(this); \

@@ -74,7 +74,7 @@ int Il2CppNamespace::MyType::asdf(int q) {
 Il2CppString* Il2CppNamespace::MyType::ToString() {
     // We want to create a C# string that is different than from what might otherwise be expected!
     modLogger().info("Calling custom ToString!");
-    return il2cpp_utils::createcsstr("My Custom ToString!");
+    return il2cpp_utils::newcsstr("My Custom ToString!");
 }
 
 void Il2CppNamespace::MyType::Test(int x, float y) {
