@@ -42,7 +42,7 @@ LOCAL_SHARED_LIBRARIES += beatsaber-hook_3_3_0
 LOCAL_SHARED_LIBRARIES += modloader
 LOCAL_STATIC_LIBRARIES += capstone
 LOCAL_LDLIBS += -llog
-LOCAL_CFLAGS += -std=c++20 -O3 -Wno-invalid-offsetof -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.4.6"' -DNO_VERBOSE_LOGS
+LOCAL_CFLAGS += -std=c++20 -O3 -Wno-invalid-offsetof -isystem"./extern/libil2cpp/il2cpp/libil2cpp" -isystem"./extern" -I"./shared" -D"ID=\"custom-types\"" -I'./shared' -I'./extern' -DNEED_UNSAFE_CSHARP -DVERSION='"0.14.0"' -DNO_VERBOSE_LOGS
 LOCAL_C_INCLUDES += ./include ./src
 LOCAL_CPP_FEATURES += exceptions
 # LOCAL_CFLAGS += -DLOCAL_TEST
