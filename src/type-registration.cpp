@@ -200,8 +200,9 @@ namespace custom_types {
         k->token = -1;
         // TODO: See if this is always the case
         k->unity_user_data = nullptr;
-        // Just assume we DO NOT have references. This is used for cleanup checks.
-        k->has_references = 0;
+        // Just assume we DO have references. This is used for cleanup checks, and ensures our instances held within our custom type
+        // do not get GC'd
+        k->has_references = 1;
         // Cleanup and finalization
         delete type;
         klass() = k;
@@ -245,7 +246,7 @@ namespace custom_types {
             }
             for (uint16_t i = 0; i < staticFields.size(); ++i) {
                 auto* f = staticFields[i];
-                k->fields[i] = FieldInfo{
+                k->fields[i + fields.size()] = FieldInfo{
                     .name = f->name(),
                     .type = f->type(),
                     .parent = k,
