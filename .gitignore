@@ -46,6 +46,11 @@ ndkpath.txt
 
 qpm.shared.json
 extern/
+extern.cmake
+qpm_defines.cmake
+build/
+*.qmod
 *.backup
 
 *.log
+mod.json

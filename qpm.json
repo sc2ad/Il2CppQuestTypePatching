@@ -23,6 +23,12 @@
       }
     },
     {
+      "id": "modloader",
+      "versionRange": "^1.2.0",
+      "additionalData": {
+      }
+    },
+    {
       "id": "capstone",
       "versionRange": "^0.1.0",
       "additionalData": {
