@@ -172,7 +172,7 @@ namespace custom_types {
             for (const auto& q : parameter_converter<Decl, Ps...>::get()) {
                 params.push_back(q);
             }
-            return std::move(params);
+            return params;
         }
     };
 

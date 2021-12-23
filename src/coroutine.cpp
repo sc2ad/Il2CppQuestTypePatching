@@ -45,7 +45,7 @@ namespace custom_types::Helpers {
     void ResetableCoroutine::ctor(CoroFuncType* creator) {
         // Create copy
         coroCreator = *creator;
-        currentCoro = new Coroutine(std::move(coroCreator()));
+        currentCoro = new Coroutine(coroCreator());
         current = nullptr;
         // Valid is only set to false when this instance is destroyed to prevent further calls.
         valid = true;
@@ -72,7 +72,7 @@ namespace custom_types::Helpers {
         if (currentCoro) {
             delete currentCoro;
         }
-        currentCoro = new Coroutine(std::move(coroCreator()));
+        currentCoro = new Coroutine(coroCreator());
         current = nullptr;
     }
 

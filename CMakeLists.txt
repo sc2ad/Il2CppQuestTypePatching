@@ -12,11 +12,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED 20)
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# compile options used                               VVV not sure if this is the same as -fcoroutines
+# compile options used
 add_compile_options(-frtti -fPIE -fPIC -fexceptions -fcoroutines-ts)
-add_compile_options(-Wall -Werror -Wno-invalid-offsetof -O3)
+add_compile_options(-Wall -Werror -Wextra -Wno-invalid-offsetof -O3)
 # Extra -Wno's that were not there originally to make it work
-add_compile_options(-Wno-unused-variable -Wno-unused-function -Wno-pessimizing-move)
+add_compile_options(-Wno-unused-variable -Wno-unused-function)
 # compile definitions used
 add_compile_definitions(VERSION=\"${MOD_VERSION}\")
 add_compile_definitions(ID=\"${MOD_ID}\")

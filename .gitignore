@@ -54,3 +54,4 @@ build/
 
 *.log
 mod.json
+.vs/
