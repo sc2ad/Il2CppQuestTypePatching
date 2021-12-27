@@ -25,11 +25,11 @@ if (($clean.IsPresent) -or (-not (Test-Path -Path "build")))
 
 cd build
 if ($local_test.IsPresent) {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DLOCAL_TEST=a ../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST=a ../
 } elseif ($local_test_coroutine.IsPresent) {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="Release" -DLOCAL_TEST_COROUTINE=a../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST_COROUTINE=a../
 } else {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="Release" ../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" ../
 }
 
 & cmake --build .
