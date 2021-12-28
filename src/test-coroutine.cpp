@@ -23,6 +23,7 @@ Coroutine testNestedCoro(int n) {
 		// modLogger().debug("nested coro yield: %d", i);
 		co_yield nullptr;
 	}
+	co_return;
 	// modLogger().debug("nested coroutine complete");
 }
 
@@ -37,12 +38,14 @@ Coroutine testRecursiveCall() {
 	// modLogger().debug("reset nested instance, running again");
 	co_yield reinterpret_cast<enumeratorT*>(instance);
 	modLogger().debug("all done");
+	co_return;
 }
 
 Coroutine testWaitForSeconds() {
 	modLogger().debug("About to wait!");
 	co_yield reinterpret_cast<enumeratorT*>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
 	modLogger().debug("I have performed a wait!");
+	co_return;
 }
 
 extern "C" void setup(ModInfo & info) {

@@ -77,7 +77,7 @@ Il2CppString* Il2CppNamespace::MyType::ToString() {
     return il2cpp_utils::newcsstr("My Custom ToString!");
 }
 
-void Il2CppNamespace::MyType::Test(int x, float y) {
+void Il2CppNamespace::MyType::Test([[maybe_unused]] int x, [[maybe_unused]] float y) {
     modLogger().debug("Called Il2CppNamespace::MyType::Test!");
 }
 
@@ -93,7 +93,7 @@ void Il2CppNamespace::MyTypeDllTest::ctor() {
 }
 
 DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject),
-    {il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")},
+    (il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")),
     DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
     
     DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));

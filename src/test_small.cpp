@@ -9,7 +9,7 @@ DECLARE_CLASS(Custom, Tester, "System", "Object", sizeof(Il2CppObject),
 )
 DEFINE_TYPE(Custom, Tester);
 
-bool Custom::Tester::test(int arg1, int arg2) {
+bool Custom::Tester::test([[maybe_unused]] int arg1, [[maybe_unused]] int arg2) {
     return false;
 }
 
