@@ -289,14 +289,14 @@ ___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, base
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_INTERFACES(namespaze, name, baseNamespaze, baseName, baseSize, interfaces, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, #namespaze, interfaces, 0, __VA_ARGS__)
+___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, #namespaze, {interfaces}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base namespace, base name, baseSize, dll name, and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_INTERFACES_DLL(namespaze, name, baseNamespaze, baseName, baseSize, dllName_, interfaces, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, dllName_, interfaces, 0, __VA_ARGS__)
+___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, dllName_, {interfaces}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, and base type.
 // Assumes the class being declared is non-abstract.
@@ -319,7 +319,7 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 // TODO: Note that this type does NOT properly inherit its interfaces or provide conversion operators.
 // Casts WILL be necessary.
 #define DECLARE_CLASS_CODEGEN_INTERFACES(namespaze, name, baseT, interfaceTs, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, #namespaze, interfaceTs, 0, nullptr, __VA_ARGS__)
+___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, #namespaze, {interfaceTs}, 0, nullptr, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base type, dll name, and interface types.
 // Assumes the class being declared is non-abstract.
