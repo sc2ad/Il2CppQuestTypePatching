@@ -87,8 +87,8 @@ namespace custom_types {
 			else {
 				// The base type's vtable_count is set even if the type itself is not initialized.
 				// We can warn the user, however.
-				if (bt->vtable_count == 0 && !bt->initialized_and_no_error) {
-					logger.debug("Attempting to initialize uninitialized empty base type...");
+				if (!bt->initialized) {
+					logger.debug("Attempting to initialize uninitialized base type (possibly without error)...");
 					// Virtually nothing should have a vtable of 0, so if we find one, try to init it if it hasn't yet been inited.
 					il2cpp_functions::Class_Init(bt);
 				}
