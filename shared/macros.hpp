@@ -161,6 +161,10 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name
     static inline Il2CppClass* get() { \
         return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
     } \
+}; \
+template<> \
+struct ::il2cpp_utils::il2cpp_type_check:need_box<::namespaze_::name_> { \
+    constexpr static bool value = false; \
 };
 
 // Helper for declaring classes with and without interfaces with explicit inheritance
@@ -268,6 +272,10 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name
     static inline Il2CppClass* get() { \
         return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
     } \
+}; \
+template<> \
+struct ::il2cpp_utils::il2cpp_type_check:need_box<::namespaze_::name_> { \
+    constexpr static bool value = false; \
 };
 
 // Declares a class with the given namespace, name, base namespace, base name, and baseSize.
