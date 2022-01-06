@@ -163,7 +163,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name
     } \
 }; \
 template<> \
-struct ::il2cpp_utils::il2cpp_type_check:need_box<::namespaze_::name_> { \
+struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
     constexpr static bool value = false; \
 };
 
@@ -274,7 +274,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name
     } \
 }; \
 template<> \
-struct ::il2cpp_utils::il2cpp_type_check:need_box<::namespaze_::name_> { \
+struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
     constexpr static bool value = false; \
 };
 
