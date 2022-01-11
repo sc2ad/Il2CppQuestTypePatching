@@ -246,13 +246,13 @@ namespace custom_types::Helpers {
         constexpr CoroP(void* p) noexcept : ptr(reinterpret_cast<T*>(p)) {}
         CoroP(std::nullptr_t) = delete;
         constexpr void* convert() const noexcept {
-            return const_cast<T*>(ptr);
+            return (void*)ptr;
         }
         constexpr operator enumeratorT*() const noexcept {
-            return reinterpret_cast<enumeratorT*>(ptr);
+            return (enumeratorT*)ptr;
         }
         constexpr operator Wrapper() const noexcept {
-            return Wrapper(reinterpret_cast<enumeratorT*>(ptr));
+            return Wrapper((enumeratorT*)ptr);
         }
         constexpr T* operator*() noexcept {
             return ptr;
