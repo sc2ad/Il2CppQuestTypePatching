@@ -248,11 +248,11 @@ namespace custom_types::Helpers {
         constexpr void* convert() const noexcept {
             return (void*)ptr;
         }
-        constexpr operator enumeratorT*() const noexcept {
-            return (enumeratorT*)ptr;
+        constexpr operator enumeratorT() const noexcept {
+            return (enumeratorT)ptr;
         }
         constexpr operator Wrapper() const noexcept {
-            return Wrapper((enumeratorT*)ptr);
+            return Wrapper((enumeratorT)ptr);
         }
         constexpr T* operator*() noexcept {
             return ptr;
