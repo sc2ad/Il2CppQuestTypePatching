@@ -238,6 +238,35 @@ namespace custom_types::Helpers {
         CoroutineDisposed() : std::runtime_error("Coroutine instance is already disposed!") {}
     };
 
+    /// @brief A wrapper pointer for coroutines, with conversion operators.
+    /// @tparam The type of the coroutine to wrap in this instance.
+    template<class T>
+    struct CoroP {
+        constexpr CoroP(T* p) noexcept : ptr(p) {}
+        constexpr CoroP(void* p) noexcept : ptr(reinterpret_cast<T*>(p)) {}
+        CoroP(std::nullptr_t) = delete;
+        constexpr void* convert() const noexcept {
+            return (void*)ptr;
+        }
+        constexpr operator enumeratorT*() const noexcept {
+            return (enumeratorT*)ptr;
+        }
+        constexpr operator Wrapper() const noexcept {
+            return Wrapper((enumeratorT*)ptr);
+        }
+        constexpr T* operator*() noexcept {
+            return ptr;
+        }
+        constexpr T* operator->() noexcept {
+            return ptr;
+        }
+        
+        private:
+        T* ptr;
+    };
+    static_assert(il2cpp_utils::has_il2cpp_conversion<CoroP<StandardCoroutine>>);
+    static_assert(il2cpp_utils::has_il2cpp_conversion<CoroP<ResetableCoroutine>>);
+
     /// @brief A helper type for creating custom coroutines C# from C++.
     /// See ResetableCoroutine and StandardCoroutine for more info.
     struct CoroutineHelper {
@@ -249,9 +278,9 @@ namespace custom_types::Helpers {
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
         /// @tparam cType The creation type of the created coroutine.
         /// @param c The Coroutine instance to construct the instance with.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<typename... TArgs, il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
-        static inline StandardCoroutine* New(TArgs&&... c) {
+        static inline CoroP<StandardCoroutine> New(TArgs&&... c) {
             EnsureCoroutines();
             auto res = il2cpp_utils::New<StandardCoroutine*, cType>(new Coroutine(c...));
             if (!res) {
@@ -264,9 +293,9 @@ namespace custom_types::Helpers {
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
         /// @tparam cType The creation type of the created coroutine.
         /// @param c The Coroutine instance to construct the instance with.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
-        static inline StandardCoroutine* New(Coroutine&& c) {
+        static inline CoroP<StandardCoroutine> New(Coroutine&& c) {
             EnsureCoroutines();
             auto res = il2cpp_utils::New<StandardCoroutine*, cType>(new Coroutine(std::move(c)));
             if (!res) {
@@ -279,9 +308,9 @@ namespace custom_types::Helpers {
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
         /// @tparam cType The creation type of the created coroutine.
         /// @param func The CoroFuncType to construct the instance with.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary>
-        static inline ResetableCoroutine* New(CoroFuncType func) {
+        static inline CoroP<ResetableCoroutine> New(CoroFuncType func) {
             EnsureCoroutines();
             auto res = il2cpp_utils::New<ResetableCoroutine*, cType>(&func);
             if (!res) {
@@ -297,9 +326,9 @@ namespace custom_types::Helpers {
         /// @tparam TArgs The arguments to provide to the creator function.
         /// @param func The creator function to wrap.
         /// @param args The arguments to provide to the function.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary, class... TArgs>
-        static inline ResetableCoroutine* New(std::function<Coroutine (TArgs...)> func, TArgs... args) {
+        static inline CoroP<ResetableCoroutine> New(std::function<Coroutine (TArgs...)> func, TArgs... args) {
             return New(std::function<Coroutine ()>([func, args...] {
                 return func(args...);
             }));
@@ -312,9 +341,9 @@ namespace custom_types::Helpers {
         /// @tparam TArgs The arguments to provide to the creator function.
         /// @param func The creator function to wrap.
         /// @param args The arguments to provide to the function.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary, class... TArgs>
-        static inline ResetableCoroutine* New(function_ptr_t<Coroutine, TArgs...> func, TArgs... args) {
+        static inline CoroP<ResetableCoroutine> New(function_ptr_t<Coroutine, TArgs...> func, TArgs... args) {
             return New(std::function<Coroutine ()>([func, args...] {
                 return func(args...);
             }));
@@ -329,9 +358,9 @@ namespace custom_types::Helpers {
         /// @param func The creator function to wrap.
         /// @param instance The instance pointer to provide to the coroutine constructor. This instance must always exist when the returned ResetableCoroutine's Reset method is called.
         /// @param args The arguments to provide to the function.
-        /// @return The created coroutine instance.
+        /// @return The created coroutine instance, wrapped in a CoroP.
         template<il2cpp_utils::CreationType cType = il2cpp_utils::CreationType::Temporary, class I, class... TArgs>
-        static inline ResetableCoroutine* New(Coroutine (I::*func)(TArgs...), I* instance, TArgs... args) {
+        static inline CoroP<ResetableCoroutine> New(Coroutine (I::*func)(TArgs...), I* instance, TArgs... args) {
             return New(std::function<Coroutine ()>([func, instance, args...] {
                 return std::function<Coroutine (I*, TArgs...)>(func)(instance, args...);
             }));

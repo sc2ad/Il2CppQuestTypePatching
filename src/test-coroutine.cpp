@@ -29,14 +29,14 @@ Coroutine testNestedCoro(int n) {
 
 Coroutine testRecursiveCall() {
 	// modLogger().debug("begin recursive coro");
-	auto* instance = CoroutineHelper::New<il2cpp_utils::CreationType::Manual>(testNestedCoro, 3);
+	auto instance = CoroutineHelper::New<il2cpp_utils::CreationType::Manual>(testNestedCoro, 3);
 	// modLogger().debug("created nested instance");
-	co_yield reinterpret_cast<enumeratorT>(instance);
+	co_yield instance;
 	// modLogger().debug("complete with nested instance");
 	// Reset instance and try again
 	instance->Reset();
 	// modLogger().debug("reset nested instance, running again");
-	co_yield reinterpret_cast<enumeratorT>(instance);
+	co_yield instance;
 	modLogger().debug("all done");
 	co_return;
 }
