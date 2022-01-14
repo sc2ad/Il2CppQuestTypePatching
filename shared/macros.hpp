@@ -699,3 +699,16 @@ static inline ___MethodRegistrator_##name_<decltype(&___TargetType::name_)> ___#
 public: \
 static ret name(__VA_ARGS__); \
 ___CREATE_STATIC_METHOD(name, #name, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_STATIC)
+
+
+namespace custom_types {
+    template<class T, class... TArgs>
+    void InvokeBaseCtor(Il2CppClass* klass, T* self, TArgs&&... args) {
+        static auto m = il2cpp_utils::FindMethod(klass, ".ctor", ExtractIndependentType<TArgs>()...);;
+        il2cpp_utils::RunMethodRethrow(self, m, args...);
+    }
+}
+
+#ifndef INVOKE_BASE_CTOR
+#define INVOKE_BASE_CTOR(klass, ...) ::custom_types::InvokeBaseCtor(klass, this, __VA_ARGS__)
+#endif

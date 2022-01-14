@@ -17,7 +17,7 @@ Coroutine testNestedCoro(int n) {
 	co_yield nullptr;
 	// modLogger().debug("one step nested coro");
 	// This will not be deleted by GC, as it will be stored as a field in the coro when invoked.
-	co_yield reinterpret_cast<enumeratorT*>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
+	co_yield reinterpret_cast<enumeratorT>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
 	modLogger().debug("yielding until: %d", n);
 	for (int i = 0; i < n; i++) {
 		// modLogger().debug("nested coro yield: %d", i);
@@ -31,19 +31,19 @@ Coroutine testRecursiveCall() {
 	// modLogger().debug("begin recursive coro");
 	auto* instance = CoroutineHelper::New<il2cpp_utils::CreationType::Manual>(testNestedCoro, 3);
 	// modLogger().debug("created nested instance");
-	co_yield reinterpret_cast<enumeratorT*>(instance);
+	co_yield reinterpret_cast<enumeratorT>(instance);
 	// modLogger().debug("complete with nested instance");
 	// Reset instance and try again
 	instance->Reset();
 	// modLogger().debug("reset nested instance, running again");
-	co_yield reinterpret_cast<enumeratorT*>(instance);
+	co_yield reinterpret_cast<enumeratorT>(instance);
 	modLogger().debug("all done");
 	co_return;
 }
 
 Coroutine testWaitForSeconds() {
 	modLogger().debug("About to wait!");
-	co_yield reinterpret_cast<enumeratorT*>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
+	co_yield reinterpret_cast<enumeratorT>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
 	modLogger().debug("I have performed a wait!");
 	co_return;
 }

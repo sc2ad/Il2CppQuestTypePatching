@@ -19,7 +19,7 @@ namespace custom_types::Helpers {
 
             // if (current) {
             //     // current will never be GC'd, as it is a field on a custom type.
-            //     // current will also always be an enumeratorT*. This will allow us to call RunMethod(current, "MoveNext") (possibly "System.Collections.IEnumerator.MoveNext")
+            //     // current will also always be an enumeratorT. This will allow us to call RunMethod(current, "MoveNext") (possibly "System.Collections.IEnumerator.MoveNext")
             //     if (THROW_UNLESS(il2cpp_utils::RunMethod<bool>(current, "MoveNext"))) {
             //         // If we are waiting on our current object, wait until it is complete
             //         return true;

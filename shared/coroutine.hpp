@@ -32,11 +32,11 @@ namespace custom_types::Helpers {
 #ifdef HAS_CODEGEN
 #include "System/Collections/IEnumerator.hpp"
 namespace custom_types::Helpers {
-    using enumeratorT = System::Collections::IEnumerator;
+    using enumeratorT = System::Collections::IEnumerator*;
 }
 #else
 namespace custom_types::Helpers {
-    using enumeratorT = Il2CppObject;
+    using enumeratorT = Il2CppObject*;
 }
 #endif
 
@@ -45,10 +45,10 @@ namespace custom_types::Helpers {
 
 namespace custom_types::Helpers {
     struct Wrapper {
-        enumeratorT* instance;
-        constexpr Wrapper(enumeratorT* value) : instance(value) {}
+        enumeratorT instance;
+        constexpr Wrapper(enumeratorT value) : instance(value) {}
     };
-    static_assert(sizeof(Wrapper) == sizeof(enumeratorT*));
+    static_assert(sizeof(Wrapper) == sizeof(enumeratorT));
 
     /// @brief Generator type used as a coroutine
     /// @tparam T The type of the value wrapped in the generator.
