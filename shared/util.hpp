@@ -15,5 +15,14 @@ namespace custom_types {
                 return (std::is_same_v<TArgs, TArgs2> && ...);
             }
         }
+        template<class... TArgs2>
+        static constexpr bool convertible() {
+            if constexpr (sizeof...(TArgs) != sizeof...(TArgs2)) {
+                return false;
+            } else {
+                // Convertible from the args specified TO the function pointer provided
+                return (std::is_convertible_v<TArgs2, TArgs> && ...);
+            }
+        }
     };
 }

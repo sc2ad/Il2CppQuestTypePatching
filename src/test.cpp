@@ -260,7 +260,8 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapLevelModels_UpdateAllLoadedBeatmapLe
     auto* arr = CRASH_UNLESS(il2cpp_utils::GetPropertyValue(existing, "beatmapLevelPacks"));
     modLogger().debug("Existing arr: %p", arr);
     modLogger().debug("Constructing custom type and setting it to field!");
-    auto* myType = CRASH_UNLESS(il2cpp_utils::New<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*>(arr));
+    // auto* myType = CRASH_UNLESS(il2cpp_utils::New<Il2CppNamespace::MyCustomBeatmapLevelPackCollection*>(arr));
+    auto myType = Il2CppNamespace::MyCustomBeatmapLevelPackCollection::New_ctor((Il2CppArray*)arr);
     modLogger().debug("Created new type: %p", myType);
     auto* k = il2cpp_functions::object_get_class(existing);
     custom_types::logAll(k);
