@@ -204,7 +204,7 @@ namespace custom_types {
                 return reinterpret_cast<void*>(std::forward<Q>(thing));
             }
             else if constexpr (il2cpp_utils::has_il2cpp_conversion<Q>) {
-                return arg.convert();
+                return thing.convert();
             }
             else {
                 // We SHOULD simply be able to grab the class and box our result
