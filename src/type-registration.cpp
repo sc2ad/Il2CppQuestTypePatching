@@ -467,7 +467,7 @@ namespace custom_types {
 		for (size_t i = 0; i < vtable.size(); i++) {
 			// If we come across any vtable items that have null function pointers or other stuff, we become sad.
 			// This means we haven't implemented everything, so we should make a point in ensuring this happens.
-			if (vtable[i].method == nullptr || vtable[i].methodPtr == nullptr) {
+			if (vtable[i].method == nullptr && vtable[i].methodPtr == nullptr) {
 				_logger().critical("Type: %s::%s has Vtable index: %zu has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", namespaze(), name(), i);
 				SAFE_ABORT();
 			}
