@@ -5,7 +5,7 @@
   "author": "Sc2ad",
   "version": "${version}",
   "packageId": "com.beatgames.beatsaber",
-  "packageVersion": "1.20.0",
+  "packageVersion": "1.21.0",
   "description": "Core mod required for other mods to function!",
   "coverImage": "cover.png",
   "dependencies": [],
