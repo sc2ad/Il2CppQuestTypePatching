@@ -30,8 +30,10 @@ namespace custom_types::Helpers {
             currentCoro->m_coroutine.resume();
             if (currentCoro->m_coroutine.done()) {
                 current = nullptr;
-                // If we have an exception, throw it
-                currentCoro->m_coroutine.promise().rethrow_if_exception();
+                // If we have an exception, throw it to the il2cpp domain if we can.
+                IL2CPP_CATCH_HANDLER(
+                    currentCoro->m_coroutine.promise().rethrow_if_exception();
+                )
                 // Set currentCoro to nullptr, so that we failsafe exit
                 currentCoro = nullptr;
                 return false;

@@ -114,10 +114,8 @@ namespace custom_types::Helpers {
                 return {};
             }
 
-            void unhandled_exception() {
-                IL2CPP_CATCH_HANDLER(
-                    std::rethrow_exception(std::current_exception());
-                )
+            void unhandled_exception() noexcept {
+                m_exception = std::current_exception();
             }
 
             void return_void() {
@@ -130,8 +128,15 @@ namespace custom_types::Helpers {
             // Don't allow any use of 'co_await' inside the generator coroutine.
             template<typename U>
             Helpers::suspend_never await_transform(U&& value) = delete;
+
+            void rethrow_if_exception() {
+                if (m_exception) {
+                    std::rethrow_exception(m_exception);
+                }
+            }
         private:
             pointer_type m_value;
+            std::exception_ptr m_exception;
         };
     }
     /// @brief Generator type used as a coroutine
