@@ -23,6 +23,8 @@ add_compile_definitions(ID=\"${MOD_ID}\")
 add_compile_definitions(NEED_UNSAFE_CSHARP)
 add_compile_definitions(NO_VERBOSE_LOGS)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if (DEFINED LOCAL_TEST)
     MESSAGE(STATUS "Building lib with Test defines")
     add_compile_definitions(LOCAL_TEST)

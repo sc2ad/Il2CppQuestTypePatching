@@ -7,32 +7,28 @@ Param(
     [Switch]$local_test_coroutine
 )
 
-# if user specified clean, remove all build files
-if ($clean.IsPresent)
-{
-    if (Test-Path -Path "build")
-    {
-        remove-item build -R
-    }
-}
-
 $NDKPath = Get-Content $PSScriptRoot/ndkpath.txt
 
-if (($clean.IsPresent) -or (-not (Test-Path -Path "build")))
-{
-    $out = new-item -Path build -ItemType Directory
-}
+# Clean-Build-Folder
+# build tests
 
-cd build
 if ($local_test.IsPresent) {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST=a ../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST=a -B build
 } elseif ($local_test_coroutine.IsPresent) {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST_COROUTINE=a../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -DLOCAL_TEST_COROUTINE=a -B build
 } else {
-    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" ../
+    & cmake -G "Ninja" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -B build
 }
+& cmake --build ./build
 
-& cmake --build .
 $ExitCode = $LastExitCode
-cd ..
-exit $ExitCode
+
+# Post build, we actually want to transform the compile_commands.json file such that it has no \\ characters and ONLY has / characters
+(Get-Content -Path build/compile_commands.json) |
+    ForEach-Object {$_ -Replace '\\\\', '/'} | Set-Content -Path build/compile_commands.json
+
+if (-not ($ExitCode -eq 0)) {
+    $msg = "ExitCode: " + $ExitCode
+    Write-Output $msg
+    exit $ExitCode
+}

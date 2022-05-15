@@ -374,3 +374,8 @@ namespace std {
         a.swap(b);
     }
 }
+
+#ifndef CORO
+// Wrapper for allocating a coroutine around a function call
+#define CORO(...) (::custom_types::Helpers::CoroutineHelper::New(__VA_ARGS__))
+#endif

@@ -225,18 +225,20 @@ namespace custom_types {
     struct invoker_creator<TRet(T::*)(TArgs...)> {
         template<std::size_t ...Ns>
         static void* instance_invoke(TRet(*func)(T*, TArgs...), T* self, void** args, std::index_sequence<Ns...>) {
-            if constexpr (std::is_same_v<TRet, void>) {
-                func(self,
-                    arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                );
-                return nullptr;
-            } else {
-                return arg_helper::pack_result(
+            IL2CPP_CATCH_HANDLER(
+                if constexpr (std::is_same_v<TRet, void>) {
                     func(self,
                         arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                    )
-                );
-            }
+                    );
+                    return nullptr;
+                } else {
+                    return arg_helper::pack_result(
+                        func(self,
+                            arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
+                        )
+                    );
+                }
+            )
         }
         [[gnu::noinline]]
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args) {
@@ -259,18 +261,20 @@ namespace custom_types {
     struct invoker_creator<TRet(*)(TArgs...)> {
         template<std::size_t ...Ns>
         static void* static_invoke(TRet(*func)(TArgs...), void** args, std::index_sequence<Ns...>) {
-            if constexpr (std::is_same_v<TRet, void>) {
-                func(
-                    arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                );
-                return nullptr;
-            } else {
-                return arg_helper::pack_result(
+            IL2CPP_CATCH_HANDLER(
+                if constexpr (std::is_same_v<TRet, void>) {
                     func(
                         arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                    )
-                );
-            }
+                    );
+                    return nullptr;
+                } else {
+                    return arg_helper::pack_result(
+                        func(
+                            arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
+                        )
+                    );
+                }
+            )
         }
         [[gnu::noinline]]
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
