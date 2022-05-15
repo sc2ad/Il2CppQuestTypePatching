@@ -7,6 +7,12 @@ Param(
     [Switch]$local_test_coroutine
 )
 
+if ($clean.IsPresent) {
+    if (Test-Path -Path "build") {
+        Remove-Item build -Recurse
+    }
+}
+
 $NDKPath = Get-Content $PSScriptRoot/ndkpath.txt
 
 # Clean-Build-Folder
