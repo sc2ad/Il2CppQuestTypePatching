@@ -361,6 +361,11 @@ namespace custom_types::Helpers {
             }));
         }
     };
+
+    /// @brief Shorthand for creating a new coroutine
+    auto new_coro(auto&&... args) {
+        return ::custom_types::Helpers::CoroutineHelper::New(std::forward<decltype(args)>(args)...);
+    }
 }
 
 namespace std {
@@ -369,8 +374,3 @@ namespace std {
         a.swap(b);
     }
 }
-
-#ifndef CORO
-// Wrapper for allocating a coroutine around a function call
-#define CORO(...) (::custom_types::Helpers::CoroutineHelper::New(__VA_ARGS__))
-#endif
