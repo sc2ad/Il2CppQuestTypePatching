@@ -52,7 +52,7 @@
 #endif
 
 #ifndef INTERFACE_LIST
-#define INTERFACE_LIST(...) ::il2cpp_utils::ExtractTypes<__VA_ARGS__>()
+#define INTERFACE_LIST(...) ::custom_types::ExtractClasses<__VA_ARGS__>()
 #endif
 
 // Helper macro for declaring classes with and without interfaces

@@ -25,4 +25,9 @@ namespace custom_types {
             }
         }
     };
+
+    template<class... TArgs>
+    std::vector<Il2CppClass*> ExtractClasses() {
+        return {classof(TArgs)...};
+    }
 }
