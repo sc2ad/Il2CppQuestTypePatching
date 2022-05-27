@@ -6,6 +6,10 @@
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/capstone-utils.hpp"
 
+#ifdef CT_USE_GCDESCRIPTOR_DEBUG
+#include "capstone-helpers.hpp"
+#endif
+
 template<class... TArgs>
 struct Hook_FromIl2CppTypeMain {
 	constexpr static const char* name() { return "FromIl2CppType"; }
@@ -90,6 +94,74 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass
 	// Otherwise, return orig
 	return MetadataCache_GetTypeInfoFromTypeDefinitionIndex(index);
 }
+
+#ifdef CT_USE_GCDESCRIPTOR_DEBUG
+#ifndef UNITY_2019
+#warning "Hey, this probably only works for 2019 unity, so be careful."
+#endif
+
+MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, void* state) {
+	#define WORDSIZE ((int)sizeof(size_t)*8)
+	#define GET_CLASS(obj) \
+		((Il2CppClass*)(((size_t)(obj)->klass) & ~(size_t)1))
+	int i = 0;
+	size_t mask = (size_t)(GET_CLASS(obj)->gc_desc);
+
+	IL2CPP_ASSERT(mask & (size_t)1);
+
+	for (i = 0; i < WORDSIZE - 2; i++)
+	{
+		size_t offset = ((size_t)1 << (WORDSIZE - 1 - i));
+		if (mask & offset)
+		{
+			Il2CppObject* val = *(Il2CppObject**)(((char*)obj) + i * sizeof(void*));
+			if (!val->klass || (val->klass->klass != val->klass && val->klass->name == nullptr)) {
+				// We have a VERY BIG PROBLEM!
+				// This will cause a (hard to diagnose) crash!
+				// So, we will dump as much info as we can.
+				custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
+				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p), with val: %p (klass: %p), idx: %u", obj, state, val, val->klass, i);
+
+				custom_types::_logger().critical("Logging all registered custom types...");
+				for (auto k : custom_types::Register::classes) {
+					custom_types::logAll(k);
+				}
+
+				custom_types::_logger().critical("Talk to Sc2ad to try and understand what the hell is going on here and why.");
+				custom_types::_logger().critical("Also, please be very kind and send him this whole log file! It would be much appreciated.");
+				custom_types::_logger().critical("With that said, the log in this file may have been truncated, so consider grabbing the file log for custom types instead.");
+				custom_types::_logger().critical("custom types will now try to log as much information it can about the offending instance's class before crashing...");
+				custom_types::_logger().flush();
+				custom_types::logAll(obj->klass);
+				custom_types::logAll(val->klass);
+			}
+		}
+	}
+	// Call orig
+	LivenessState_TraverseGCDescriptor(obj, state);
+	#undef WORDSIZE
+	#undef GET_CLASS
+}
+
+std::optional<uint32_t*> readsafeb(uint32_t const* const addr) {
+	cs_insn* insns;
+    // Read from addr, 1 instruction, with pc at addr, into insns.
+    // TODO: consider using cs_disasm_iter
+    auto count = cs_disasm(cs::getHandle(), reinterpret_cast<const uint8_t*>(addr), sizeof(uint32_t), reinterpret_cast<uint64_t>(addr), 1, &insns);
+    RET_DEFAULT_UNLESS(custom_types::_logger(), count == 1);
+    auto inst = insns[0];
+    // Thunks have a single b
+    RET_DEFAULT_UNLESS(custom_types::_logger(), inst.id == ARM64_INS_B);
+    auto platinsn = inst.detail->arm64;
+    RET_DEFAULT_UNLESS(custom_types::_logger(), platinsn.op_count == 1);
+    auto op = platinsn.operands[0];
+    RET_DEFAULT_UNLESS(custom_types::_logger(), op.type == ARM64_OP_IMM);
+    // Our b dest is addr + (imm << 2), except capstone does this for us.
+    auto dst = reinterpret_cast<uint32_t*>(op.imm);
+    cs_free(insns, 1);
+    return dst;
+}
+#endif
 
 // NOTE THAT THIS HOOK DOES NOT PERMIT TYPES OF IDENTICAL NAMESPACE AND NAME BUT IN DIFFERENT IMAGES!
 // This could be worked around if we also have image be a part of the key, but as it stands, that is not necessary.
@@ -218,6 +290,32 @@ namespace custom_types {
 			//     // Trace is: il2cpp_class_from_name --> b --> b --> result
 			//     INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)cs::findNthB<1>(reinterpret_cast<const uint32_t*>(il2cpp_functions::il2cpp_class_from_name)));
 			// }
+			#ifdef CT_USE_GCDESCRIPTOR_DEBUG
+			#define BREAK(var, ...) do {if (!var) {logger.warning(__VA_ARGS__); goto exit;}} while (0)
+			{
+				// We need to xref trace to get to LivenessState stuff
+				// il2cpp_unity_liveness_calculation_from_root
+				// only a b --> Liveness::FromRoot
+				// 2nd bl --> LivenessState::TraverseObjects
+				// 1st bl --> LivenessState::TraverseGenericObject
+				// 2nd b --> LivenessState::TraverseGCDescriptor
+
+				// If we fail anywhere in this chain, simply log it and move on.
+				// We shouldn't care, this is just a debug hook after all.
+				auto opt = readsafeb((uint32_t*)il2cpp_functions::il2cpp_unity_liveness_calculation_from_root);
+				BREAK(opt, "Failed to find b in il2cpp_unity_liveness_calculation_from_root!");
+				opt = cs::findNthBlSafe<2>(*opt);
+				BREAK(opt, "Failed to find 2nd bl in Liveness::FromRoot!");
+				opt = cs::findNthBlSafe<1>(*opt);
+				BREAK(opt, "Failed to find 1st bl in Liveness::TraverseObject!");
+				opt = cs::findNthBSafe<2>(*opt);
+				BREAK(opt, "Failed to find 2nd b in LivenessState::TraverseGenericObject!");
+				// We found all of the chain, lets install our debug hook!
+				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseGCDescriptor, *opt);
+			}
+			#undef BREAK
+			exit:
+			#endif
 			installed = true;
 		}
 	}

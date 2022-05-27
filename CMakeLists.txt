@@ -22,6 +22,8 @@ add_compile_definitions(VERSION=\"${MOD_VERSION}\")
 add_compile_definitions(ID=\"${MOD_ID}\")
 add_compile_definitions(NEED_UNSAFE_CSHARP)
 add_compile_definitions(NO_VERBOSE_LOGS)
+# For performing debug logging of very hard to diagnose issues
+add_compile_definitions(CT_USE_GCDESCRIPTOR_DEBUG)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

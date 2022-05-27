@@ -176,6 +176,7 @@ namespace custom_types {
 		// Size is set from sizeof(T)
 		k->actualSize = size();
 		k->instance_size = size();
+		k->gc_desc = nullptr;
 		k->size_inited = 1;
 		// Methods are set after processing methods
 		auto intfs = interfaces();
