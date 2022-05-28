@@ -104,6 +104,8 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 	#define WORDSIZE ((int)sizeof(size_t)*8)
 	#define GET_CLASS(obj) \
 		((Il2CppClass*)(((size_t)(obj)->klass) & ~(size_t)1))
+	#define IS_MARKED(obj) \
+		(((size_t)(obj)->klass) & (size_t)1)
 	int i = 0;
 	size_t mask = (size_t)(GET_CLASS(obj)->gc_desc);
 
@@ -115,13 +117,17 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 		if (mask & offset)
 		{
 			Il2CppObject* val = *(Il2CppObject**)(((char*)obj) + i * sizeof(void*));
-			if (!val->klass || (val->klass->klass != val->klass && val->klass->name == nullptr)) {
+			if (!val || IS_MARKED(val)) {
+				// Null instances are permitted
+				continue;
+			}
+			if (!val->klass || (val->klass->has_references == 0 && val->klass->klass != val->klass && val->klass->name == nullptr)) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
 				// So, we will dump as much info as we can.
 				custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
 				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p), with val: %p (klass: %p), idx: %u", obj, state, val, val->klass, i);
-
+				custom_types::_logger().critical("has_references: %u", val->klass->has_references);
 				custom_types::_logger().critical("Logging all registered custom types...");
 				for (auto k : custom_types::Register::classes) {
 					custom_types::logAll(k);
@@ -141,6 +147,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 	LivenessState_TraverseGCDescriptor(obj, state);
 	#undef WORDSIZE
 	#undef GET_CLASS
+	#undef IS_MARKED
 }
 
 std::optional<uint32_t*> readsafeb(uint32_t const* const addr) {
