@@ -106,6 +106,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 		((Il2CppClass*)(((size_t)(obj)->klass) & ~(size_t)1))
 	#define IS_MARKED(obj) \
 		(((size_t)(obj)->klass) & (size_t)1)
+	
 	int i = 0;
 	size_t mask = (size_t)(GET_CLASS(obj)->gc_desc);
 
@@ -121,7 +122,17 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				// Null instances are permitted
 				continue;
 			}
-			if (!val->klass || (val->klass->has_references == 0 && val->klass->klass != val->klass && val->klass->name == nullptr)) {
+			// Offset of filter class
+			auto filterClass = reinterpret_cast<Il2CppClass*>(reinterpret_cast<uintptr_t>(state) + 0x10);
+			if (!val->klass ||
+					(val->klass->has_references == 0 && val->klass->klass != val->klass && val->klass->name == nullptr) ||
+					// If our filter class is not null, and
+					// our filter class' type hierarchy depth is <= ours and
+					// our type hierarchy pointer is garbage
+					(filterClass &&
+					filterClass->typeHierarchyDepth <= val->klass->typeHierarchyDepth &&
+					reinterpret_cast<uintptr_t>(val->klass->typeHierarchy) <= 0x1000)
+					) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
 				// So, we will dump as much info as we can.
@@ -140,6 +151,15 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				custom_types::_logger().flush();
 				custom_types::logAll(obj->klass);
 				custom_types::logAll(val->klass);
+				// Things I have learned, just dumping here:
+				// static fields and classes that have a nonzero quantity of static fields
+				// need to be added to:
+				// Class::GetStaticFieldData()
+				// as for Liveness::FromRoot, it MIGHT NOT be the base,
+				// because the recursion layer is not bt-able due to b's instead of bl's
+				// So, what COULD happen is that the root liveness calc DOES NOT have a gc descriptor, and it is only a type
+				// later on that does.
+				// Perhaps we should hook the TraverseGenericObject function instead and see what we can learn as we walk the root?
 			}
 		}
 	}
