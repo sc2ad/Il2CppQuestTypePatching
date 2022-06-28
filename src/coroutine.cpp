@@ -28,12 +28,14 @@ namespace custom_types::Helpers {
             //     current = nullptr;
             // }
             currentCoro->m_coroutine.resume();
+            // TODO: See if there is ever a case where this caught exception would result in the coroutine not properly being reset
+            // ex: current not being set to nullptr, currentCoro not being set to nullptr
+            IL2CPP_CATCH_HANDLER(
+                currentCoro->m_coroutine.promise().rethrow_if_exception();
+            )
             if (currentCoro->m_coroutine.done()) {
                 current = nullptr;
                 // If we have an exception, throw it to the il2cpp domain if we can.
-                IL2CPP_CATCH_HANDLER(
-                    currentCoro->m_coroutine.promise().rethrow_if_exception();
-                )
                 // Set currentCoro to nullptr, so that we failsafe exit
                 currentCoro = nullptr;
                 return false;
