@@ -236,6 +236,14 @@ namespace custom_types {
 		// fields contains ALL fields, including static ones.
 		auto fields = getFields();
 		auto staticFields = getStaticFields();
+		if (staticFields.size() > 0 || static_fields_size() > 0) {
+			_logger().critical("DO NOT USE STATIC FIELDS! DO NOT DO NOT DO NOT! IT BREAKS A WHOLE LOT OF STUFF!");
+			_logger().critical("MESSAGE SC2AD IF YOU REALLY NEED THEM, WE MIGHT BE ABLE TO MAKE SOME MAGIC HAPPEN!");
+			_logger().critical("CUSTOM TYPES WILL NOW CRASH BECAUSE YOU WOULD HAVE CRASHED ANYWAYS, TRUST ME!");
+			// TODO: We need to xref trace for: Class::s_staticFieldData to ensure liveness works as intended.
+			// See: Class.cpp:1012
+			SAFE_ABORT_MSG("SAY NO TO STATIC FIELDS!");
+		}
 		k->field_count = fields.size() + staticFields.size();
 		if (k->field_count > 0) {
 			k->fields = reinterpret_cast<FieldInfo*>(calloc(k->field_count, sizeof(FieldInfo)));
@@ -263,15 +271,20 @@ namespace custom_types {
 
 		// Static fields are more obnoxious, since klass->static_fields is a pointer to a region of memory
 		// Where each static field is laid out with their offset mapping to the correct location.
-		il2cpp_functions::Init();
-		if (il2cpp_functions::hasGCFuncs) {
-			static_fields() = reinterpret_cast<char*>(il2cpp_functions::GarbageCollector_AllocateFixed(static_fields_size(), nullptr));
+		if (static_fields_size() > 0) {
+			il2cpp_functions::Init();
+			if (il2cpp_functions::hasGCFuncs) {
+				static_fields() = reinterpret_cast<char*>(il2cpp_functions::GarbageCollector_AllocateFixed(static_fields_size(), nullptr));
+			}
+			else {
+				static_fields() = new char[static_fields_size()];
+			}
+			k->static_fields = static_fields();
+			k->static_fields_size = static_fields_size();
+		} else {
+			k->static_fields = nullptr;
+			k->static_fields_size = 0;
 		}
-		else {
-			static_fields() = new char[static_fields_size()];
-		}
-		k->static_fields = static_fields();
-		k->static_fields_size = static_fields_size();
 	}
 
 	bool TypeRegistration::checkVirtualsForMatch(MethodRegistrator* info, std::string_view namespaze, std::string_view name, std::string_view methodName, int paramCount) {
