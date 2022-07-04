@@ -100,12 +100,74 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass
 #warning "Hey, this probably only works for 2019 unity, so be careful."
 #endif
 
+#ifdef LOCAL_TEST
+#warning "Hey, you shouldn't use LOCAL_TEST while building with CT_USE_GCDESCRIPTOR_DEBUG!"
+#endif
+
+#include "libil2cpp/il2cpp/libil2cpp/utils/dynamic_array.h"
+
+const char* namespaze(Il2CppClass* const klass) {
+	return klass->namespaze ? klass->namespaze : "<NULL_NAMESPAZE>";
+}
+const char* namek(Il2CppClass* const klass) {
+	return klass->name ? klass->name : "<NULL_NAME>";
+}
+
+#define WORDSIZE ((int)sizeof(size_t)*8)
+#define GET_CLASS(obj) \
+	((Il2CppClass*)(((size_t)(obj)->klass) & ~(size_t)1))
+#define IS_MARKED(obj) \
+	(((size_t)(obj)->klass) & (size_t)1)
+
+MAKE_HOOK(LivenessState_TraverseGenericObject, nullptr, void, Il2CppObject* obj, void* state) {
+	// We are calling this with an object and a state.
+	// The state is the LivenessState instance
+	// There is a process_array that we want to look at
+	// Likewise we also want to look at our traverse_depth
+	// Not to mention the actual object and state ptrs
+	auto klass = GET_CLASS(obj);
+	custom_types::_logger().debug("LivenessState::TraverseGenericObject(%p, %p), with klass: %p (%s::%s)", obj, state, obj->klass, namespaze(klass), namek(klass));
+	// process_array is at 0x18 (custom_growable_array*)
+	// traverse_depth is at 0x48 (int)
+	auto arrPtr = *reinterpret_cast<il2cpp::utils::dynamic_array<Il2CppObject*>**>(reinterpret_cast<uint8_t*>(state) + 0x18);
+	custom_types::_logger().debug("traverse_depth: %d", *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(state) + 0x48));
+	custom_types::_logger().debug("arrPtr: %p, inner: %p, size: %zu", arrPtr, arrPtr->data(), arrPtr->size());
+	custom_types::_logger().flush();
+	for (size_t i = 0; i < arrPtr->size(); i++) {
+		auto inst = arrPtr->data()[i];
+		custom_types::_logger().debug("arr val: %zu ptr: %p, class: %p (%s::%s)", i, inst, inst->klass, namespaze(GET_CLASS(inst)), namek(GET_CLASS(inst)));
+	}
+	custom_types::_logger().flush();
+	LivenessState_TraverseGenericObject(obj, state);
+	custom_types::_logger().debug("Complete LivenessState::TraverseGenericObject");
+}
+
+MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj, bool isStruct, Il2CppClass* klass, void* state) {
+	// Here we are going to log... AGAIN
+	// but this time only a few things
+	custom_types::_logger().debug("LivenessState::TraverseObjectInternal(%p, %s, %p, %p)", obj, isStruct ? "true" : "false", klass, state);
+	custom_types::_logger().flush();
+	custom_types::_logger().debug("class: (%s::%s)", namespaze(klass), namek(klass));
+	custom_types::_logger().flush();
+	auto ret = LivenessState_TraverseObjectInternal(obj, isStruct, klass, state);
+	custom_types::_logger().debug("Complete LivenessState::TraverseObjectInternal");
+	return ret;
+}
+
+MAKE_HOOK(Liveness_FromStatics, nullptr, void, void* state) {
+	// filter class is 0x16
+	auto filter = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uint8_t*>(state) + 0x10);
+	custom_types::_logger().debug("Liveness::FromStatics(%p)", state);
+	custom_types::_logger().debug("filter class: %p", filter);
+	custom_types::_logger().flush();
+	custom_types::_logger().debug("filter class: %s::%s", namespaze(filter), namek(filter));
+	custom_types::_logger().flush();
+	// TODO: Log class statics info
+	Liveness_FromStatics(state);
+	custom_types::_logger().debug("Complete Liveness::FromStatics");
+}
+
 MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, void* state) {
-	#define WORDSIZE ((int)sizeof(size_t)*8)
-	#define GET_CLASS(obj) \
-		((Il2CppClass*)(((size_t)(obj)->klass) & ~(size_t)1))
-	#define IS_MARKED(obj) \
-		(((size_t)(obj)->klass) & (size_t)1)
 	
 	int i = 0;
 	size_t mask = (size_t)(GET_CLASS(obj)->gc_desc);
@@ -125,22 +187,24 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 			// Offset of filter class
 			auto filterClass = reinterpret_cast<Il2CppClass*>(reinterpret_cast<uintptr_t>(state) + 0x10);
 			if (!val->klass ||
-					(val->klass->has_references == 0 && val->klass->klass != val->klass && val->klass->name == nullptr) ||
+					(GET_CLASS(val->klass)->has_references == 0 && GET_CLASS(val->klass)->klass != GET_CLASS(val->klass) && GET_CLASS(val->klass)->name == nullptr) ||
 					// If our filter class is not null, and
 					// our filter class' type hierarchy depth is <= ours and
 					// our type hierarchy pointer is garbage
 					(filterClass &&
-					filterClass->typeHierarchyDepth <= val->klass->typeHierarchyDepth &&
-					reinterpret_cast<uintptr_t>(val->klass->typeHierarchy) <= 0x1000)
+					filterClass->typeHierarchyDepth <= GET_CLASS(val->klass)->typeHierarchyDepth &&
+					reinterpret_cast<uintptr_t>(GET_CLASS(val->klass)->typeHierarchy) <= 0x1000)
 					) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
 				// So, we will dump as much info as we can.
+				custom_types::_logger().critical("obj gc_desc: %zu", mask);
 				custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
 				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p), with val: %p (klass: %p), idx: %u", obj, state, val, val->klass, i);
-				custom_types::_logger().critical("has_references: %u", val->klass->has_references);
+				custom_types::_logger().critical("has_references: %u", GET_CLASS(val->klass)->has_references);
 				custom_types::_logger().critical("Logging all registered custom types...");
 				for (auto k : custom_types::Register::classes) {
+					custom_types::_logger().critical("KLASS PTR: %p", k);
 					custom_types::logAll(k);
 				}
 
@@ -148,9 +212,13 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				custom_types::_logger().critical("Also, please be very kind and send him this whole log file! It would be much appreciated.");
 				custom_types::_logger().critical("With that said, the log in this file may have been truncated, so consider grabbing the file log for custom types instead.");
 				custom_types::_logger().critical("custom types will now try to log as much information it can about the offending instance's class before crashing...");
+				custom_types::_logger().critical("KLASS PTR: %p", obj->klass);
 				custom_types::_logger().flush();
-				custom_types::logAll(obj->klass);
-				custom_types::logAll(val->klass);
+				custom_types::logAll(GET_CLASS(obj->klass));
+				custom_types::_logger().critical("KLASS PTR: %p", val->klass);
+				custom_types::_logger().flush();
+				custom_types::logAll(GET_CLASS(val->klass));
+				custom_types::_logger().flush();
 				// Things I have learned, just dumping here:
 				// static fields and classes that have a nonzero quantity of static fields
 				// need to be added to:
@@ -335,10 +403,18 @@ namespace custom_types {
 				BREAK(opt, "Failed to find 2nd bl in Liveness::FromRoot!");
 				opt = cs::findNthBlSafe<1>(*opt);
 				BREAK(opt, "Failed to find 1st bl in Liveness::TraverseObject!");
+				auto traverseGeneric = *opt;
+				auto traverseInternal = cs::findNthBSafe<3>(*opt);
 				opt = cs::findNthBSafe<2>(*opt);
 				BREAK(opt, "Failed to find 2nd b in LivenessState::TraverseGenericObject!");
+				BREAK(traverseInternal, "Failed to find 3rd b in LivenessState::TraverseGenericObject!");
 				// We found all of the chain, lets install our debug hook!
+				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseGenericObject, traverseGeneric);
 				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseGCDescriptor, *opt);
+				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseObjectInternal, *traverseInternal);
+				opt = readsafeb((uint32_t*)il2cpp_functions::il2cpp_unity_liveness_calculation_from_statics);
+				BREAK(opt, "Failed to find b in il2cpp_unity_liveness_calculation_from_statics!");
+				INSTALL_HOOK_DIRECT(logger, Liveness_FromStatics, *opt);
 			}
 			#undef BREAK
 			exit:
