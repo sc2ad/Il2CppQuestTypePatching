@@ -119,38 +119,46 @@ const char* namek(Il2CppClass* const klass) {
 #define IS_MARKED(obj) \
 	(((size_t)(obj)->klass) & (size_t)1)
 
+std::size_t generic_obj_traverse_count = 0;
+
 MAKE_HOOK(LivenessState_TraverseGenericObject, nullptr, void, Il2CppObject* obj, void* state) {
 	// We are calling this with an object and a state.
 	// The state is the LivenessState instance
 	// There is a process_array that we want to look at
 	// Likewise we also want to look at our traverse_depth
 	// Not to mention the actual object and state ptrs
-	auto klass = GET_CLASS(obj);
-	custom_types::_logger().debug("LivenessState::TraverseGenericObject(%p, %p), with klass: %p (%s::%s)", obj, state, obj->klass, namespaze(klass), namek(klass));
+
+	// auto klass = GET_CLASS(obj);
+	// custom_types::_logger().debug("%zu: LivenessState::TraverseGenericObject(%p, %p), with klass: %p (%s::%s)", generic_obj_traverse_count++, obj, state, obj->klass, namespaze(klass), namek(klass));
 	// process_array is at 0x18 (custom_growable_array*)
 	// traverse_depth is at 0x48 (int)
-	auto arrPtr = *reinterpret_cast<il2cpp::utils::dynamic_array<Il2CppObject*>**>(reinterpret_cast<uint8_t*>(state) + 0x18);
-	custom_types::_logger().debug("traverse_depth: %d", *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(state) + 0x48));
-	custom_types::_logger().debug("arrPtr: %p, inner: %p, size: %zu", arrPtr, arrPtr->data(), arrPtr->size());
-	custom_types::_logger().flush();
-	for (size_t i = 0; i < arrPtr->size(); i++) {
-		auto inst = arrPtr->data()[i];
-		custom_types::_logger().debug("arr val: %zu ptr: %p, class: %p (%s::%s)", i, inst, inst->klass, namespaze(GET_CLASS(inst)), namek(GET_CLASS(inst)));
-	}
-	custom_types::_logger().flush();
+	// auto arrPtr = *reinterpret_cast<il2cpp::utils::dynamic_array<Il2CppObject*>**>(reinterpret_cast<uint8_t*>(state) + 0x18);
+	// custom_types::_logger().debug("traverse_depth: %d", *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(state) + 0x48));
+	// custom_types::_logger().debug("arrPtr: %p, inner: %p, size: %zu", arrPtr, arrPtr->data(), arrPtr->size());
+	// custom_types::_logger().flush();
+	// for (size_t i = 0; i < arrPtr->size(); i++) {
+	// 	auto inst = arrPtr->data()[i];
+	// 	custom_types::_logger().debug("arr val: %zu ptr: %p, class: %p (%s::%s)", i, inst, inst->klass, namespaze(GET_CLASS(inst)), namek(GET_CLASS(inst)));
+	// }
+	// if (arrPtr->size() > 0) {
+	// 	auto inst = arrPtr->data()[arrPtr->size() - 1];
+	// 	custom_types::_logger().debug("arr val: %zu, ptr: %p, class: %p (%s::%s)", arrPtr->size() - 1, inst, inst->klass, namespaze(GET_CLASS(inst)), namek(GET_CLASS(inst)));
+	// 	custom_types::_logger().flush();
+	// }
+	generic_obj_traverse_count++;
 	LivenessState_TraverseGenericObject(obj, state);
-	custom_types::_logger().debug("Complete LivenessState::TraverseGenericObject");
+	// custom_types::_logger().debug("Complete LivenessState::TraverseGenericObject");
 }
 
 MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj, bool isStruct, Il2CppClass* klass, void* state) {
 	// Here we are going to log... AGAIN
 	// but this time only a few things
-	custom_types::_logger().debug("LivenessState::TraverseObjectInternal(%p, %s, %p, %p)", obj, isStruct ? "true" : "false", klass, state);
-	custom_types::_logger().flush();
-	custom_types::_logger().debug("class: (%s::%s)", namespaze(klass), namek(klass));
-	custom_types::_logger().flush();
+	// custom_types::_logger().debug("LivenessState::TraverseObjectInternal(%p, %s, %p, %p)", obj, isStruct ? "true" : "false", klass, state);
+	// custom_types::_logger().flush();
+	// custom_types::_logger().debug("class: (%s::%s)", namespaze(klass), namek(klass));
+	// custom_types::_logger().flush();
 	auto ret = LivenessState_TraverseObjectInternal(obj, isStruct, klass, state);
-	custom_types::_logger().debug("Complete LivenessState::TraverseObjectInternal");
+	// custom_types::_logger().debug("Complete LivenessState::TraverseObjectInternal");
 	return ret;
 }
 
@@ -167,8 +175,11 @@ MAKE_HOOK(Liveness_FromStatics, nullptr, void, void* state) {
 	custom_types::_logger().debug("Complete Liveness::FromStatics");
 }
 
+static inline bool HasParentUnsafe(const Il2CppClass* klass, const Il2CppClass* parent) { return klass->typeHierarchyDepth >= parent->typeHierarchyDepth && klass->typeHierarchy[parent->typeHierarchyDepth - 1] == parent; }
+
 MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, void* state) {
-	
+	// Note: gc_desc is a bitfield that holds which fields of the type has references, or, if it is too large, a pointer
+	// to a table which holds a larger bitfield.
 	int i = 0;
 	size_t mask = (size_t)(GET_CLASS(obj)->gc_desc);
 
@@ -179,34 +190,59 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 		size_t offset = ((size_t)1 << (WORDSIZE - 1 - i));
 		if (mask & offset)
 		{
-			Il2CppObject* val = *(Il2CppObject**)(((char*)obj) + i * sizeof(void*));
+			Il2CppObject** valptr = (Il2CppObject**)(((char*)obj) + i * sizeof(void*));
+			Il2CppObject* val = *valptr;
 			if (!val || IS_MARKED(val)) {
 				// Null instances are permitted
 				continue;
 			}
+			// We aren't marked at this point, val is a new pointer in our instance
+			// PreviewDifficultyBeatmapSet
+			// mask: 0b0011000...1
+			// f1: BeatmapCharacteristicSO (skipped explicitly in if above)
+			// f2: BeatmapDifficulty[] (crashes below)
+			// val is: pointer to BeatmapDifficulty[] (at least, it SHOULD be)
+			// specifically, val is a pointer to: 39D0 before obj
 			// Offset of filter class
-			auto filterClass = reinterpret_cast<Il2CppClass*>(reinterpret_cast<uintptr_t>(state) + 0x10);
+			auto filterClass = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uintptr_t>(state) + 0x10);
 			if (!val->klass ||
-					(GET_CLASS(val->klass)->has_references == 0 && GET_CLASS(val->klass)->klass != GET_CLASS(val->klass) && GET_CLASS(val->klass)->name == nullptr) ||
+					(GET_CLASS(val)->has_references == 0 && GET_CLASS(val)->klass != GET_CLASS(val) && GET_CLASS(val)->name == nullptr) ||
 					// If our filter class is not null, and
 					// our filter class' type hierarchy depth is <= ours and
 					// our type hierarchy pointer is garbage
 					(filterClass &&
-					filterClass->typeHierarchyDepth <= GET_CLASS(val->klass)->typeHierarchyDepth &&
-					reinterpret_cast<uintptr_t>(GET_CLASS(val->klass)->typeHierarchy) <= 0x1000)
+					filterClass->typeHierarchyDepth <= GET_CLASS(val)->typeHierarchyDepth &&
+					reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) <= 0x1000)
 					) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
 				// So, we will dump as much info as we can.
-				custom_types::_logger().critical("obj gc_desc: %zu", mask);
 				custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
+				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p) class: %p, gc_desc: %p, %s::%s", obj, state, GET_CLASS(obj), GET_CLASS(obj)->gc_desc, namespaze(GET_CLASS(obj)), namek(GET_CLASS(obj)));
+				// malloc_info()
+				// TODO: Yeah
+				auto path = string_format(LOG_PATH, "com.beatgames.beatsaber") + "CustomTypesMallocInfoOnExit.xml";
+				auto f = fopen(path.c_str(), "w");
+				if (!malloc_info(0, f)) {
+					custom_types::_logger().critical("Failed to write to: %s!", path.c_str());
+				} else {
+					custom_types::_logger().debug("Wrote malloc info to: %s", path.c_str());
+				}
+				fclose(f);
 				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p), with val: %p (klass: %p), idx: %u", obj, state, val, val->klass, i);
-				custom_types::_logger().critical("has_references: %u", GET_CLASS(val->klass)->has_references);
+				if (GET_CLASS(val)) {
+					custom_types::_logger().critical("has_references: %u", GET_CLASS(val)->has_references);
+				}
+				custom_types::_logger().critical("Logging filterClass: %p", filterClass);
+				custom_types::logAll(filterClass);
 				custom_types::_logger().critical("Logging all registered custom types...");
 				for (auto k : custom_types::Register::classes) {
 					custom_types::_logger().critical("KLASS PTR: %p", k);
 					custom_types::logAll(k);
 				}
+
+				custom_types::_logger().debug("gc descriptor test field: obj: %p, field: %p, value: %p, class: %p", obj, valptr, val, val ? val->klass : nullptr);
+				custom_types::_logger().critical("generic_obj_traverse_count: %zu", generic_obj_traverse_count);
 
 				custom_types::_logger().critical("Talk to Sc2ad to try and understand what the hell is going on here and why.");
 				custom_types::_logger().critical("Also, please be very kind and send him this whole log file! It would be much appreciated.");
@@ -214,10 +250,18 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				custom_types::_logger().critical("custom types will now try to log as much information it can about the offending instance's class before crashing...");
 				custom_types::_logger().critical("KLASS PTR: %p", obj->klass);
 				custom_types::_logger().flush();
-				custom_types::logAll(GET_CLASS(obj->klass));
+				if (GET_CLASS(obj)) {
+					custom_types::logAll(GET_CLASS(obj));
+				}
 				custom_types::_logger().critical("KLASS PTR: %p", val->klass);
+				custom_types::_logger().critical("Attempting HasParentUnsafe(%p, %p)...", GET_CLASS(val), filterClass);
 				custom_types::_logger().flush();
-				custom_types::logAll(GET_CLASS(val->klass));
+				auto ret = HasParentUnsafe(GET_CLASS(val), filterClass);
+				custom_types::_logger().critical("HasParentUnsafe return: %s", ret ? "true" : "false");
+				custom_types::_logger().flush();
+				if (GET_CLASS(val)) {
+					custom_types::logAll(GET_CLASS(val));
+				}
 				custom_types::_logger().flush();
 				// Things I have learned, just dumping here:
 				// static fields and classes that have a nonzero quantity of static fields
