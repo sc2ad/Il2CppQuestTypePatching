@@ -165,7 +165,7 @@ MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj
 }
 
 // MAKE_HOOK(Liveness_FromStatics, nullptr, void, void* state) {
-// 	// filter class is 0x16
+// 	// filter class is 0x10
 // 	auto filter = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uint8_t*>(state) + 0x10);
 // 	custom_types::_logger().debug("Liveness::FromStatics(%p)", state);
 // 	custom_types::_logger().debug("filter class: %p", filter);
@@ -214,7 +214,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 					// our type hierarchy pointer is garbage
 					(filterClass &&
 					filterClass->typeHierarchyDepth <= GET_CLASS(val)->typeHierarchyDepth &&
-					reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) <= 0x1000)
+					(reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) <= 0x1000 || reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) > 0xe000000000))
 					) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
