@@ -120,6 +120,7 @@ const char* namek(Il2CppClass* const klass) {
 	(((size_t)(obj)->klass) & (size_t)1)
 
 std::size_t generic_obj_traverse_count = 0;
+std::size_t obj_traverse_count = 0;
 
 MAKE_HOOK(LivenessState_TraverseGenericObject, nullptr, void, Il2CppObject* obj, void* state) {
 	// We are calling this with an object and a state.
@@ -157,23 +158,24 @@ MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj
 	// custom_types::_logger().flush();
 	// custom_types::_logger().debug("class: (%s::%s)", namespaze(klass), namek(klass));
 	// custom_types::_logger().flush();
+	obj_traverse_count++;
 	auto ret = LivenessState_TraverseObjectInternal(obj, isStruct, klass, state);
 	// custom_types::_logger().debug("Complete LivenessState::TraverseObjectInternal");
 	return ret;
 }
 
-MAKE_HOOK(Liveness_FromStatics, nullptr, void, void* state) {
-	// filter class is 0x16
-	auto filter = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uint8_t*>(state) + 0x10);
-	custom_types::_logger().debug("Liveness::FromStatics(%p)", state);
-	custom_types::_logger().debug("filter class: %p", filter);
-	custom_types::_logger().flush();
-	custom_types::_logger().debug("filter class: %s::%s", namespaze(filter), namek(filter));
-	custom_types::_logger().flush();
-	// TODO: Log class statics info
-	Liveness_FromStatics(state);
-	custom_types::_logger().debug("Complete Liveness::FromStatics");
-}
+// MAKE_HOOK(Liveness_FromStatics, nullptr, void, void* state) {
+// 	// filter class is 0x16
+// 	auto filter = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uint8_t*>(state) + 0x10);
+// 	custom_types::_logger().debug("Liveness::FromStatics(%p)", state);
+// 	custom_types::_logger().debug("filter class: %p", filter);
+// 	custom_types::_logger().flush();
+// 	custom_types::_logger().debug("filter class: %s::%s", namespaze(filter), namek(filter));
+// 	custom_types::_logger().flush();
+// 	// TODO: Log class statics info
+// 	Liveness_FromStatics(state);
+// 	custom_types::_logger().debug("Complete Liveness::FromStatics");
+// }
 
 static inline bool HasParentUnsafe(const Il2CppClass* klass, const Il2CppClass* parent) { return klass->typeHierarchyDepth >= parent->typeHierarchyDepth && klass->typeHierarchy[parent->typeHierarchyDepth - 1] == parent; }
 
@@ -242,6 +244,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				}
 
 				custom_types::_logger().debug("gc descriptor test field: obj: %p, field: %p, value: %p, class: %p", obj, valptr, val, val ? val->klass : nullptr);
+				custom_types::_logger().critical("obj_traverse_count: %zu", obj_traverse_count);
 				custom_types::_logger().critical("generic_obj_traverse_count: %zu", generic_obj_traverse_count);
 
 				custom_types::_logger().critical("Talk to Sc2ad to try and understand what the hell is going on here and why.");
@@ -456,9 +459,9 @@ namespace custom_types {
 				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseGenericObject, traverseGeneric);
 				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseGCDescriptor, *opt);
 				INSTALL_HOOK_DIRECT(logger, LivenessState_TraverseObjectInternal, *traverseInternal);
-				opt = readsafeb((uint32_t*)il2cpp_functions::il2cpp_unity_liveness_calculation_from_statics);
-				BREAK(opt, "Failed to find b in il2cpp_unity_liveness_calculation_from_statics!");
-				INSTALL_HOOK_DIRECT(logger, Liveness_FromStatics, *opt);
+				// opt = readsafeb((uint32_t*)il2cpp_functions::il2cpp_unity_liveness_calculation_from_statics);
+				// BREAK(opt, "Failed to find b in il2cpp_unity_liveness_calculation_from_statics!");
+				// INSTALL_HOOK_DIRECT(logger, Liveness_FromStatics, *opt);
 			}
 			#undef BREAK
 			exit:
