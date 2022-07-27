@@ -18,7 +18,7 @@ struct DelegateWrapperStatic : Il2CppObject {
     using ___TargetType = DelegateWrapperStatic<RI, TArgsI...>;
     constexpr static auto ___Base__Size = sizeof(Il2CppObject);
     friend ::custom_types::Register;
-    public:
+public:
     struct ___TypeRegistration : ::custom_types::TypeRegistration {
         ___TypeRegistration() {
             ::custom_types::Register::AddType(this);
@@ -47,8 +47,13 @@ struct DelegateWrapperStatic : Il2CppObject {
             return 0;
         }
         const char* name() const override {
-            static std::string nm{string_format("DelegateWrapper(%zu ret, %zu args, %zu sz) (%d)", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
-            return nm.c_str();
+            if constexpr (!std::is_same_v<void, RI>) {
+                static std::string nm{string_format("DelegateWrapper(%zu ret, %zu args, %zu sz) (%d)", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                return nm.c_str();
+            } else {
+                static std::string nm{string_format("DelegateWrapper(void ret, %zu args, %zu sz) (%d)", sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                return nm.c_str();
+            }
         }
         const char* namespaze() const override {
             return "CustomTypes";
@@ -101,7 +106,7 @@ public:
     std::function<RI(TArgsI...)> wrappedFunc;
 
     void dtor();
-    private:
+private:
     template<typename T>
     struct ___MethodRegistrator_dtor;
     template<typename R, typename T, typename... TArgs>
@@ -140,6 +145,7 @@ public:
             return &::custom_types::invoker_creator<decltype(&___TargetType::dtor)>::invoke;
         }
     };
+public:
     static inline ___MethodRegistrator_dtor<decltype(&___TargetType::dtor)> ___dtor_MethodRegistrator;
 };
 
