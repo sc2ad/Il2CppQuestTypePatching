@@ -37,7 +37,7 @@ struct DelegateWrapperStatic : Il2CppObject {
         }
         static void addMethod(::custom_types::MethodRegistrator* inst) {
             methods.push_back(inst);
-            ::custom_types::_logger().debug("Adding method: %s.%s new size: %zu", name(), inst->name(), methods.size());
+            ::custom_types::_logger().debug("Adding method: %s.%s new size: %zu", instance->name(), inst->name(), methods.size());
         }
         static inline char* st_fields;
         char*& static_fields() override {
@@ -91,7 +91,7 @@ struct DelegateWrapperStatic : Il2CppObject {
         }
     };
 public:
-    static inline ___TypeRegistration __registration_instance_DelegateWrapperStatic
+    static inline ___TypeRegistration __registration_instance_DelegateWrapperStatic;
     // Disallow creation
     DelegateWrapperStatic() = delete;
     // The invoke method that wraps the delegate call
