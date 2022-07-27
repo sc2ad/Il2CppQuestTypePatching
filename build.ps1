@@ -30,8 +30,8 @@ if ($local_test.IsPresent) {
 $ExitCode = $LastExitCode
 
 # Post build, we actually want to transform the compile_commands.json file such that it has no \\ characters and ONLY has / characters
-(Get-Content -Path build/compile_commands.json) |
-    ForEach-Object {$_ -Replace '\\\\', '/'} | Set-Content -Path build/compile_commands.json
+# (Get-Content -Path build/compile_commands.json) |
+#     ForEach-Object {$_ -Replace '\\\\', '/'} | Set-Content -Path build/compile_commands.json
 
 if (-not ($ExitCode -eq 0)) {
     $msg = "ExitCode: " + $ExitCode
