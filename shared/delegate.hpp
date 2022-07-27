@@ -190,7 +190,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     // But it should also make them much safer, hopefully solving all sorts of problems.
     // This gets the first method (which should be our Invoke static method)'s MethodInfo*.
     // It should already have been allocated, so get will cache it for us.
-    auto* method = DelegateWrapperStatic<R, TArgs...>::___TypeRegistration::methods[0]->get();
+    auto* method = DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get();
     auto* delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
     auto* asDelegate = reinterpret_cast<Il2CppDelegate*>(delegate);
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
@@ -215,6 +215,8 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
 template<typename T = MulticastDelegate*, class R, class... TArgs>
 T MakeDelegate(const Il2CppClass* delegateClass, std::function<R(TArgs...)> const& f) {
     il2cpp_functions::Init();
+    // NOTE: This static field MUST be used in order for it to be instantiated within the generic, thus, it is important to NOT remove this log
+    custom_types::_logger().debug("Type registration for delegate being created (forcibly instantiated): %s", DelegateWrapperStatic<R, TArgs...>::__registration_instance_DelegateWrapperStatic.name());
     auto* wrapperInstance = reinterpret_cast<DelegateWrapperStatic<R, TArgs...>*>(il2cpp_functions::object_new(DelegateWrapperStatic<R, TArgs...>::___TypeRegistration::klass_ptr));
     wrapperInstance->wrappedFunc = f;
     return custom_types::MakeDelegate<T>(delegateClass, wrapperInstance);
