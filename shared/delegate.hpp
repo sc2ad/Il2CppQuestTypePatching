@@ -22,6 +22,7 @@ struct DelegateWrapperStatic : Il2CppObject {
     struct ___TypeRegistration : ::custom_types::TypeRegistration {
         ___TypeRegistration() {
             ::custom_types::Register::AddType(this);
+            ::custom_types::_logger().debug("Adding delegate type: %s", name());
             instance = this;
         }
         std::vector<::custom_types::FieldRegistrator*> const getFields() const override {
@@ -36,8 +37,9 @@ struct DelegateWrapperStatic : Il2CppObject {
         }
         static void addMethod(::custom_types::MethodRegistrator* inst) {
             methods.push_back(inst);
+            ::custom_types::_logger().debug("Adding method: %s.%s new size: %zu", name(), inst->name(), methods.size());
         }
-        static char* st_fields;
+        static inline char* st_fields;
         char*& static_fields() override {
             return st_fields;
         }
@@ -66,7 +68,7 @@ struct DelegateWrapperStatic : Il2CppObject {
         constexpr uint32_t typeFlags() const override {
             return 0;
         }
-        static Il2CppClass* klass_ptr;
+        static inline Il2CppClass* klass_ptr;
         Il2CppClass*& klass() const override {
             return klass_ptr;
         }
@@ -82,13 +84,14 @@ struct DelegateWrapperStatic : Il2CppObject {
         void setInitialized() const override {
             init = true;
         }
-        static bool init;
-        static TypeRegistration* instance;
+        static inline bool init = false;
+        static inline TypeRegistration* instance;
         static TypeRegistration* get() {
             return instance;
         }
     };
 public:
+    static inline ___TypeRegistration __registration_instance_DelegateWrapperStatic
     // Disallow creation
     DelegateWrapperStatic() = delete;
     // The invoke method that wraps the delegate call
@@ -155,20 +158,6 @@ struct ::il2cpp_utils::il2cpp_type_check::need_box<custom_types::DelegateWrapper
 
 namespace custom_types {
 // Reopen it here
-
-// DEFINE TYPE
-template<class RI, class... TArgsI>
-::custom_types::TypeRegistration* DelegateWrapperStatic<RI, TArgsI...>::___TypeRegistration::instance;
-template<class RI, class... TArgsI>
-static typename DelegateWrapperStatic<RI, TArgsI...>::___TypeRegistration __registration_instance_DelegateWrapperStatic;
-template<class RI, class... TArgsI>
-char* DelegateWrapperStatic<RI, TArgsI...>::___TypeRegistration::st_fields;
-// TODO: This might cause a whole lot of problems because it is in a header?
-template<class RI, class... TArgsI>
-Il2CppClass* DelegateWrapperStatic<RI, TArgsI...>::___TypeRegistration::klass_ptr;
-template<class RI, class... TArgsI>
-bool DelegateWrapperStatic<RI, TArgsI...>::___TypeRegistration::init = false;
-
 
 /// @brief The invoker function for a delegate with a wrapped type.
 /// @tparam R The return type of the function.
