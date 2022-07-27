@@ -4,12 +4,12 @@
   "info": {
     "name": "custom-types",
     "id": "custom-types",
-    "version": "0.4.6",
+    "version": "0.15.15",
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
-      "overrideSoName": "libcustom-types.so",
       "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
-      "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so"
+      "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so",
+      "overrideSoName": "libcustom-types.so"
     }
   },
   "dependencies": [
