@@ -35,8 +35,14 @@ void main() {
     std::function<void (Il2CppObject*, int, Il2CppObject*)> f([cap](Il2CppObject*, int, Il2CppObject*) {
         capture += cap;
     });
+    // Static
     custom_types::MakeDelegate<Il2CppObject*>(f);
     auto ptr = DelegateWrapperStatic<void, Il2CppObject*, int, Il2CppObject*>::___TypeRegistration::klass_ptr;
+    
+    // Instance
+    Il2CppObject inst{};
+    custom_types::MakeDelegate<Il2CppObject*>(&inst, f);
+    auto ptr2 = DelegateWrapperInstance<void, Il2CppObject*, int, Il2CppObject*>::___TypeRegistration::klass_ptr;
 }
 
 #endif
