@@ -50,10 +50,10 @@ public:
                 return nm.c_str();
             }
         }
-        const char* namespaze() const override {
+        constexpr const char* namespaze() const override {
             return "CustomTypes";
         }
-        const char* dllName() const override {
+        constexpr const char* dllName() const override {
             return "CustomTypes.dll";
         }
         Il2CppClass* baseType() const override {
@@ -72,7 +72,7 @@ public:
         Il2CppClass*& klass() const override {
             return klass_ptr;
         }
-        size_t size() const override {
+        constexpr size_t size() const override {
             return sizeof(___TargetType);
         }
         TypeRegistration* customBase() const override {
@@ -259,10 +259,10 @@ public:
                 return nm.c_str();
             }
         }
-        const char* namespaze() const override {
+        constexpr const char* namespaze() const override {
             return "CustomTypes";
         }
-        const char* dllName() const override {
+        constexpr const char* dllName() const override {
             return "CustomTypes.dll";
         }
         Il2CppClass* baseType() const override {
@@ -281,10 +281,10 @@ public:
         Il2CppClass*& klass() const override {
             return klass_ptr;
         }
-        size_t size() const override {
+        constexpr std::size_t size() const override {
             return sizeof(___TargetType);
         }
-        TypeRegistration* customBase() const override {
+        constexpr TypeRegistration* customBase() const override {
             return nullptr;
         }
         bool initialized() const override {
@@ -305,7 +305,7 @@ public:
     DelegateWrapperInstance() = delete;
 
     // The invoke method that wraps the delegate call
-    static RI Invoke(DelegateWrapperInstance<RI, TI, TArgsI...>* instance, TI obj, TArgsI... args);
+    static RI Invoke(DelegateWrapperInstance<RI, TI, TArgsI...>* instance, TArgsI... args);
 private:
     struct ___MethodRegistrator_Invoke : ::custom_types::MethodRegistrator {
         constexpr const char* name() const override {
@@ -324,10 +324,9 @@ private:
             return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<RI>::get());
         }
         std::vector<ParameterInfo> params() const override {
-            int32_t counter = 1;
+            int32_t counter = 0;
             il2cpp_functions::Init();
-            return {ParameterInfo{"obj", 0, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TI>::get())}, 
-                    (ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
+            return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
         }
         uint8_t params_size() const override {
             return sizeof...(TArgsI) + 1;
@@ -432,15 +431,15 @@ namespace custom_types {
 /// @param args The arguments to pass to this function.
 /// @return The return from the wrapped function.
 template<class RI, class TI, class... TArgsI>
-RI __attribute__((noinline)) DelegateWrapperInstance<RI, TI, TArgsI...>::Invoke(DelegateWrapperInstance<RI, TI, TArgsI...>* instance, TI obj, TArgsI... args) {
+RI __attribute__((noinline)) DelegateWrapperInstance<RI, TI, TArgsI...>::Invoke(DelegateWrapperInstance<RI, TI, TArgsI...>* instance, TArgsI... args) {
     IL2CPP_CATCH_HANDLER(
         if (!instance || !instance->wrappedFunc) {
             custom_types::_logger().critical("Attempting to invoke instance delegate that is null or has been destroyed! %p, class: %p (%s)", instance, ___TypeRegistration::klass_ptr, ___TypeRegistration::get()->name());
         }
         if constexpr (std::is_same_v<RI, void>) {
-            instance->wrappedFunc(obj, args...);
+            instance->wrappedFunc(instance->obj, args...);
         } else {
-            return instance->wrappedFunc(obj, args...);
+            return instance->wrappedFunc(instance->obj, args...);
         }
     )
 }
