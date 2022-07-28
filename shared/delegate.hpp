@@ -100,7 +100,47 @@ public:
     // Disallow creation
     DelegateWrapperStatic() = delete;
     // The invoke method that wraps the delegate call
-    DECLARE_STATIC_METHOD(RI, Invoke, DelegateWrapperStatic<RI, TArgsI...>* instance, TArgsI... args);
+
+    static RI Invoke(DelegateWrapperStatic<RI, TArgsI...>* instance, TArgsI... args);
+private:
+    struct ___MethodRegistrator_Invoke : ::custom_types::MethodRegistrator {
+        ___MethodRegistrator_Invoke() {
+            ___TargetType::___TypeRegistration::addMethod(this);
+        }
+        constexpr const char* name() const override {
+            return "Invoke";
+        }
+        constexpr const char* csharpName() const override {
+            return "Invoke";
+        }
+        int flags() const override {
+            return METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_STATIC;
+        }
+        const MethodInfo* virtualMethod() const override {
+            return nullptr;
+        }
+        const Il2CppType* returnType() const override {
+            return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<RI>::get());
+        }
+        std::vector<ParameterInfo> params() const override {
+            int32_t counter = 0;
+            il2cpp_functions::Init();
+            return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
+        }
+        uint8_t params_size() const override {
+            return sizeof...(TArgsI) + 1;
+        }
+        Il2CppMethodPointer methodPointer() const override {
+            return reinterpret_cast<Il2CppMethodPointer>(&___TargetType::Invoke);
+        }
+        InvokerMethod invoker() const override {
+            return &::custom_types::invoker_creator<decltype(&___TargetType::Invoke)>::invoke;
+        }
+    };
+public:
+    static inline ___MethodRegistrator_Invoke ___Invoke_MethodRegistrator;
+
+
 public:
     // The (potentially capturing) function to invoke
     std::function<RI(TArgsI...)> wrappedFunc;
@@ -196,7 +236,10 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     // But it should also make them much safer, hopefully solving all sorts of problems.
     // This gets the first method (which should be our Invoke static method)'s MethodInfo*.
     // It should already have been allocated, so get will cache it for us.
-    auto* method = DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get();
+    // We need to ensure static initialization of both the dtor method registrator
+    // and the invoke method registrator:
+    custom_types::_logger().debug("Delegate dtor registrator: %p", DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get());
+    auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.get();
     auto* delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
     auto* asDelegate = reinterpret_cast<Il2CppDelegate*>(delegate);
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
