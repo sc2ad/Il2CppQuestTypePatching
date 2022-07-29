@@ -108,7 +108,7 @@ private:
             return "Invoke";
         }
         int flags() const override {
-            return METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_STATIC;
+            return METHOD_ATTRIBUTE_STATIC;
         }
         const MethodInfo* virtualMethod() const override {
             return nullptr;
@@ -129,6 +129,19 @@ private:
         }
         InvokerMethod invoker() const override {
             return &::custom_types::invoker_creator<decltype(&___TargetType::Invoke)>::invoke;
+        }
+        const MethodInfo* getDelegate(const MethodInfo* parent_invoke) {
+            if (info) {
+                return info;
+            }
+            auto* m = get();
+            // The method in question actually isn't quite fit for being a proper delegate
+            // So, here we will set it just to make sure it does what we want.
+            m->is_marshaled_from_native = true;
+            // TODO: Support virtual invokes some time in the distant, distant future.
+            m->slot = kInvalidIl2CppMethodSlot;
+            m->invoker_method = parent_invoke->invoker_method;
+            return m;
         }
     };
 public:
@@ -315,7 +328,7 @@ private:
             return "Invoke";
         }
         int flags() const override {
-            return METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_STATIC;
+            return METHOD_ATTRIBUTE_STATIC;
         }
         const MethodInfo* virtualMethod() const override {
             return nullptr;
@@ -336,6 +349,19 @@ private:
         }
         InvokerMethod invoker() const override {
             return &::custom_types::invoker_creator<decltype(&___TargetType::Invoke)>::invoke;
+        }
+        const MethodInfo* getDelegate(const MethodInfo* parent_invoke) {
+            if (info) {
+                return info;
+            }
+            auto* m = get();
+            // The method in question actually isn't quite fit for being a proper delegate
+            // So, here we will set it just to make sure it does what we want.
+            m->is_marshaled_from_native = true;
+            // TODO: Support virtual invokes some time in the distant, distant future.
+            m->slot = kInvalidIl2CppMethodSlot;
+            m->invoker_method = parent_invoke->invoker_method;
+            return m;
         }
     };
 public:
@@ -462,22 +488,22 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     // We need to ensure static initialization of both the dtor method registrator
     // and the invoke method registrator:
     custom_types::_logger().debug("Delegate dtor registrator: %p", DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get());
-    auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.get();
+    auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
+    auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.getDelegate(invokeMethod);
     auto* delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
-    auto* asDelegate = reinterpret_cast<Il2CppDelegate*>(delegate);
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
-    log_delegate(asDelegate);
+    log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
 }
 
 template<class T = MulticastDelegate*, class R, class I, class... TArgs>
 T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, TArgs...>* inst) {
     custom_types::_logger().debug("Delegate instance dtor registrator: %p", DelegateWrapperInstance<R, I, TArgs...>::___dtor_MethodRegistrator.get());
-    auto* method = DelegateWrapperInstance<R, I, TArgs...>::___Invoke_MethodRegistrator.get();
+    auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
+    auto* method = DelegateWrapperInstance<R, I, TArgs...>::___Invoke_MethodRegistrator.getDelegate(invokeMethod);
     auto* delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
-    auto* asDelegate = reinterpret_cast<Il2CppDelegate*>(delegate);
     custom_types::_logger().debug("Created instance delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
-    log_delegate(asDelegate);
+    log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
 }
 
