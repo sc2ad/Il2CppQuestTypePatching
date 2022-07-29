@@ -276,6 +276,23 @@ namespace custom_types {
                 }
             )
         }
+        template<std::size_t... Ns>
+        static void* static_invoke_method(TRet(*func)(TArgs..., const MethodInfo*), void** args, const MethodInfo* m, std::index_sequence<Ns...>) {
+            IL2CPP_CATCH_HANDLER(
+                if constexpr (std::is_same_v<TRet, void>) {
+                    func(
+                        arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})..., m
+                    );
+                    return nullptr;
+                } else {
+                    return arg_helper::pack_result(
+                        func(
+                            arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})..., m
+                        )
+                    );
+                }
+            )
+        }
         [[gnu::noinline]]
         static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
             // We also don't need to use anything from m so it is ignored.
@@ -285,6 +302,12 @@ namespace custom_types {
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
 
             return static_invoke(func, args, seq);
+        }
+        [[gnu::noinline]]
+        static void* invoke_method(Il2CppMethodPointer ptr, const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
+            auto func = reinterpret_cast<TRet(*)(TArgs..., const MethodInfo*)>(ptr);
+            auto seq = std::make_index_sequence<sizeof...(TArgs)>();
+            return static_invoke_method(func, args, m, seq);
         }
     };
 }
