@@ -119,7 +119,7 @@ private:
         std::vector<ParameterInfo> params() const override {
             int32_t counter = 0;
             il2cpp_functions::Init();
-            return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
+            return {ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(classof(DelegateWrapperStatic<RI, TArgsI...>*))}, (ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
         }
         uint8_t params_size() const override {
             return sizeof...(TArgsI) + 1;
@@ -339,7 +339,7 @@ private:
         std::vector<ParameterInfo> params() const override {
             int32_t counter = 0;
             il2cpp_functions::Init();
-            return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
+            return {ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(classof(DelegateWrapperInstance<RI, TI, TArgsI...>*))}, (ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...};
         }
         uint8_t params_size() const override {
             return sizeof...(TArgsI) + 1;
@@ -490,7 +490,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     custom_types::_logger().debug("Delegate dtor registrator: %p", DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get());
     auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
     auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.getDelegate(invokeMethod);
-    auto* delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
+    auto *delegate = CRASH_UNLESS(il2cpp_utils::NewUnsafe<T>(delegateClass, inst, &method));
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
