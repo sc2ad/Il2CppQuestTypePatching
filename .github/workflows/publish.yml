@@ -208,4 +208,4 @@ jobs:
         git push --tags --force
         
     - name: QPM Publish
-      run: ./QPM/qpm-rust publish ${{secrets.PUBLISH_KEY}}
+      run: ./QPM/qpm-rust publish "${{secrets.PUBLISH_KEY}}"
