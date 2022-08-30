@@ -719,8 +719,8 @@ ___CREATE_STATIC_METHOD(name, #name, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_
 namespace custom_types {
     template<class T, class... TArgs>
     void InvokeBaseCtor(Il2CppClass* klass, T* self, TArgs&&... args) {
-        static auto m = il2cpp_utils::FindMethod(klass, ".ctor", il2cpp_utils::ExtractIndependentType<TArgs>()...);;
-        il2cpp_utils::RunMethodRethrow(self, m, args...);
+        static auto m = ::il2cpp_utils::FindMethod(klass, ".ctor", ::il2cpp_utils::ExtractIndependentType<TArgs>()...);;
+        ::il2cpp_utils::RunMethodRethrow(self, m, args...);
     }
 }
 
