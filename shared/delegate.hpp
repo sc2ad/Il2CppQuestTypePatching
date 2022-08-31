@@ -66,6 +66,7 @@ public:
             return "CustomTypes.dll";
         }
         Il2CppClass* baseType() const override {
+            ::il2cpp_functions::Init();
             return ::il2cpp_functions::defaults->object_class;
         }
         std::vector<Il2CppClass*> const interfaces() const override {
@@ -165,6 +166,7 @@ private:
             return ::il2cpp_utils::FindMethodUnsafe("System", "Object", "Finalize", 0);
         }
         const Il2CppType* returnType() const override {
+            ::il2cpp_functions::Init();
             return &il2cpp_functions::defaults->void_class->byval_arg;
         }
         std::vector<ParameterInfo> params() const override {
@@ -277,6 +279,7 @@ public:
             return "CustomTypes.dll";
         }
         Il2CppClass* baseType() const override {
+            ::il2cpp_functions::Init();
             return ::il2cpp_functions::defaults->object_class;
         }
         std::vector<Il2CppClass*> const interfaces() const override {
@@ -332,6 +335,7 @@ private:
             return nullptr;
         }
         const Il2CppType* returnType() const override {
+            ::il2cpp_functions::Init();
             return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<RI>::get());
         }
         std::vector<ParameterInfo> params() const override {
@@ -399,6 +403,7 @@ private:
             return ::il2cpp_utils::FindMethodUnsafe("System", "Object", "Finalize", 0);
         }
         const Il2CppType* returnType() const override {
+            ::il2cpp_functions::Init();
             return &il2cpp_functions::defaults->void_class->byval_arg;
         }
         std::vector<ParameterInfo> params() const override {
