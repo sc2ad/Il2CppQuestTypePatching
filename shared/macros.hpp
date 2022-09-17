@@ -646,12 +646,14 @@ memcpy(this, ___buff, ___Base__Size); \
 #error "DECLARE_DEFAULT_CTOR is already defined! Undefine it before including macros.hpp!"
 #endif
 // Declares a default C# constructor that simply forwards to the C++ constructor.
-// Note that this does NOT call any base constructors (which may or may not be necessary).
-// This is ONLY valid if there is a default C++ constructor with 0 args.
-// Otherwise, consider using DECLARE_CTOR and INVOKE_CTOR.
+// Note that this ALSO CALLS the 0 arg base constructor (which may or may not be necessary).
+// This is ONLY valid if there is a default C++ constructor with 0 args
+// AND a 0 arg base constructor.
+// Otherwise, consider using DECLARE_CTOR, INVOKE_CTOR, and INVOKE_BASE_CTOR.
 #define DECLARE_DEFAULT_CTOR() \
 void __ctor() { \
     INVOKE_CTOR(); \
+    INVOKE_BASE_CTOR(___TargetType::___TypeRegistration::get()->baseType());
 } \
 template<::il2cpp_utils::CreationType creationType = ::il2cpp_utils::CreationType::Temporary, class... TArgs> \
 static ___TargetType* New_ctor(TArgs&&... args) { \
@@ -725,5 +727,5 @@ namespace custom_types {
 }
 
 #ifndef INVOKE_BASE_CTOR
-#define INVOKE_BASE_CTOR(klass, ...) ::custom_types::InvokeBaseCtor(klass, this, __VA_ARGS__)
+#define INVOKE_BASE_CTOR(klass, ...) ::custom_types::InvokeBaseCtor(klass, this __VA_OPT__(,) __VA_ARGS__)
 #endif
