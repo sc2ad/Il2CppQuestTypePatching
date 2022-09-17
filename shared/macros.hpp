@@ -653,7 +653,7 @@ memcpy(this, ___buff, ___Base__Size); \
 #define DECLARE_DEFAULT_CTOR() \
 void __ctor() { \
     INVOKE_CTOR(); \
-    INVOKE_BASE_CTOR(___TargetType::___TypeRegistration::get()->baseType());
+    INVOKE_BASE_CTOR(___TargetType::___TypeRegistration::get()->baseType()); \
 } \
 template<::il2cpp_utils::CreationType creationType = ::il2cpp_utils::CreationType::Temporary, class... TArgs> \
 static ___TargetType* New_ctor(TArgs&&... args) { \
