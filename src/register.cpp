@@ -96,17 +96,17 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass
 }
 
 MAKE_HOOK(GetScriptingClass, nullptr, Il2CppClass*, void* thisptr, char* assembly, char* namespaze, char* name) {
-	static auto logger = ::custom_types::_logger().WithContext("GetScriptingClass");
+    static auto logger = ::custom_types::_logger().WithContext("GetScriptingClass");
     auto ret = GetScriptingClass(thisptr, assembly, namespaze, name);
     if(!ret) {
-		for(auto clazz : ::custom_types::Register::classes) {
-			if(strcmp(clazz->namespaze, namespaze) == 0 &&  strcmp(clazz->name, name) == 0) {
-				logger.debug("Found class: %s, %s", namespaze, name);
-				return clazz;
-			}
-		}
+        for(auto clazz : ::custom_types::Register::classes) {
+            if(strcmp(clazz->namespaze, namespaze) == 0 &&  strcmp(clazz->name, name) == 0) {
+                logger.debug("Found class: %s, %s", namespaze, name);
+                return clazz;
+            }
+        }
     }
-	return ret;
+    return ret;
 }
 
 #ifdef CT_USE_GCDESCRIPTOR_DEBUG
@@ -441,8 +441,8 @@ namespace custom_types {
 			}
 			INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
 			INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
-    		uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff c3 01 d1 f9 63 03 a9 f7 5b 04 a9 f5 53 05 a9 f3 7b 06 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
-        	INSTALL_HOOK_DIRECT(logger, GetScriptingClass, reinterpret_cast<void*>(GetScriptingClassAddr));
+			uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff c3 01 d1 f9 63 03 a9 f7 5b 04 a9 f5 53 05 a9 f3 7b 06 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
+			INSTALL_HOOK_DIRECT(logger, GetScriptingClass, reinterpret_cast<void*>(GetScriptingClassAddr));
 			// {
 			//     // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
 			//     // Trace is: il2cpp_class_from_name --> b --> b --> result
