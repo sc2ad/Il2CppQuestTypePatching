@@ -251,7 +251,7 @@ namespace custom_types {
 				auto* f = fields[i];
 				k->fields[i] = FieldInfo{
 					.name = f->name(),
-					.type = f->type(),
+					.type = f->make_type(),
 					.parent = k,
 					.offset = f->offset(),
 					.token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes()),
@@ -261,7 +261,7 @@ namespace custom_types {
 				auto* f = staticFields[i];
 				k->fields[i + fields.size()] = FieldInfo{
 					.name = f->name(),
-					.type = f->type(),
+					.type = f->make_type(),
 					.parent = k,
 					.offset = f->offset(),
 					.token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes()),
