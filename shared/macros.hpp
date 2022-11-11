@@ -427,6 +427,40 @@ static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
 public: \
 type_ name_ = value
 
+
+#ifdef DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT
+#error "DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT is already defined! Undefine it before including macros.hpp!"
+#endif
+// Declares a field with type, name, value.
+// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
+// Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
+#define DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT(type_, name_, value) \
+private: \
+struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
+    ___FieldRegistrator_##name_() { \
+        ___TargetType::___TypeRegistration::addField(this); \
+    } \
+    constexpr const char* name() const override { \
+        return #name_; \
+    } \
+    const Il2CppType* type() const override { \
+        ::il2cpp_functions::Init(); \
+        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
+    } \
+    constexpr uint16_t fieldAttributes() const override { \
+        return FIELD_ATTRIBUTE_PRIVATE; \
+    } \
+    constexpr size_t size() const override { \
+        return sizeof(type_); \
+    } \
+    int32_t offset() const override { \
+        return offsetof(___TargetType, name_); \
+    } \
+}; \
+static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
+private: \
+type_ name_ = value
+
 #ifdef DECLARE_INSTANCE_FIELD
 #error "DECLARE_INSTANCE_FIELD is already defined! Undefine it before including macros.hpp!"
 #endif
@@ -456,6 +490,37 @@ struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
 }; \
 static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
 public: \
+type_ name_
+
+#ifdef DECLARE_INSTANCE_FIELD_PRIVATE
+#error "DECLARE_INSTANCE_FIELD_PRIVATE is already defined! Undefine it before including macros.hpp!"
+#endif
+// Declare a field with type, name.
+#define DECLARE_INSTANCE_FIELD_PRIVATE(type_, name_) \
+private: \
+struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
+    ___FieldRegistrator_##name_() { \
+        ___TargetType::___TypeRegistration::addField(this); \
+    } \
+    constexpr const char* name() const override { \
+        return #name_; \
+    } \
+    const Il2CppType* type() const override { \
+        ::il2cpp_functions::Init(); \
+        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
+    } \
+    constexpr uint16_t fieldAttributes() const override { \
+        return FIELD_ATTRIBUTE_PRIVATE; \
+    } \
+    constexpr size_t size() const override { \
+        return sizeof(type_); \
+    } \
+    int32_t offset() const override { \
+        return offsetof(___TargetType, name_); \
+    } \
+}; \
+static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
+private: \
 type_ name_
 
 #ifdef DECLARE_STATIC_FIELD
