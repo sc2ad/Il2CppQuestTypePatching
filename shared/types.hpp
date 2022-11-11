@@ -29,9 +29,13 @@ namespace custom_types {
         virtual uint16_t fieldAttributes() const = 0;
         virtual int32_t offset() const = 0;
 
-        const Il2CppType* make_type() const {
-            static Il2CppType* attributized = new Il2CppType(*type());
-            attributized->attrs |= fieldAttributes();
+        Il2CppType* attributized = nullptr;
+
+        const Il2CppType* attributized_type() {
+            if (attributized == nullptr) {
+                attributized = new Il2CppType(*type());
+                attributized->attrs |= fieldAttributes();
+            }
             return attributized;
         }
     };
@@ -44,9 +48,13 @@ namespace custom_types {
         virtual uint16_t fieldAttributes() const = 0;
         virtual int32_t offset() const = 0;
 
-        const Il2CppType* make_type() const {
-            static Il2CppType* attributized = new Il2CppType(*type());
-            attributized->attrs |= fieldAttributes();
+        Il2CppType* attributized = nullptr;
+
+        const Il2CppType* attributized_type() {
+            if (attributized == nullptr) {
+                attributized = new Il2CppType(*type());
+                attributized->attrs |= fieldAttributes();
+            }
             return attributized;
         }
     };
