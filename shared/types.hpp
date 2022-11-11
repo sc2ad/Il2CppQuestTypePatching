@@ -28,16 +28,6 @@ namespace custom_types {
         virtual size_t size() const = 0;
         virtual uint16_t fieldAttributes() const = 0;
         virtual int32_t offset() const = 0;
-
-        Il2CppType* attributized = nullptr;
-
-        const Il2CppType* attributized_type() {
-            if (attributized == nullptr) {
-                attributized = new Il2CppType(*type());
-                attributized->attrs |= fieldAttributes();
-            }
-            return attributized;
-        }
     };
 
     /// @brief An abstract type that holds the information required for a static field.
@@ -47,16 +37,6 @@ namespace custom_types {
         virtual size_t size() const = 0;
         virtual uint16_t fieldAttributes() const = 0;
         virtual int32_t offset() const = 0;
-
-        Il2CppType* attributized = nullptr;
-
-        const Il2CppType* attributized_type() {
-            if (attributized == nullptr) {
-                attributized = new Il2CppType(*type());
-                attributized->attrs |= fieldAttributes();
-            }
-            return attributized;
-        }
     };
 
     /// @brief An abstract type that holds the information required for a method.

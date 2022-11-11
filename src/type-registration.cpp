@@ -249,21 +249,27 @@ namespace custom_types {
 			k->fields = reinterpret_cast<FieldInfo*>(calloc(k->field_count, sizeof(FieldInfo)));
 			for (uint16_t i = 0; i < fields.size(); ++i) {
 				auto* f = fields[i];
+				auto* attributized = new Il2CppType(*f->type());
+                attributized->attrs |= f->fieldAttributes();
 				k->fields[i] = FieldInfo{
 					.name = f->name(),
-					.type = f->attributized_type(),
+					.type = attributized,
 					.parent = k,
 					.offset = f->offset(),
+					// TODO: Need to swap out token to use something that is reverse mapped in a CT hook
 					.token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes()),
 				};
 			}
 			for (uint16_t i = 0; i < staticFields.size(); ++i) {
 				auto* f = staticFields[i];
+				auto* attributized = new Il2CppType(*f->type());
+                attributized->attrs |= f->fieldAttributes();
 				k->fields[i + fields.size()] = FieldInfo{
 					.name = f->name(),
-					.type = f->attributized_type(),
+					.type = attributized,
 					.parent = k,
 					.offset = f->offset(),
+					// TODO: Need to swap out token to use something that is reverse mapped in a CT hook
 					.token = static_cast<uint32_t>(f->type()->attrs | f->fieldAttributes()),
 				};
 			}
