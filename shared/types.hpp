@@ -64,6 +64,7 @@ namespace custom_types {
             info->methodPointer = methodPointer();
             info->name = csharpName();
             info->return_type = returnType();
+            info->slot = 0xffff;
             auto ps = params();
             info->parameters_count = ps.size();
             auto* paramList = reinterpret_cast<ParameterInfo*>(calloc(ps.size(), sizeof(ParameterInfo)));
