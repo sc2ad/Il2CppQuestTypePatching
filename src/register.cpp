@@ -221,7 +221,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 			// val is: pointer to BeatmapDifficulty[] (at least, it SHOULD be)
 			// specifically, val is a pointer to: 39D0 before obj
 			// Offset of filter class
-			auto filterClass = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uintptr_t>(state) + 0x10);
+			auto filterClass = *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uintptr_t>(state) + 0x08);
 			if (!val->klass ||
 					(GET_CLASS(val)->has_references == 0 && GET_CLASS(val)->klass != GET_CLASS(val) && GET_CLASS(val)->name == nullptr) ||
 					// If our filter class is not null, and
