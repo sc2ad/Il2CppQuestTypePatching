@@ -9,6 +9,9 @@
 
 #ifdef CT_USE_GCDESCRIPTOR_DEBUG
 #include "capstone-helpers.hpp"
+#include <fstream>
+#include "utils/dynamic_array.h"
+#include "vm/MemoryInformation.h"
 #endif
 
 template<class... TArgs>
@@ -119,13 +122,66 @@ MAKE_HOOK(GetScriptingClass, nullptr, Il2CppClass*, void* thisptr, char* assembl
 #warning "Hey, you shouldn't use LOCAL_TEST while building with CT_USE_GCDESCRIPTOR_DEBUG!"
 #endif
 
-#include "libil2cpp/il2cpp/libil2cpp/utils/dynamic_array.h"
+#include <cstdlib>
+
+void* ct_malloc(std::size_t sz) {
+	custom_types::_logger().debug("Tracking an il2cpp malloc of: %zu", sz);
+	return malloc(sz);
+}
+void* ct_aligned_malloc(std::size_t sz, std::size_t alignment) {
+	custom_types::_logger().debug("Tracking an il2cpp aligned malloc: %zu, %zu", sz, alignment);
+	return memalign(sz, alignment);
+}
+void ct_free(void* ptr) {
+	custom_types::_logger().debug("Tracking an il2cpp free: %p", ptr);
+	free(ptr);
+}
+void ct_aligned_free(void* ptr) {
+	custom_types::_logger().debug("Tracking an il2cpp aligned free: %p", ptr);
+	free(ptr);
+}
+void* ct_calloc(std::size_t nmeb, std::size_t sz) {
+	custom_types::_logger().debug("Tracking an il2cpp calloc: %zu, %zu", nmeb, sz);
+	return calloc(nmeb, sz);
+}
+void* ct_realloc(void* ptr, std::size_t sz) {
+	custom_types::_logger().debug("Tracking an il2cpp realloc: %p, %zu", ptr, sz);
+	return realloc(ptr, sz);
+}
+void* ct_aligned_realloc(void* memory, std::size_t newSize, std::size_t alignment) {
+	custom_types::_logger().debug("Tracking an il2cpp aligned realloc: %p, %zu, %zu", memory, newSize, alignment);
+	void* newMemory = realloc(memory, newSize);
+
+	// Fast path: realloc returned aligned memory
+	if ((reinterpret_cast<uintptr_t>(newMemory) & (alignment - 1)) == 0)
+		return newMemory;
+
+	// Slow path: realloc returned non-aligned memory
+	void* alignedMemory = ct_aligned_malloc(newSize, alignment);
+	memcpy(alignedMemory, newMemory, newSize);
+	free(newMemory);
+	return alignedMemory;
+}
 
 const char* namespaze(Il2CppClass* const klass) {
 	return klass->namespaze ? klass->namespaze : "<NULL_NAMESPAZE>";
 }
 const char* namek(Il2CppClass* const klass) {
 	return klass->name ? klass->name : "<NULL_NAME>";
+}
+std::string generics(Il2CppClass* const klass) {
+	auto* genClass = klass->generic_class;
+	if (genClass) {
+		auto* genInst = genClass->context.class_inst;
+		if (genInst) {
+			std::string outp;
+			for (size_t i = 0; i < genInst->type_argc; i++) {
+				outp += std::string(" ") + il2cpp_utils::TypeGetSimpleName(genInst->type_argv[i]);
+			}
+			return outp;
+		}
+	}
+	return "NO GENERICS";
 }
 
 #define WORDSIZE ((int)sizeof(size_t)*8)
@@ -229,13 +285,13 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 					// our type hierarchy pointer is garbage
 					(filterClass &&
 					filterClass->typeHierarchyDepth <= GET_CLASS(val)->typeHierarchyDepth &&
-					(reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) <= 0x1000 || reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) > 0xe000000000))
+					(reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) <= 0x1000 || (reinterpret_cast<uintptr_t>(GET_CLASS(val)->typeHierarchy) & 0x00FFFFFFFFFFFFFFULL) > 0xe000000000))
 					) {
 				// We have a VERY BIG PROBLEM!
 				// This will cause a (hard to diagnose) crash!
 				// So, we will dump as much info as we can.
 				custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
-				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p) class: %p, gc_desc: %p, %s::%s", obj, state, GET_CLASS(obj), GET_CLASS(obj)->gc_desc, namespaze(GET_CLASS(obj)), namek(GET_CLASS(obj)));
+				custom_types::_logger().critical("LivenessState::TraverseGCDescriptor(%p, %p) class: %p, gc_desc: %p, %s::%s %s", obj, state, GET_CLASS(obj), GET_CLASS(obj)->gc_desc, namespaze(GET_CLASS(obj)), namek(GET_CLASS(obj)), generics(GET_CLASS(obj)).c_str());
 				// malloc_info()
 				// TODO: Yeah
 				auto path = string_format(LOG_PATH, "com.beatgames.beatsaber") + "CustomTypesMallocInfoOnExit.xml";
@@ -252,11 +308,11 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				}
 				custom_types::_logger().critical("Logging filterClass: %p", filterClass);
 				custom_types::logAll(filterClass);
-				custom_types::_logger().critical("Logging all registered custom types...");
-				for (auto k : custom_types::Register::classes) {
-					custom_types::_logger().critical("KLASS PTR: %p", k);
-					custom_types::logAll(k);
-				}
+				// custom_types::_logger().critical("Logging all registered custom types...");
+				// for (auto k : custom_types::Register::classes) {
+				// 	custom_types::_logger().critical("KLASS PTR: %p", k);
+				// 	custom_types::logAll(k);
+				// }
 
 				custom_types::_logger().debug("gc descriptor test field: obj: %p, field: %p, value: %p, class: %p", obj, valptr, val, val ? val->klass : nullptr);
 				custom_types::_logger().critical("obj_traverse_count: %zu", obj_traverse_count);
@@ -266,6 +322,14 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				custom_types::_logger().critical("Also, please be very kind and send him this whole log file! It would be much appreciated.");
 				custom_types::_logger().critical("With that said, the log in this file may have been truncated, so consider grabbing the file log for custom types instead.");
 				custom_types::_logger().critical("custom types will now try to log as much information it can about the offending instance's class before crashing...");
+				custom_types::_logger().debug("Capturing memory snapshot...");
+				auto snapshot = il2cpp_functions::capture_memory_snapshot();
+				auto snapshot_path = string_format(LOG_PATH, "com.beatgames.beatsaber") + "MemoryDump.bin";
+				std::ofstream memory_snapshot(snapshot_path, std::ios::binary);
+				memory_snapshot.write(reinterpret_cast<char*>(snapshot), sizeof(*snapshot));
+				memory_snapshot.close();
+				il2cpp_functions::free_captured_memory_snapshot(snapshot);
+				custom_types::_logger().debug("Logging memory dump to %s", snapshot_path.c_str());
 				custom_types::_logger().critical("KLASS PTR: %p", obj->klass);
 				custom_types::_logger().flush();
 				if (GET_CLASS(obj)) {
@@ -290,6 +354,7 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
 				// So, what COULD happen is that the root liveness calc DOES NOT have a gc descriptor, and it is only a type
 				// later on that does.
 				// Perhaps we should hook the TraverseGenericObject function instead and see what we can learn as we walk the root?
+				// Seems to be the first field of a dictionary that has this issue
 			}
 		}
 	}
@@ -454,6 +519,17 @@ namespace custom_types {
 			//     INSTALL_HOOK_DIRECT(logger, Class_FromName, (void*)cs::findNthB<1>(reinterpret_cast<const uint32_t*>(il2cpp_functions::il2cpp_class_from_name)));
 			// }
 			#ifdef CT_USE_GCDESCRIPTOR_DEBUG
+			// Install memory callbacks
+			Il2CppMemoryCallbacks callbacks{
+				.malloc_func = ct_malloc,
+				.aligned_malloc_func = ct_aligned_malloc,
+				.free_func = ct_free,
+				.aligned_free_func = ct_aligned_free,
+				.calloc_func = ct_calloc,
+				.realloc_func = ct_realloc,
+				.aligned_realloc_func = ct_aligned_realloc,
+			};
+			// il2cpp_functions::set_memory_callbacks(&callbacks);
 			#define BREAK(var, ...) do {if (!var) {logger.warning(__VA_ARGS__); goto exit;}} while (0)
 			{
 				// We need to xref trace to get to LivenessState stuff
