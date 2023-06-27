@@ -15,14 +15,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
       name: Checkout
       with:
         submodules: true
         lfs: true
-    
+
     - uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: Create ndkpath.txt
@@ -36,22 +36,26 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: cargo-build.yml
-        name: linux-qpm-rust
+        name: linux-qpm
         path: QPM
-        repo: RedBrumbler/QuestPackageManager-Rust
-        
+        repo: QuestPackageManager/QPM.CLI
+
+    - name: Put QPM on path
+      run: |
+        chmod +x ./QPM/qpm
+        echo "${GITHUB_WORKSPACE}/QPM" >> $GITHUB_PATH
+
     - name: QPM Collapse
       run: |
-        chmod +x ./QPM/qpm-rust
-        ./QPM/qpm-rust collapse
-    
+        qpm collapse
+
     - name: QPM Dependencies Cache
       id: cache-qpm-deps
       uses: actions/cache@v2
       env:
         cache-name: cache-qpm-deps
       with:
-        path: /home/runner/.local/share/QPM-Rust/cache
+        path: /home/runner/.local/share/QPM-RS/cache
         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('qpm.json') }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
@@ -60,8 +64,8 @@ jobs:
 
     - name: QPM Restore
       run: |
-        chmod +x ./QPM/qpm-rust
-        ./QPM/qpm-rust restore
+        chmod +x qpm
+        qpm restore
 
     - name: List Post Restore
       run: |
@@ -70,14 +74,14 @@ jobs:
         echo libs:
         ls -la ${GITHUB_WORKSPACE}/extern/libs
         echo cache:
-        ls -la $HOME/.local/share/QPM-Rust/cache
+        ls -la $HOME/.local/share/QPM-RS/cache
 
     - name: Build
       run: |
         cd ${GITHUB_WORKSPACE}
-        ./QPM/qpm-rust qmod build --isLibrary=true
+        qpm qmod build --isLibrary=true
         pwsh -Command ./build.ps1
-        
+
     - name: Create Qmod
       run: |
         pwsh -Command ./createqmod.ps1 ${{env.qmodName}}
@@ -101,9 +105,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: debug_${{ steps.libname.outputs.NAME }}
-        path: ./build/debug_${{ steps.libname.outputs.NAME }}
+        path: ./build/debug/${{ steps.libname.outputs.NAME }}
         if-no-files-found: error
-    
+
     - name: Upload qmod artifact
       uses: actions/upload-artifact@v2
       with:
