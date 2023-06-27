@@ -193,13 +193,9 @@ namespace custom_types {
 
         auto methodDefinition = reinterpret_cast<const Il2CppMethodDefinition*>(info->methodMetadataHandle);
 
-        auto genericContainers = (const Il2CppGenericContainer*)((const char*)il2cpp_functions::s_GlobalMetadata + il2cpp_functions::s_GlobalMetadataHeader->genericContainersOffset);
-        // TODO: check if this is correct
-        auto genericContainer = reinterpret_cast<const Il2CppMetadataGenericContainerHandle>(genericContainers + methodDefinition->genericContainerIndex);
-
         // _logger().debug("parameters: %p", info->parameters);
         _logger().debug("methodDefinition: %p", methodDefinition);
-        _logger().debug("genericContainer: %p", genericContainer);
+        _logger().debug("genericContainer: %p", info->genericContainerHandle);
         _logger().debug("token: %u", info->token);
         _logger().debug("flags: 0x%x", info->flags);
         _logger().debug("iflags: 0x%x", info->iflags);

@@ -446,7 +446,7 @@ namespace custom_types {
 			}
 			INSTALL_HOOK_DIRECT(logger, GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex);
 			INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
-			uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff c3 01 d1 f9 63 03 a9 f7 5b 04 a9 f5 53 05 a9 f3 7b 06 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
+			uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff 43 02 d1 fa 23 00 f9 f9 63 05 a9 f7 5b 06 a9 f5 53 07 a9 f3 7b 08 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
 			INSTALL_HOOK_DIRECT(logger, GetScriptingClass, reinterpret_cast<void*>(GetScriptingClassAddr));
 			// {
 			//     // We need to do a tiny bit of xref tracing to find the bottom level Class::FromName call
