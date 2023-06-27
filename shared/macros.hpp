@@ -590,10 +590,9 @@ struct ___MethodRegistrator_##name_<R (T::*)(TArgs...)> : ::custom_types::Method
         il2cpp_functions::Init(); \
         return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<R>::get()); \
     } \
-    std::vector<ParameterInfo> params() const override { \
-        int32_t counter = 0; \
+    std::vector<const Il2CppType*> params() const override { \
         il2cpp_functions::Init(); \
-        return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get())})...}; \
+        return {(::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get()))...}; \
     } \
     uint8_t params_size() const override { \
         return sizeof...(TArgs); \
@@ -756,10 +755,9 @@ struct ___MethodRegistrator_##name_<R (*)(TArgs...)> : ::custom_types::MethodReg
         il2cpp_functions::Init(); \
         return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<R>::get()); \
     } \
-    std::vector<ParameterInfo> params() const override { \
-        int32_t counter = 0; \
+    std::vector<Il2CppType*> params() const override { \
         il2cpp_functions::Init(); \
-        return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get())})...}; \
+        return {(::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get()))...}; \
     } \
     uint8_t params_size() const override { \
         return sizeof...(TArgs); \

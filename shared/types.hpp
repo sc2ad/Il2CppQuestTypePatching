@@ -12,7 +12,6 @@
 #include "logging.hpp"
 
 struct Il2CppType;
-struct ParameterInfo;
 struct Il2CppClass;
 struct FieldInfo;
 struct MethodInfo;
@@ -46,7 +45,7 @@ namespace custom_types {
         virtual int flags() const = 0;
         virtual const MethodInfo* virtualMethod() const = 0;
         virtual const Il2CppType* returnType() const = 0;
-        virtual std::vector<ParameterInfo> params() const = 0;
+        virtual std::vector<const Il2CppType*> params() const = 0;
         virtual uint8_t params_size() const = 0;
         virtual Il2CppMethodPointer methodPointer() const = 0;
         virtual InvokerMethod invoker() const = 0;
@@ -67,7 +66,7 @@ namespace custom_types {
             info->slot = kInvalidIl2CppMethodSlot;
             auto ps = params();
             info->parameters_count = ps.size();
-            auto* paramList = reinterpret_cast<ParameterInfo*>(calloc(ps.size(), sizeof(ParameterInfo)));
+            auto* paramList = reinterpret_cast<const Il2CppType**>(calloc(ps.size(), sizeof(Il2CppType*)));
             for (uint8_t pi = 0; pi < info->parameters_count; pi++) {
                 paramList[pi] = ps[pi];
             }
@@ -157,8 +156,8 @@ namespace custom_types {
     // 1 or more parameters
     template<typename Decl, typename P, typename... Ps>
     struct parameter_converter<Decl, P, Ps...> {
-        static inline std::vector<ParameterInfo> get() {
-            std::vector<ParameterInfo> params;
+        static inline std::vector<const Il2CppType*> get() {
+            std::vector<const Il2CppType*> params;
             auto& info = params.emplace_back();
             il2cpp_functions::Init();
             const Il2CppType* type = ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<P>::get());
@@ -168,8 +167,7 @@ namespace custom_types {
             if (type == nullptr) {
                 _logger().warning("Failed to get type of parameter!");
             }
-            info.parameter_type = type;
-            info.token = -1;
+            info = type;
             for (const auto& q : parameter_converter<Decl, Ps...>::get()) {
                 params.push_back(q);
             }
@@ -180,8 +178,8 @@ namespace custom_types {
     // 0 parameters
     template<typename Decl>
     struct parameter_converter<Decl> {
-        static inline std::vector<ParameterInfo> get() {
-            return std::vector<ParameterInfo>();
+        static inline std::vector<const Il2CppType*> get() {
+            return std::vector<const Il2CppType*>();
         }
     };
 
@@ -242,14 +240,16 @@ namespace custom_types {
             )
         }
         [[gnu::noinline]]
-        static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args) {
+        static void invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, void* obj, void** args, void* retval) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
             auto func = reinterpret_cast<TRet(*)(T*, TArgs...)>(ptr);
             T* self = static_cast<T*>(obj);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            return instance_invoke(func, self, args, seq);
+            auto ret = instance_invoke(func, self, args, seq);
+            retval = ret;
+            // FIXME: actually properly assign the return value here
         }
         template<TRet(T::* member)(TArgs...)>
         [[gnu::noinline]]
@@ -295,20 +295,22 @@ namespace custom_types {
             )
         }
         [[gnu::noinline]]
-        static void* invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
+        static void invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args, void* retval) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
             auto func = reinterpret_cast<TRet(*)(TArgs...)>(ptr);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
+            auto res = static_invoke(func, args, seq);
+            retval = res;
 
-            return static_invoke(func, args, seq);
+            // FIXME: assign result to retval somehow. retval should already be a pointer to an object of the correct size, so memcpy or similiar acts should be fine?
         }
         [[gnu::noinline]]
-        static void* invoke_method(Il2CppMethodPointer ptr, const MethodInfo* m, [[maybe_unused]] void* obj, void** args) {
+        static void invoke_method(Il2CppMethodPointer ptr, const MethodInfo* m, [[maybe_unused]] void* obj, void** args, void* retval) {
             auto func = reinterpret_cast<TRet(*)(TArgs..., const MethodInfo*)>(ptr);
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            return static_invoke_method(func, args, m, seq);
+            retval = static_invoke_method(func, args, m, seq);
         }
     };
 }

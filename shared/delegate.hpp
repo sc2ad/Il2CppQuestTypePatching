@@ -8,10 +8,11 @@ namespace custom_types {
 
 int get_delegate_count();
 
-inline void setup_for_delegate(MethodInfo* info) {
+inline void setup_for_delegate([[maybe_unused]] MethodInfo* info) {
     // The method in question actually isn't quite fit for being a proper delegate
     // So, here we will set it just to make sure it does what we want.
-    info->is_marshaled_from_native = true;
+    // TODO: is marshaled even a thing that matters anymore?
+    // info->is_marshaled_from_native = true;
     // TODO: Support virtual invokes some time in the distant, distant future.
     // m->slot = kInvalidIl2CppMethodSlot;
     // m->invoker_method = parent_invoke->invoker_method;
@@ -126,11 +127,10 @@ private:
         const Il2CppType* returnType() const override {
             return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<RI>::get());
         }
-        std::vector<ParameterInfo> params() const override {
-            int32_t counter = 1;
+        std::vector<const Il2CppType*> params() const override {
             il2cpp_functions::Init();
-            return {ParameterInfo{"inst", 0, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(___TypeRegistration::klass_ptr)},
-                    (ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...
+            return {::il2cpp_functions::class_get_type(___TypeRegistration::klass_ptr),
+                    (il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get()))...
             };
         }
         uint8_t params_size() const override {
@@ -169,7 +169,7 @@ private:
             ::il2cpp_functions::Init();
             return &il2cpp_functions::defaults->void_class->byval_arg;
         }
-        std::vector<ParameterInfo> params() const override {
+        std::vector<const Il2CppType*> params() const override {
             return {};
         }
         uint8_t params_size() const override {
@@ -338,11 +338,10 @@ private:
             ::il2cpp_functions::Init();
             return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<RI>::get());
         }
-        std::vector<ParameterInfo> params() const override {
-            int32_t counter = 1;
+        std::vector<const Il2CppType*> params() const override {
             il2cpp_functions::Init();
-            return {ParameterInfo{"inst", 0, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(___TypeRegistration::klass_ptr)},
-                    (ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get())})...
+            return {::il2cpp_functions::class_get_type(___TypeRegistration::klass_ptr),
+                    (::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgsI>::get()))...
             };
         }
         uint8_t params_size() const override {
@@ -406,7 +405,7 @@ private:
             ::il2cpp_functions::Init();
             return &il2cpp_functions::defaults->void_class->byval_arg;
         }
-        std::vector<ParameterInfo> params() const override {
+        std::vector<const Il2CppType*> params() const override {
             return {};
         }
         uint8_t params_size() const override {

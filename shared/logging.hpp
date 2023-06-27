@@ -7,7 +7,6 @@ struct Il2CppAssembly;
 struct Il2CppCodeGenModule;
 struct Il2CppImage;
 struct Il2CppType;
-struct ParameterInfo;
 struct MethodInfo;
 struct Il2CppClass;
 struct VirtualInvokeData;
@@ -52,7 +51,8 @@ namespace custom_types {
 
     /// @brief Logs the provided ParameterInfo*
     /// @param info The ParameterInfo* to log all fields on.
-    void logParam(const ParameterInfo* info);
+    /// @param index The index of the info being logged.
+    void logParam(const Il2CppType* info, int index);
 
     /// @brief Logs the provided MethodInfo*
     /// @param info The MethodInfo* to log all fields on.

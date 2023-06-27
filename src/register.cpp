@@ -5,6 +5,7 @@
 #include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "beatsaber-hook/shared/utils/capstone-utils.hpp"
+#include "beatsaber-hook/shared/utils/typedefs.h"
 
 #ifdef CT_USE_GCDESCRIPTOR_DEBUG
 #include "capstone-helpers.hpp"
@@ -29,10 +30,10 @@ struct Hook_FromIl2CppTypeMain {
 		}
 		bool shouldBeOurs = false;
 		// klassIndex is only meaningful for these types
-		if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.klassIndex < 0) {
+		if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.__klassIndex < 0) {
 			shouldBeOurs = true;
 			// If the type matches our type
-			size_t idx = kTypeDefinitionIndexInvalid - typ->data.klassIndex;
+			size_t idx = kTypeDefinitionIndexInvalid - typ->data.__klassIndex;
 #ifndef NO_VERBOSE_LOGS
 			logger.debug("Custom idx: %u for type: %p", idx, typ);
 #endif
@@ -50,7 +51,7 @@ struct Hook_FromIl2CppTypeMain {
 		// Otherwise, return orig
 		auto klass = FromIl2CppType(args...);
 		if (shouldBeOurs) {
-			logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.klassIndex);
+			logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.__klassIndex);
 			il2cpp_utils::LogClass(logger, klass, false);
 		}
 		return klass;
@@ -66,9 +67,9 @@ MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
 		SAFE_ABORT();
 	}
 	auto typ = klass->this_arg;
-	if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.klassIndex < 0) {
+	if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.__klassIndex < 0) {
 		// This is a custom class. Skip it.
-		auto idx = kTypeDefinitionIndexInvalid - typ.data.klassIndex;
+		auto idx = kTypeDefinitionIndexInvalid - typ.data.__klassIndex;
 #ifndef NO_VERBOSE_LOGS
 		logger.debug("custom idx: %u", idx);
 #endif
@@ -79,7 +80,7 @@ MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
 	}
 }
 
-MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass*, TypeDefinitionIndex index) {
+MAKE_HOOK(GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass*, TypeDefinitionIndex index) {
 	if (index < 0) {
 		static auto logger = ::custom_types::_logger().WithContext("MetadataCache::GetTypeInfoFromTypeDefinitionIndex");
 		// index is either invalid or one of ours
@@ -92,7 +93,7 @@ MAKE_HOOK(MetadataCache_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass
 		}
 	}
 	// Otherwise, return orig
-	return MetadataCache_GetTypeInfoFromTypeDefinitionIndex(index);
+	return GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex(index);
 }
 
 MAKE_HOOK(GetScriptingClass, nullptr, Il2CppClass*, void* thisptr, char* assembly, char* namespaze, char* name) {
@@ -401,18 +402,22 @@ namespace custom_types {
 		img->nameNoExt = allocNameNoExt;
 		img->dynamic = true;
 		img->assembly = createAssembly(allocNameNoExt, img);
-		img->nameToClassHashTable = new Il2CppNameToTypeDefinitionIndexHashTable();
+		img->nameToClassHashTable = new Il2CppNameToTypeHandleHashTable();
+		auto metadata = new Il2CppImageGlobalMetadata();
+		metadata->image = img;
+		img->metadataHandle = reinterpret_cast<Il2CppMetadataImageHandle>(metadata);
 		// Types are pushed here on class creation
 		// TODO: Avoid copying eventually
-		img->exportedTypeStart = 0;
+		metadata->typeStart = 0;
+		metadata->exportedTypeStart = 0;
 		img->exportedTypeCount = 0;
 		// Custom attribute start and count is used somewhere within unity
 		// (which makes a call to: il2cpp_custom_attrs_from_class/il2cpp_custom_attrs_from_method)
 		// These are required to not be undefined (though perhaps a -1 and a 0 would work just as well here?)
 		// RGCTXes are also from codeGenModule, so that must also be defined.
-		img->customAttributeStart = 0;
+		metadata->customAttributeStart = 0;
 		img->customAttributeCount = 0;
-		img->entryPointIndex = 0;
+		metadata->entryPointIndex = 0;
 		// TODO: Populate this in a more reasonable way
 		// auto* codegen = new Il2CppCodeGenModule{Il2CppCodeGenModule{
 		//     .moduleName = name.data(),
@@ -439,7 +444,7 @@ namespace custom_types {
 			else {
 				Hooking::InstallHookDirect<Hook_FromIl2CppTypeMain<Il2CppType*, bool>>(logger, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
 			}
-			INSTALL_HOOK_DIRECT(logger, MetadataCache_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_MetadataCache_GetTypeInfoFromTypeDefinitionIndex);
+			INSTALL_HOOK_DIRECT(logger, GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, (void*)il2cpp_functions::il2cpp_GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex);
 			INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
 			uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff c3 01 d1 f9 63 03 a9 f7 5b 04 a9 f5 53 05 a9 f3 7b 06 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
 			INSTALL_HOOK_DIRECT(logger, GetScriptingClass, reinterpret_cast<void*>(GetScriptingClassAddr));

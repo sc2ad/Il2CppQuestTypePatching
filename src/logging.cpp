@@ -96,13 +96,17 @@ namespace custom_types {
         _logger().debug("name: %s", img->name ? img->name : "NULL");
         _logger().debug("nameNoExt: %s", img->nameNoExt ? img->nameNoExt : "NULL");
         logAsm(img->assembly);
-        _logger().debug("typeStart: %u", img->typeStart);
+
+        // as seen in GlobalMetadata::GetImageMetadata
+        auto metadata = reinterpret_cast<const Il2CppImageGlobalMetadata*>(img->metadataHandle);
+
+        _logger().debug("typeStart: %u", metadata->typeStart);
         _logger().debug("typeCount: %u", img->typeCount);
-        _logger().debug("exportedTypeStart: %u", img->exportedTypeStart);
+        _logger().debug("exportedTypeStart: %u", metadata->exportedTypeStart);
         _logger().debug("exportedTypeCount: %u", img->exportedTypeCount);
-        _logger().debug("customAttributeStart: %u", img->customAttributeStart);
+        _logger().debug("customAttributeStart: %u", metadata->customAttributeStart);
         _logger().debug("customAttributeCount: %u", img->customAttributeCount);
-        _logger().debug("entryPointIndex: %u", img->entryPointIndex);
+        _logger().debug("entryPointIndex: %u", metadata->entryPointIndex);
         _logger().debug("nameToClassHashTable: %p", img->nameToClassHashTable);
         logCodegen(img->codeGenModule, "codeGenModule");
         _logger().debug("token: %u", img->token);
@@ -112,7 +116,9 @@ namespace custom_types {
 
     void logType(const Il2CppType* t, std::string_view s) {
         _logger().debug("0 ======================TYPE INFO FOR: %s======================", s.data());
-        _logger().debug("klassIndex: %u", t->data.klassIndex);
+
+        // FIXME: what to do with the new typeHandle field? that seems to be for runtime, __klassIndex seems to be for startup
+        _logger().debug("klassIndex: %u", t->data.__klassIndex);
         _logger().debug("attrs: 0x%x", t->attrs);
         _logger().debug("type: 0x%x", t->type);
         _logger().debug("num_mods: %u", t->num_mods);
@@ -146,17 +152,21 @@ namespace custom_types {
         _logger().debug("0 ======================END INTERFACE OFFSET======================");
     }
 
-    void logParam(const ParameterInfo* info) {
-        if (!info) {
-            _logger().debug("NULL PARAMETER INFO!");
+    void logParam(const Il2CppType* t, int idx) {
+        if (!t) {
+            _logger().debug("NULL PARAMETER TYPE INFO!");
             return;
         }
-        _logger().debug("0 ======================PARAMETER INFO FOR: %p======================", info);
-        _logger().debug("name: %s", info->name ? info->name : "NULL");
-        _logger().debug("position: %u", info->position);
-        _logger().debug("token: %u", info->token);
-        _logger().debug("parameter_type: %p", info->parameter_type);
-        _logger().debug("0 ======================END PARAMETER INFO======================");
+
+        _logger().debug("0 ======================TYPE INFO FOR PARAM %d:======================", idx);
+        // FIXME: what to do with the new typeHandle field? that seems to be for runtime, __klassIndex seems to be for startup
+        _logger().debug("klassIndex: %u", t->data.__klassIndex);
+        _logger().debug("attrs: 0x%x", t->attrs);
+        _logger().debug("type: 0x%x", t->type);
+        _logger().debug("num_mods: %u", t->num_mods);
+        _logger().debug("byref: %u", t->byref);
+        _logger().debug("pinned: %u", t->pinned);
+        _logger().debug("0 ======================END PARAM TYPE INFO======================");
     }
 
     void logMethod(const MethodInfo* info) {
@@ -164,6 +174,7 @@ namespace custom_types {
             _logger().debug("NULL METHODINFO!");
             return;
         }
+
         _logger().debug("0 ======================METHOD INFO FOR: %p======================", info);
         _logger().debug("methodPointer: %p", info->methodPointer);
         _logger().debug("invoker_method: %p", info->invoker_method);
@@ -171,16 +182,24 @@ namespace custom_types {
         _logger().debug("klass: %p", info->klass);
         _logger().debug("klass ID: %s::%s", info->klass->namespaze, info->klass->name);
         _logger().debug("return_type: %p", info->return_type);
+
         if (info->parameters) {
             for (int i = 0; i < info->parameters_count; i++) {
-                logParam(&info->parameters[i]);
+                logParam(info->parameters[i], i);
             }
         } else {
             _logger().debug("parameters: 0x0");
         }
+
+        auto methodDefinition = reinterpret_cast<const Il2CppMethodDefinition*>(info->methodMetadataHandle);
+
+        auto genericContainers = (const Il2CppGenericContainer*)((const char*)il2cpp_functions::s_GlobalMetadata + il2cpp_functions::s_GlobalMetadataHeader->genericContainersOffset);
+        // TODO: check if this is correct
+        auto genericContainer = reinterpret_cast<const Il2CppMetadataGenericContainerHandle>(genericContainers + methodDefinition->genericContainerIndex);
+
         // _logger().debug("parameters: %p", info->parameters);
-        _logger().debug("methodDefinition: %p", info->methodDefinition);
-        _logger().debug("genericContainer: %p", info->genericContainer);
+        _logger().debug("methodDefinition: %p", methodDefinition);
+        _logger().debug("genericContainer: %p", genericContainer);
         _logger().debug("token: %u", info->token);
         _logger().debug("flags: 0x%x", info->flags);
         _logger().debug("iflags: 0x%x", info->iflags);
@@ -189,7 +208,8 @@ namespace custom_types {
         _logger().debug("is_generic: %u", info->is_generic);
         _logger().debug("is_inflated: %u", info->is_inflated);
         _logger().debug("wrapper_type: %u", info->wrapper_type);
-        _logger().debug("is_marshaled_from_native: %u", info->is_marshaled_from_native);
+        // FIXME: no longer exists, what to do?
+        //_logger().debug("is_marshaled_from_native: %u", info->is_marshaled_from_native);
         _logger().debug("0 ======================END METHOD INFO======================");
     }
 
@@ -207,7 +227,7 @@ namespace custom_types {
         _logger().debug("declaringType: %p", klass->declaringType);
         _logger().debug("parent: %p", klass->parent);
         _logger().debug("generic_class: %p", klass->generic_class);
-        _logger().debug("typeDefinition: %p", klass->typeDefinition);
+        _logger().debug("typeMetadataHandle: %p", klass->typeMetadataHandle);
         _logger().debug("interopData: %p", klass->interopData);
         _logger().debug("klass: %p", klass->klass);
         logFields(klass);
@@ -229,9 +249,9 @@ namespace custom_types {
         _logger().debug("unity_user_data: %p", klass->unity_user_data);
         _logger().debug("initializationExceptionGCHandle: %u", klass->initializationExceptionGCHandle);
         _logger().debug("cctor_started: %u", klass->cctor_started);
-        _logger().debug("cctor_finished: %u", klass->cctor_finished);
+        _logger().debug("cctor_finished_or_no_cctor: %u", klass->cctor_finished_or_no_cctor);
         _logger().debug("cctor_thread: %zu", klass->cctor_thread);
-        _logger().debug("genericContainerIndex: %u", klass->genericContainerIndex);
+        _logger().debug("genericContainerHandle: %p", klass->genericContainerHandle);
         _logger().debug("instance_size: %u", klass->instance_size);
         _logger().debug("actualSize: %u", klass->actualSize);
         _logger().debug("element_size: %u", klass->element_size);
@@ -255,19 +275,20 @@ namespace custom_types {
         _logger().debug("naturalAligment: %u", klass->naturalAligment);
         _logger().debug("packingSize: %u", klass->packingSize);
         _logger().debug("initialized_and_no_error: %u", klass->initialized_and_no_error);
-        _logger().debug("valuetype: %u", klass->valuetype);
         _logger().debug("initialized: %u", klass->initialized);
         _logger().debug("enumtype: %u", klass->enumtype);
+        _logger().debug("nullabletype: %u", klass->nullabletype);
         _logger().debug("is_generic: %u", klass->is_generic);
         _logger().debug("has_references: %u", klass->has_references);
         _logger().debug("init_pending: %u", klass->init_pending);
+        _logger().debug("size_init_pending: %u", klass->size_init_pending);
         _logger().debug("size_inited: %u", klass->size_inited);
         _logger().debug("has_finalize: %u", klass->has_finalize);
         _logger().debug("has_cctor: %u", klass->has_cctor);
         _logger().debug("is_blittable: %u", klass->is_blittable);
         _logger().debug("is_import_or_windows_runtime: %u", klass->is_import_or_windows_runtime);
         _logger().debug("is_vtable_initialized: %u", klass->is_vtable_initialized);
-        _logger().debug("has_initialization_error: %u", klass->has_initialization_error);
+        _logger().debug("is_byref_like: %u", klass->is_byref_like);
         for (uint16_t i = 0; i < klass->interface_offsets_count; i++) {
             logInterfaceOffset(&klass->interfaceOffsets[i]);
         }

@@ -7,6 +7,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include "beatsaber-hook/shared/utils/typedefs.h"
 
 template<>
 struct std::hash<std::pair<std::string, std::string>> {

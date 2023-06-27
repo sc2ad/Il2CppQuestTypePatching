@@ -21,8 +21,8 @@ namespace custom_types {
 		// TODO: Change this for value types and other type enums
 		type->type = typeEnum();
 		// This should be a unique number, assigned when each new type is created.
-		type->data.klassIndex = Register::typeIdx--;
-		_logger().debug("Made new type: %p, idx: %i", type, type->data.klassIndex);
+		type->data.__klassIndex = Register::typeIdx--;
+		_logger().debug("Made new type: %p, idx: %i", type, type->data.__klassIndex);
 		return type;
 	}
 
@@ -156,7 +156,7 @@ namespace custom_types {
 		auto img = Register::createImage(dllName());
 		k->image = img;
 		// Add ourselves to our image hash table (for class_from_name)
-		img->nameToClassHashTable->insert(std::make_pair(std::make_pair(namespaze(), name()), type->data.klassIndex));
+		img->nameToClassHashTable->insert(std::make_pair(std::make_pair(namespaze(), name()), type->data.typeHandle));
 		// Set name
 		k->name = name();
 		k->namespaze = namespaze();
@@ -188,19 +188,23 @@ namespace custom_types {
 		}
 		// TODO: Figure out generic class (will also need to inflate it)
 		k->generic_class = nullptr;
-		k->genericContainerIndex = kGenericContainerIndexInvalid;
+		k->genericContainerHandle = 0;
 		k->genericRecursionDepth = 1;
 		// Pretend that the class has already been initialized
 		k->initialized = 1;
 		k->initialized_and_no_error = 1;
 		k->init_pending = 0;
-		k->has_initialization_error = 0;
+		k->size_init_pending = 0;
 
 		// TypeDefinition unused, can set to nullptr
-		k->typeDefinition = nullptr;
+		k->typeMetadataHandle = nullptr;
 		if (type->type == Il2CppTypeEnum::IL2CPP_TYPE_VALUETYPE) {
-			k->valuetype = true;
+			k->nullabletype = false;
+		} else {
+			k->nullabletype = true;
 		}
+		k->is_byref_like = 0;
+
 		// TODO: is this valid?
 		k->token = -1;
 		// TODO: See if this is always the case
@@ -532,7 +536,7 @@ namespace custom_types {
 			}
 			if (k->methods) {
 				for (uint16_t i = 0; i < k->method_count; ++i) {
-					free(const_cast<ParameterInfo*>(k->methods[i]->parameters));
+					free(const_cast<Il2CppType**>(k->methods[i]->parameters));
 					delete k->methods[i];
 				}
 				free(k->methods);
