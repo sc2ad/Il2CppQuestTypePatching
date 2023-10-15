@@ -14,7 +14,7 @@
 #include "logging.hpp"
 #include "macros.hpp"
 #include "register.hpp"
-#include "scotland2/shared/modloader.hpp"
+#include "scotland2/shared/loader.hpp"
 #include "types.hpp"
 
 modloader::ModInfo modInfo{ "test", "0.0.0", 0 };
