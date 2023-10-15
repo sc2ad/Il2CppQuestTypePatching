@@ -1,0 +1,85 @@
+{
+  "config": {
+    "sharedDir": "shared",
+    "dependenciesDir": "extern",
+    "info": {
+      "name": "custom-types",
+      "id": "custom-types",
+      "version": "0.4.6",
+      "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
+      "additionalData": {
+        "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
+        "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so",
+        "overrideSoName": "libcustom-types.so"
+      }
+    },
+    "dependencies": [
+      {
+        "id": "beatsaber-hook",
+        "versionRange": "^4.0.0",
+        "additionalData": {
+          "extraFiles": [
+            "src/inline-hook"
+          ]
+        }
+      },
+      {
+        "id": "capstone",
+        "versionRange": "^0.1.0",
+        "additionalData": {
+          "private": true
+        }
+      }
+    ],
+    "workspace": null
+  },
+  "restoredDependencies": [
+    {
+      "dependency": {
+        "id": "libil2cpp",
+        "versionRange": "=0.2.3",
+        "additionalData": {
+          "headersOnly": true
+        }
+      },
+      "version": "0.2.3"
+    },
+    {
+      "dependency": {
+        "id": "beatsaber-hook",
+        "versionRange": "=4.0.0",
+        "additionalData": {
+          "soLink": "https://github.com/sc2ad/beatsaber-hook/releases/download/v4.0.0/libbeatsaber-hook_4_0_0.so",
+          "debugSoLink": "https://github.com/sc2ad/beatsaber-hook/releases/download/v4.0.0/debug_libbeatsaber-hook_4_0_0.so",
+          "branchName": "version/v4_0_0"
+        }
+      },
+      "version": "4.0.0"
+    },
+    {
+      "dependency": {
+        "id": "scotland2",
+        "versionRange": "=0.1.2",
+        "additionalData": {
+          "soLink": "https://github.com/sc2ad/scotland2/releases/download/v0.1.2/libsl2.so",
+          "debugSoLink": "https://github.com/sc2ad/scotland2/releases/download/v0.1.2/debug_libsl2.so",
+          "overrideSoName": "libsl2.so",
+          "branchName": "version/v0_1_2"
+        }
+      },
+      "version": "0.1.2"
+    },
+    {
+      "dependency": {
+        "id": "capstone",
+        "versionRange": "=0.1.0",
+        "additionalData": {
+          "staticLinking": true,
+          "soLink": "https://github.com/sc2ad/capstone-qpm/releases/download/v0.1.0/libcapstone.a",
+          "overrideSoName": "libcapstone.a"
+        }
+      },
+      "version": "0.1.0"
+    }
+  ]
+}
