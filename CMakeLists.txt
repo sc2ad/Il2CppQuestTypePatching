@@ -13,13 +13,15 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # compile options used
-add_compile_options(-frtti -fPIE -fPIC -fexceptions -fcoroutines-ts)
+add_compile_options(-frtti -fPIE -fPIC -fexceptions)
 add_compile_options(-Wall -Werror -Wextra -Wno-invalid-offsetof -O3)
 # Extra -Wno's that were not there originally to make it work
 add_compile_options(-Wno-unused-variable -Wno-unused-function)
 # compile definitions used
 add_compile_definitions(VERSION=\"${MOD_VERSION}\")
-add_compile_definitions(ID=\"${MOD_ID}\")
+add_compile_definitions(MOD_ID=\"${MOD_ID}\")
+# TODO: Implement more robustly
+add_compile_definitions(VERSION_LONG=1)
 add_compile_definitions(NEED_UNSAFE_CSHARP)
 add_compile_definitions(NO_VERBOSE_LOGS)
 # For performing debug logging of very hard to diagnose issues

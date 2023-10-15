@@ -1,23 +1,23 @@
 // If LOCAL_TEST is defined, create a mod that uses custom types.
 // Otherwise, it will be built as a library.
 #ifdef LOCAL_TEST
-#include "coroutine.hpp"
-#include "register.hpp"
-#include "macros.hpp"
-#include "logging.hpp"
-#include "types.hpp"
-#include "modloader/shared/modloader.hpp"
-#include "beatsaber-hook/shared/utils/logging.hpp"
-#include "beatsaber-hook/shared/utils/utils.h"
-#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
-#include "beatsaber-hook/shared/utils/il2cpp-type-check.hpp"
-#include "beatsaber-hook/shared/utils/typedefs.h"
-#include "NoteData.hpp"
 #include <unordered_map>
+#include "NoteData.hpp"
 #include "beatsaber-hook/shared/utils/hooking.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-type-check.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
+#include "beatsaber-hook/shared/utils/logging.hpp"
+#include "beatsaber-hook/shared/utils/typedefs.h"
+#include "beatsaber-hook/shared/utils/utils.h"
+#include "coroutine.hpp"
+#include "logging.hpp"
+#include "macros.hpp"
+#include "register.hpp"
+#include "scotland2/shared/modloader.hpp"
+#include "types.hpp"
 
-ModInfo modInfo;
+modloader::ModInfo modInfo{ "test", "0.0.0", 0 };
 
 Logger& modLogger() {
     static auto myLogger = new Logger(modInfo);
@@ -25,22 +25,21 @@ Logger& modLogger() {
 }
 
 DECLARE_CLASS(Il2CppNamespace, MyType, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*),
-    // TODO: Fields need to be copied from base type, size needs to be adjusted to match, offsets of all declared fields need to be correct
-    // DECLARE_INSTANCE_FIELD(int, x);
-    // DECLARE_INSTANCE_FIELD(Vector3, y);
+              // TODO: Fields need to be copied from base type, size needs to be adjusted to match, offsets of all declared fields need to be correct
+              // DECLARE_INSTANCE_FIELD(int, x);
+              // DECLARE_INSTANCE_FIELD(Vector3, y);
 
-    DECLARE_CTOR(ctor);
+              DECLARE_CTOR(ctor);
 
-    DECLARE_INSTANCE_METHOD(void, Start);
+              DECLARE_INSTANCE_METHOD(void, Start);
 
-    DECLARE_STATIC_METHOD(void, Test, int x, float y);
+              DECLARE_STATIC_METHOD(void, Test, int x, float y);
 
-    DECLARE_INSTANCE_METHOD(int, asdf, int q);
+              DECLARE_INSTANCE_METHOD(int, asdf, int q);
 
-    DECLARE_STATIC_FIELD(int, x);
+              DECLARE_STATIC_FIELD(int, x);
 
-    DECLARE_OVERRIDE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));
-)
+              DECLARE_OVERRIDE_METHOD(Il2CppString*, ToString, il2cpp_utils::FindMethod("UnityEngine", "Object", "ToString"));)
 
 DEFINE_TYPE(Il2CppNamespace, MyType);
 
@@ -81,9 +80,7 @@ void Il2CppNamespace::MyType::Test([[maybe_unused]] int x, [[maybe_unused]] floa
     modLogger().debug("Called Il2CppNamespace::MyType::Test!");
 }
 
-DECLARE_CLASS_DLL(Il2CppNamespace, MyTypeDllTest, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*), "MyCoolDll.dll",
-    DECLARE_CTOR(ctor);
-)
+DECLARE_CLASS_DLL(Il2CppNamespace, MyTypeDllTest, "UnityEngine", "MonoBehaviour", sizeof(Il2CppObject) + sizeof(void*), "MyCoolDll.dll", DECLARE_CTOR(ctor);)
 
 DEFINE_TYPE(Il2CppNamespace, MyTypeDllTest);
 
@@ -92,13 +89,11 @@ void Il2CppNamespace::MyTypeDllTest::ctor() {
     custom_types::logImage(classof(MyTypeDllTest*)->image);
 }
 
-DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject),
-    (il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")),
-    DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
-    
-    DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
-    DECLARE_CTOR(ctor, Il2CppArray* originalArray);
-)
+DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject), (il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")),
+                         DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
+
+                         DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
+                         DECLARE_CTOR(ctor, Il2CppArray* originalArray);)
 
 DEFINE_TYPE(Il2CppNamespace, MyCustomBeatmapLevelPackCollection);
 
@@ -114,9 +109,7 @@ Il2CppArray* Il2CppNamespace::MyCustomBeatmapLevelPackCollection::get_beatmapLev
     return wrappedArr;
 }
 
-DECLARE_CLASS_CUSTOM(Il2CppNamespace, MyCustomBeatmapCollection2, Il2CppNamespace::MyCustomBeatmapLevelPackCollection,
-    DECLARE_CTOR(ctor, Il2CppArray* originalArray);
-)
+DECLARE_CLASS_CUSTOM(Il2CppNamespace, MyCustomBeatmapCollection2, Il2CppNamespace::MyCustomBeatmapLevelPackCollection, DECLARE_CTOR(ctor, Il2CppArray* originalArray);)
 
 DEFINE_TYPE(Il2CppNamespace, MyCustomBeatmapCollection2);
 
@@ -138,20 +131,11 @@ void Il2CppNamespace::MyCustomBeatmapCollection2::ctor(Il2CppArray* originalArra
 //     return CRASH_UNLESS(il2cpp_utils::New<SmallTest::Test*>());
 // }
 
-DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0,
-    DECLARE_INSTANCE_FIELD(int, x);
-    DECLARE_INSTANCE_FIELD(int, y);
-    DECLARE_INSTANCE_FIELD(int, z);
-)
+DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0, DECLARE_INSTANCE_FIELD(int, x); DECLARE_INSTANCE_FIELD(int, y); DECLARE_INSTANCE_FIELD(int, z);)
 
 DEFINE_TYPE(ValueTest, Test);
 
-DECLARE_CLASS(SmallTest, TestIt2, "System", "Object", sizeof(Il2CppObject),
-    std::vector<void*> allocField;
-    int x = 3;
-    DECLARE_CTOR(ctor);
-    DECLARE_SIMPLE_DTOR();
-)
+DECLARE_CLASS(SmallTest, TestIt2, "System", "Object", sizeof(Il2CppObject), std::vector<void*> allocField; int x = 3; DECLARE_CTOR(ctor); DECLARE_SIMPLE_DTOR();)
 
 DEFINE_TYPE(SmallTest, TestIt2);
 
@@ -162,12 +146,9 @@ void SmallTest::TestIt2::ctor() {
 }
 
 DECLARE_CLASS(SmallTest, TestIt3, "System", "Object", sizeof(Il2CppObject),
-    // These fields are initialized in the DEFAULT_CTOR
-    std::vector<void*> allocField;
-    int x = 3;
-    DECLARE_DEFAULT_CTOR();
-    DECLARE_SIMPLE_DTOR();
-)
+              // These fields are initialized in the DEFAULT_CTOR
+              std::vector<void*> allocField;
+              int x = 3; DECLARE_DEFAULT_CTOR(); DECLARE_SIMPLE_DTOR();)
 
 DEFINE_TYPE(SmallTest, TestIt3);
 
@@ -175,8 +156,8 @@ DEFINE_TYPE(SmallTest, TestIt3);
 //     il2cpp_utils::GetClassFromName("", "IBeatmapObjectSpawner"),
 //     DECLARE_CTOR(ctor);
 //     DECLARE_INTERFACE_METHOD(void, SpawnBasicNote, il2cpp_utils::FindMethodUnsafe("", "IBeatmapObjectSpawner", "SpawnBasicNote", 11),
-//     NoteData* noteData, Vector3 moveStartPos, Vector3 moveEndPos, Vector3 jumpEndPos, float moveDuration, float jumpDuration, float jumpGravity, float rotation, bool disappearingArrow, bool ghostNote, float cutDirectionAngleOffset);
-//     REGISTER_FUNCTION(MyBeatmapObjectManager,
+//     NoteData* noteData, Vector3 moveStartPos, Vector3 moveEndPos, Vector3 jumpEndPos, float moveDuration, float jumpDuration, float jumpGravity, float rotation, bool disappearingArrow, bool
+//     ghostNote, float cutDirectionAngleOffset); REGISTER_FUNCTION(MyBeatmapObjectManager,
 //         modLogger().debug("Registering MyBeatmapObjectManager!");
 //         REGISTER_METHOD(ctor);
 //         REGISTER_METHOD(SpawnBasicNote);
@@ -192,7 +173,8 @@ DEFINE_TYPE(SmallTest, TestIt3);
 //     modLogger().debug("Called Il2CppNamespace::MyBeatmapObjectManager::ctor");
 // }
 
-// void Il2CppNamespace::MyBeatmapObjectManager::SpawnBasicNote(NoteData* noteData, Vector3 moveStartPos, Vector3 moveEndPos, Vector3 jumpEndPos, float moveDuration, float jumpDuration, float jumpGravity, float rotation, bool disappearingArrow, bool ghostNote, float cutDirectionAngleOffset) {
+// void Il2CppNamespace::MyBeatmapObjectManager::SpawnBasicNote(NoteData* noteData, Vector3 moveStartPos, Vector3 moveEndPos, Vector3 jumpEndPos, float moveDuration, float jumpDuration, float
+// jumpGravity, float rotation, bool disappearingArrow, bool ghostNote, float cutDirectionAngleOffset) {
 //     modLogger().debug("Called Il2CppNamespace::MyBeatmapObjectManager::SpawnBasicNote, calling orig now!");
 //     auto* method = il2cpp_utils::FindMethodUnsafe("", "BeatmapObjectManager", "SpawnBasicNote", 11);
 //     il2cpp_utils::RunMethod(actualBeatmapObjectManager, method, noteData, moveStartPos, moveEndPos, jumpEndPos, moveDuration, jumpDuration, jumpGravity, rotation);
@@ -200,14 +182,16 @@ DEFINE_TYPE(SmallTest, TestIt3);
 
 static custom_types::ClassWrapper* klassWrapper;
 
-extern "C" void setup(ModInfo& info) {
-    info.id = ID;
-    info.version = VERSION;
-    modInfo = info;
+extern "C" void setup(CModInfo* info) {
+    info->id = MOD_ID;
+    info->version = VERSION;
+    info->version_long = VERSION_LONG;
+    modInfo.assign(info);
     modLogger().debug("Completed setup!");
 }
 
-MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "MainMenuViewController", "DidActivate", void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling) {
+MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "MainMenuViewController", "DidActivate", void, Il2CppObject* self, bool firstActivation, bool addedToHierarchy,
+                                     bool screenSystemEnabling) {
     modLogger().debug("MainMenuViewController.DidActivate!");
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
     modLogger().debug("Getting GO...");
