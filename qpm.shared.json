@@ -8,8 +8,6 @@
       "version": "0.4.6",
       "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
       "additionalData": {
-        "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
-        "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so",
         "overrideSoName": "libcustom-types.so",
         "cmake": true
       }
@@ -24,7 +22,7 @@
     "dependencies": [
       {
         "id": "beatsaber-hook",
-        "versionRange": "^4.0.1",
+        "versionRange": "^4.0.0",
         "additionalData": {
           "extraFiles": [
             "src/inline-hook"
