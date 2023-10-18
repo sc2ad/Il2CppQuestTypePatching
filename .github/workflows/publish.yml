@@ -83,7 +83,7 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           files: |
             ./build/${{ steps.libname.outputs.NAME }}
-            ./build/debug_${{ steps.libname.outputs.NAME }}
+            ./build/debug/${{ steps.libname.outputs.NAME }}
             ./${{ env.qmodName }}.qmod
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
