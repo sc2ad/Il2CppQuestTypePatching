@@ -75,6 +75,9 @@ jobs:
         run: |
           pwsh -Command ./createqmod.ps1 ${{env.qmodName}}
 
+      - name: Rename debug file
+        run: mv "./build/debug/${{ steps.libname.outputs.NAME }}" "./build/debug/debug_${{ steps.libname.outputs.NAME }}"
+
       - name: Upload to Release
         id: upload_file_release
         uses: softprops/action-gh-release@v0.1.15
@@ -83,7 +86,7 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           files: |
             ./build/${{ steps.libname.outputs.NAME }}
-            ./build/debug/${{ steps.libname.outputs.NAME }}
+            ./build/debug/debug_${{ steps.libname.outputs.NAME }}
             ./${{ env.qmodName }}.qmod
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
