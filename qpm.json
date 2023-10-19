@@ -27,6 +27,13 @@
       "additionalData": {
         "private": true
       }
+    },
+    {
+      "id": "flamingo",
+      "versionRange": "^0.1.0",
+      "additionalData": {
+        "private": true
+      }
     }
   ],
   "workspace": {
