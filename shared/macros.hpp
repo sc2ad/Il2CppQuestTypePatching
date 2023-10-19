@@ -6,6 +6,7 @@
 #include <new>
 #include <utility>
 #include "util.hpp"
+#include "macros_declaretype.hpp"
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
@@ -43,240 +44,10 @@
 #error "DECLARE_VALUE_CODEGEN is already defined! Undefine it before including macros.hpp!"
 #endif
 
-#ifdef ___DECLARE_TYPE_WRAPPER
-#error "___DECLARE_TYPE_WRAPPER is already defined! Undefine it before including macros.hpp!"
-#endif
-
-#ifdef ___DECLARE_TYPE_WRAPPER_INHERITANCE
-#error "___DECLARE_TYPE_WRAPPER_INHERITANCE is already defined! Undefine it before including macros.hpp!"
-#endif
-
 #ifndef INTERFACE_LIST
 #define INTERFACE_LIST(...) ::custom_types::ExtractClasses<__VA_ARGS__>()
 #endif
 
-// Helper macro for declaring classes with and without interfaces
-#define ___DECLARE_TYPE_WRAPPER(namespaze_, name_, typeEnum_, baseNamespaze, baseName, baseSize, dllName_, interfaces_, flags_, ...) \
-namespace namespaze_ { \
-    class name_; \
-} \
-namespace namespaze_ { \
-    class name_ { \
-        using ___TargetType = name_; \
-        constexpr static auto ___Base__Size = baseSize; \
-        friend ::custom_types::Register; \
-        public: \
-        struct ___TypeRegistration : ::custom_types::TypeRegistration { \
-            ___TypeRegistration() { \
-                ::custom_types::Register::AddType(this); \
-                instance = this; \
-            } \
-            static inline std::vector<::custom_types::FieldRegistrator*> fields; \
-            std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
-                return fields; \
-            } \
-            static void addField(::custom_types::FieldRegistrator* inst) { \
-                fields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding instance field: %s.%s new size: %zu", #name_, inst->name(), fields.size()); \
-            } \
-            static inline std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
-            std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
-                return staticFields; \
-            } \
-            static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
-                staticFields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding static field: %s.%s new size: %zu", #name_, inst->name(), staticFields.size()); \
-            } \
-            static inline std::vector<::custom_types::MethodRegistrator*> methods; \
-            std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
-                return methods; \
-            } \
-            static void addMethod(::custom_types::MethodRegistrator* inst) { \
-                methods.push_back(inst); \
-                ::custom_types::_logger().debug("Adding method: %s.%s new size: %zu", #name_, inst->name(), methods.size()); \
-            } \
-            static inline size_t staticFieldOffset; \
-            static size_t addStaticField(size_t sz) { \
-                auto tmp = staticFieldOffset; \
-                staticFieldOffset += sz; \
-                return tmp; \
-            } \
-            static char* st_fields; \
-            char*& static_fields() override { \
-                return st_fields; \
-            } \
-            size_t static_fields_size() const override { \
-                return staticFieldOffset; \
-            } \
-            constexpr const char* name() const override { \
-                return #name_; \
-            } \
-            constexpr const char* namespaze() const override { \
-                return #namespaze_; \
-            } \
-            constexpr const char* dllName() const override { \
-                return dllName_; \
-            } \
-            Il2CppClass* baseType() const override { \
-                return ::il2cpp_utils::GetClassFromName(baseNamespaze, baseName); \
-            } \
-            std::vector<Il2CppClass*> const interfaces() const override { \
-                return interfaces_; \
-            } \
-            constexpr Il2CppTypeEnum typeEnum() const override { \
-                return typeEnum_; \
-            } \
-            constexpr uint32_t typeFlags() const override { \
-                return flags_; \
-            } \
-            static Il2CppClass* klass_ptr; \
-            Il2CppClass*& klass() const override { \
-                return klass_ptr; \
-            } \
-            size_t size() const override { \
-                return sizeof(___TargetType); \
-            } \
-            TypeRegistration* customBase() const override { \
-                return nullptr; \
-            } \
-            bool initialized() const override { \
-                return init; \
-            } \
-            void setInitialized() const override { \
-                init = true; \
-            } \
-            static bool init; \
-            static TypeRegistration* instance; \
-            static TypeRegistration* get() { \
-                return instance; \
-            } \
-        }; \
-        uint8_t _baseFields[baseSize]; \
-        public: \
-        __VA_ARGS__ \
-    }; \
-} \
-template<> \
-struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
-    static inline Il2CppClass* get() { \
-        return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
-    } \
-}; \
-template<> \
-struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
-    constexpr static bool value = false; \
-};
-
-// Helper for declaring classes with and without interfaces with explicit inheritance
-#define ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze_, name_, typeEnum_, baseT, dllName_, interfaces_, flags_, baseCustom, ...) \
-namespace namespaze_ { \
-    class name_; \
-} \
-namespace namespaze_ { \
-    class name_ : public baseT { \
-        using ___TargetType = name_; \
-        constexpr static auto ___Base__Size = sizeof(baseT); \
-        friend ::custom_types::Register; \
-        public: \
-        struct ___TypeRegistration : ::custom_types::TypeRegistration { \
-            ___TypeRegistration() { \
-                ::custom_types::Register::AddType(this); \
-                instance = this; \
-            } \
-            static inline std::vector<::custom_types::FieldRegistrator*> fields; \
-            std::vector<::custom_types::FieldRegistrator*> const getFields() const override { \
-                return fields; \
-            } \
-            static void addField(::custom_types::FieldRegistrator* inst) { \
-                fields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding instance field: %s.%s new size: %lu", #name_, inst->name(), fields.size()); \
-            } \
-            static inline std::vector<::custom_types::StaticFieldRegistrator*> staticFields; \
-            std::vector<::custom_types::StaticFieldRegistrator*> const getStaticFields() const override { \
-                return staticFields; \
-            } \
-            static void addStaticFieldInstance(::custom_types::StaticFieldRegistrator* inst) { \
-                staticFields.push_back(inst); \
-                ::custom_types::_logger().debug("Adding static field: %s.%s new size: %lu", #name_, inst->name(), staticFields.size()); \
-            } \
-            static inline std::vector<::custom_types::MethodRegistrator*> methods; \
-            std::vector<::custom_types::MethodRegistrator*> const getMethods() const override { \
-                return methods; \
-            } \
-            static void addMethod(::custom_types::MethodRegistrator* inst) { \
-                methods.push_back(inst); \
-                ::custom_types::_logger().debug("Adding method: %s.%s new size: %lu", #name_, inst->name(), methods.size()); \
-            } \
-            static inline size_t staticFieldOffset; \
-            static size_t addStaticField(size_t sz) { \
-                auto tmp = staticFieldOffset; \
-                staticFieldOffset += sz; \
-                return tmp; \
-            } \
-            static char* st_fields; \
-            char*& static_fields() override { \
-                return st_fields; \
-            } \
-            size_t static_fields_size() const override { \
-                return staticFieldOffset; \
-            } \
-            constexpr const char* name() const override { \
-                return #name_; \
-            } \
-            constexpr const char* namespaze() const override { \
-                return #namespaze_; \
-            } \
-            constexpr const char* dllName() const override { \
-                return dllName_; \
-            } \
-            Il2CppClass* baseType() const override { \
-                return ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get(); \
-            } \
-            std::vector<Il2CppClass*> const interfaces() const override { \
-                return interfaces_; \
-            } \
-            constexpr Il2CppTypeEnum typeEnum() const override { \
-                return typeEnum_; \
-            } \
-            constexpr uint32_t typeFlags() const override { \
-                return flags_; \
-            } \
-            static Il2CppClass* klass_ptr; \
-            Il2CppClass*& klass() const override { \
-                return klass_ptr; \
-            } \
-            size_t size() const override { \
-                return sizeof(___TargetType); \
-            } \
-            TypeRegistration* customBase() const override { \
-                return baseCustom; \
-            } \
-            bool initialized() const override { \
-                return init; \
-            } \
-            void setInitialized() const override { \
-                init = true; \
-            } \
-            static bool init; \
-            static TypeRegistration* instance; \
-            static TypeRegistration* get() { \
-                return instance; \
-            } \
-        }; \
-        public: \
-        __VA_ARGS__ \
-    }; \
-} \
-template<> \
-struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
-    static inline Il2CppClass* get() { \
-        return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
-    } \
-}; \
-template<> \
-struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
-    constexpr static bool value = false; \
-};
 
 // Declares a class with the given namespace, name, base namespace, base name, and baseSize.
 // Assumes the class being declared is non-abstract.
@@ -384,12 +155,7 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 #error "DEFINE_TYPE is already defined! Undefine it before including macros.hpp!"
 #endif
 
-#define DEFINE_TYPE(namespaze, name) \
-::custom_types::TypeRegistration* namespaze::name::___TypeRegistration::instance; \
-static namespaze::name::___TypeRegistration __registration_instance_##name; \
-char* namespaze::name::___TypeRegistration::st_fields; \
-Il2CppClass* namespaze::name::___TypeRegistration::klass_ptr; \
-bool namespaze::name::___TypeRegistration::init = false;
+#define DEFINE_TYPE(namespaze, name) __DECLARE_TYPE_DEFINE(namespaze, name)
 
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
