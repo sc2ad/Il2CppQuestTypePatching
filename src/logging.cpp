@@ -4,7 +4,7 @@
 namespace custom_types {
 
     Logger& _logger() {
-        static auto logger = new Logger(ModInfo{"CustomTypes", VERSION}, LoggerOptions(false, true));
+        static auto logger = new Logger({"CustomTypes", VERSION, 0}, LoggerOptions(false, true));
         return *logger;
     }
 

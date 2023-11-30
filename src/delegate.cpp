@@ -16,7 +16,6 @@ void log_delegate(Il2CppDelegate* d) {
         logger.debug("extraArg: %zu", d->extraArg);
         logger.debug("invoke_impl: %p", d->invoke_impl);
         logger.debug("method: %p", d->method);
-        logger.debug("method_code: %p", d->method_code);
         logger.debug("method_info: %p", d->method_info);
         logger.debug("method_is_virtual: %s", d->method_is_virtual ? "true" : "false");
         logger.debug("method_ptr: %p", d->method_ptr);
@@ -38,7 +37,7 @@ void main() {
     // Static
     custom_types::MakeDelegate<Il2CppObject*>(f);
     auto ptr = DelegateWrapperStatic<void, Il2CppObject*, int, Il2CppObject*>::___TypeRegistration::klass_ptr;
-    
+
     // Instance
     Il2CppObject inst{};
     custom_types::MakeDelegate<Il2CppObject*>(&inst, f);

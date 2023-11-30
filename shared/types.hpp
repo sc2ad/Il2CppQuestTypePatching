@@ -218,23 +218,51 @@ namespace custom_types {
                 return static_cast<void*>(il2cpp_functions::value_box(klass, static_cast<void*>(&thing)));
             }
         }
+
+        template<typename Q>
+        static inline void pack_result_into(Q&& thing, void* target) {
+            // we want to pack thing into target void*, which comes from il2cpp_runtime_invoke
+            // and is already a buffer large enough to hold whatever thing is, without boxing overhead!
+            // we just need to make sure we actually assign the correct size
+            // the only weirdness would come from byref tbh, which I have never seen someone use
+
+            if constexpr (std::is_pointer_v<Q>) { // regular ol' pointer
+                *static_cast<void**>(target) = thing;
+            }
+            else if constexpr (il2cpp_utils::il2cpp_reference_type<Q>) { // reftypes just wrap void* instance pointers, assign direct
+                *static_cast<void**>(target) = thing.convert();
+            }
+            else {
+                auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
+                if (!klass) {
+                    _logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
+                    return;
+                }
+                auto sz = klass->instance_size - sizeof(Il2CppObject);
+                if constexpr (il2cpp_utils::has_il2cpp_conversion<Q>) { // some sort of wrapper type that we need to actually read from the wrapped memory, hence convert()
+                    std::memcpy(target, thing.convert(), sz);
+                } else { // C# value type that's equivalent in C++, so we can just use it as a pointer to that type
+                    *static_cast<Q*>(target) = thing;
+                }
+            }
+        }
     };
 
     template<typename TRet, typename T, typename ...TArgs>
     struct invoker_creator<TRet(T::*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* instance_invoke(TRet(*func)(T*, TArgs...), T* self, void** args, std::index_sequence<Ns...>) {
+        static void instance_invoke(TRet(*func)(T*, TArgs...), [[maybe_unused]] void* retval, T* self, void** args, std::index_sequence<Ns...>) {
             IL2CPP_CATCH_HANDLER(
                 if constexpr (std::is_same_v<TRet, void>) {
                     func(self,
                         arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                     );
-                    return nullptr;
                 } else {
-                    return arg_helper::pack_result(
+                    arg_helper::pack_result_into(
                         func(self,
                             arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                        )
+                        ),
+                        retval
                     );
                 }
             )
@@ -244,12 +272,19 @@ namespace custom_types {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
             auto func = reinterpret_cast<TRet(*)(T*, TArgs...)>(ptr);
-            T* self = static_cast<T*>(obj);
-
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            auto ret = instance_invoke(func, self, args, seq);
-            retval = ret;
-            // FIXME: actually properly assign the return value here
+
+            if constexpr (il2cpp_utils::il2cpp_reference_type<T>) {
+                // il2cpp reg type wrappers can be constructed from void* no matter what
+                // to properly invoke things here, we construct a wrapper and use it for the invoke
+                T self{obj};
+                instance_invoke(func, retval, &self, args, seq);
+            } else {
+                // if T is not a wrapper type, we use obj directly as our self for the invoke
+                T* self = static_cast<T*>(obj);
+                instance_invoke(func, retval, self, args, seq);
+            }
+
         }
         template<TRet(T::* member)(TArgs...)>
         [[gnu::noinline]]
@@ -261,35 +296,35 @@ namespace custom_types {
     template<typename TRet, typename ...TArgs>
     struct invoker_creator<TRet(*)(TArgs...)> {
         template<std::size_t ...Ns>
-        static void* static_invoke(TRet(*func)(TArgs...), void** args, std::index_sequence<Ns...>) {
+        static void static_invoke(TRet(*func)(TArgs...), void* retval, void** args, std::index_sequence<Ns...>) {
             IL2CPP_CATCH_HANDLER(
                 if constexpr (std::is_same_v<TRet, void>) {
                     func(
                         arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
                     );
-                    return nullptr;
                 } else {
-                    return arg_helper::pack_result(
+                    arg_helper::pack_result_into(
                         func(
                             arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})...
-                        )
+                        ),
+                        retval
                     );
                 }
             )
         }
         template<std::size_t... Ns>
-        static void* static_invoke_method(TRet(*func)(TArgs..., const MethodInfo*), void** args, const MethodInfo* m, std::index_sequence<Ns...>) {
+        static void static_invoke_method(TRet(*func)(TArgs..., const MethodInfo*), [[maybe_unused]] void* retval, void** args, const MethodInfo* m, std::index_sequence<Ns...>) {
             IL2CPP_CATCH_HANDLER(
                 if constexpr (std::is_same_v<TRet, void>) {
                     func(
                         arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})..., m
                     );
-                    return nullptr;
                 } else {
-                    return arg_helper::pack_result(
+                    arg_helper::pack_result_into(
                         func(
                             arg_helper::unpack_arg(args[Ns], type_tag<TArgs>{})..., m
-                        )
+                        ),
+                        retval
                     );
                 }
             )
@@ -301,16 +336,13 @@ namespace custom_types {
             auto func = reinterpret_cast<TRet(*)(TArgs...)>(ptr);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            auto res = static_invoke(func, args, seq);
-            retval = res;
-
-            // FIXME: assign result to retval somehow. retval should already be a pointer to an object of the correct size, so memcpy or similiar acts should be fine?
+            static_invoke(func, retval, args, seq);
         }
         [[gnu::noinline]]
         static void invoke_method(Il2CppMethodPointer ptr, const MethodInfo* m, [[maybe_unused]] void* obj, void** args, void* retval) {
             auto func = reinterpret_cast<TRet(*)(TArgs..., const MethodInfo*)>(ptr);
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
-            retval = static_invoke_method(func, args, m, seq);
+            retval = static_invoke_method(func, retval, args, m, seq);
         }
     };
 }
