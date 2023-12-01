@@ -710,10 +710,8 @@ ___CREATE_INSTANCE_METHOD(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod(
 // For value types, try placement new instead, or INVOKE_VALUE_CTOR.
 #define INVOKE_CTOR(...) \
 do { \
-char ___buff[___Base__Size]; \
-memcpy(___buff, this, ___Base__Size); \
-new (this) ___TargetType(__VA_ARGS__); \
-memcpy(this, ___buff, ___Base__Size); \
+auto& internal = __get_internal();
+new (&internal) ___InternalRepresentation(__VA_ARGS__); \
 } while (0)
 
 #ifdef INVOKE_VALUE_CTOR
@@ -741,9 +739,9 @@ void __ctor() { \
     INVOKE_BASE_CTOR(___TargetType::___TypeRegistration::get()->baseType()); \
 } \
 template<::il2cpp_utils::CreationType creationType = ::il2cpp_utils::CreationType::Temporary, class... TArgs> \
-static ___TargetType* New_ctor(TArgs&&... args) { \
+static ___TargetType New_ctor(TArgs&&... args) { \
     static_assert(::custom_types::Decomposer<decltype(&___TargetType::__ctor)>::convertible<TArgs...>(), "Arguments provided to New_ctor must be convertible to the constructor!"); \
-    return THROW_UNLESS(il2cpp_utils::New<___TargetType*, creationType>(___TypeRegistration::klass_ptr, std::forward<TArgs>(args)...)); \
+    return ___TargetType(THROW_UNLESS(il2cpp_utils::New<void*, creationType>(___TypeRegistration::klass_ptr, std::forward<TArgs>(args)...))); \
 } \
 ___CREATE_INSTANCE_METHOD(__ctor, ".ctor", METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG | METHOD_ATTRIBUTE_SPECIAL_NAME | METHOD_ATTRIBUTE_RT_SPECIAL_NAME, nullptr)
 
