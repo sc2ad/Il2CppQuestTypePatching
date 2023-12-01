@@ -4,7 +4,7 @@
   "info": {
     "name": "custom-types",
     "id": "custom-types",
-    "version": "0.15.24",
+    "version": "0.20.0",
     "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
     "additionalData": {
       "overrideSoName": "libcustom-types.so",
@@ -15,12 +15,17 @@
   "dependencies": [
     {
       "id": "beatsaber-hook",
-      "versionRange": "^3.15.0",
+      "versionRange": "^5.0.0",
       "additionalData": {
         "extraFiles": [
           "src/inline-hook"
         ]
       }
+    },
+    {
+      "id": "libil2cpp",
+      "versionRange": "^0.3.0",
+      "additionalData": {}
     },
     {
       "id": "capstone",

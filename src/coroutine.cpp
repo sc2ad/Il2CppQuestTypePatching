@@ -48,61 +48,61 @@ namespace custom_types::Helpers {
 
     void ResetableCoroutine::ctor(CoroFuncType* creator) {
         // Create copy
-        coroCreator = *creator;
-        currentCoro = new Coroutine(coroCreator());
-        current = nullptr;
+        __set_coroCreator(*creator);
+        __set_currentCoro(new Coroutine(__get_coroCreator()()));
+        __set_current(nullptr);
         // Valid is only set to false when this instance is destroyed to prevent further calls.
-        valid = true;
+        __set_valid(true);
     }
 
     bool ResetableCoroutine::MoveNext() {
-        if (!valid) {
+        if (!__get_valid()) {
             throw CoroutineDisposed();
         }
-        return InternalHelper::MoveNextHelper(currentCoro, current);
+        return InternalHelper::MoveNextHelper(__get_currentCoro(), __get_current());
     }
 
     Il2CppObject* ResetableCoroutine::get_Current() {
-        return reinterpret_cast<Il2CppObject*>(current.instance);
+        return reinterpret_cast<Il2CppObject*>(__get_current().instance);
     }
 
     void ResetableCoroutine::Reset() {
-        if (!valid) {
+        if (!__get_valid()) {
             throw CoroutineDisposed();
         }
         // When we reset this coroutine, we need to destroy our current coroutine.
         // Then we need to get a new one
         // Then we need to set our current to nullptr
-        if (currentCoro) {
-            delete currentCoro;
+        if (__get_currentCoro()) {
+            delete __get_currentCoro();
         }
-        currentCoro = new Coroutine(coroCreator());
-        current = nullptr;
+        __set_currentCoro(new Coroutine(__get_coroCreator()()));
+        __set_current(nullptr);
     }
 
     void ResetableCoroutine::Finalize() {
         // On destruction, we must destroy everything we have.
-        valid = false;
-        coroCreator.~CoroFuncType();
-        delete currentCoro;
+        __set_valid(false);
+        __get_coroCreator().~CoroFuncType();
+        delete __get_currentCoro();
         // It does not matter what current is, as GC will no longer see this reference and it will get cleaned up later.
     }
 
     void StandardCoroutine::ctor(Coroutine* coro) {
-        current = nullptr;
-        currentCoro = coro;
-        valid = true;
+        __set_current(nullptr);
+        __set_currentCoro(coro);
+        __set_valid(true);
     }
 
     bool StandardCoroutine::MoveNext() {
-        if (!valid) {
+        if (!__get_valid()) {
             throw CoroutineDisposed();
         }
-        return InternalHelper::MoveNextHelper(currentCoro, current);
+        return InternalHelper::MoveNextHelper(__get_currentCoro(), __get_current());
     }
 
     Il2CppObject* StandardCoroutine::get_Current() {
-        return reinterpret_cast<Il2CppObject*>(current.instance);
+        return reinterpret_cast<Il2CppObject*>(__get_current().instance);
     }
 
     void StandardCoroutine::Reset() {
@@ -111,8 +111,8 @@ namespace custom_types::Helpers {
 
     void StandardCoroutine::Finalize() {
         // On destruction, we must destroy everything we have.
-        valid = false;
-        delete currentCoro;
+        __set_valid(false);
+        delete __get_currentCoro();
         // It does not matter what current is, as GC will no longer see this reference and it will get cleaned up later.
     }
 

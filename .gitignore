@@ -44,7 +44,6 @@ out/
 ndkpath.txt
 *.zip
 
-qpm.shared.json
 extern/
 extern.cmake
 qpm_defines.cmake
@@ -57,3 +56,4 @@ mod.json
 .vs/
 tombstone_*
 *.txt
+.cache

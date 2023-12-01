@@ -9,6 +9,11 @@
 #include "beatsaber-hook/shared/utils/utils.h"
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
+// compatibility with non-clang compilers
+#ifndef __has_declspec_attribute
+#define __has_declspec_attribute(x) 0
+#endif
+
 // Explicit macros defined here are laid out all here, ctrl-f for a specific name to find its impls.
 
 #ifdef DECLARE_CLASS
@@ -55,15 +60,17 @@
 #define INTERFACE_LIST(...) ::custom_types::ExtractClasses<__VA_ARGS__>()
 #endif
 
-// Helper macro for declaring classes with and without interfaces
-#define ___DECLARE_TYPE_WRAPPER(namespaze_, name_, typeEnum_, baseNamespaze, baseName, baseSize, dllName_, interfaces_, flags_, ...) \
+// Helper macro for declaring reference wrapper typesd with and without interfaces
+#define ___DECLARE_CLASS_WRAPPER_TYPE(namespaze_, name_, baseNamespaze, baseName, baseSize, dllName_, interfaces_, flags_, ...) \
 namespace namespaze_ { \
     class name_; \
 } \
+MARK_REF_T(namespaze_::name_); \
 namespace namespaze_ { \
-    class name_ { \
+    class name_ : public bs_hook::Il2CppWrapperType { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = baseSize; \
+        constexpr static auto __IL2CPP_IS_VALUE_TYPE = false; \
         friend ::custom_types::Register; \
         public: \
         struct ___TypeRegistration : ::custom_types::TypeRegistration { \
@@ -124,7 +131,7 @@ namespace namespaze_ { \
                 return interfaces_; \
             } \
             constexpr Il2CppTypeEnum typeEnum() const override { \
-                return typeEnum_; \
+                return Il2CppTypeEnum::IL2CPP_TYPE_CLASS; \
             } \
             constexpr uint32_t typeFlags() const override { \
                 return flags_; \
@@ -134,7 +141,7 @@ namespace namespaze_ { \
                 return klass_ptr; \
             } \
             size_t size() const override { \
-                return sizeof(___TargetType); \
+                return ___TargetType::__IL2CPP_REFERENCE_TYPE_SIZE; \
             } \
             TypeRegistration* customBase() const override { \
                 return nullptr; \
@@ -151,13 +158,16 @@ namespace namespaze_ { \
                 return instance; \
             } \
         }; \
-        uint8_t _baseFields[baseSize]; \
         public: \
+        explicit name_(void* i) : bs_hook::Il2CppWrapperType(i) {} \
         __VA_ARGS__ \
+        public:\
+        static constexpr auto __IL2CPP_REFERENCE_TYPE_SIZE = ___Base__Size + sizeof(___InternalRepresentation);\
     }; \
 } \
+static_assert(sizeof(::namespaze_::name_) == sizeof(void*), "Wrapper types should never have extra instance fields within, as those fields are meaningless!");\
 template<> \
-struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_> { \
     static inline Il2CppClass* get() { \
         return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
     } \
@@ -167,15 +177,17 @@ struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
     constexpr static bool value = false; \
 };
 
-// Helper for declaring classes with and without interfaces with explicit inheritance
-#define ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze_, name_, typeEnum_, baseT, dllName_, interfaces_, flags_, baseCustom, ...) \
+// Helper for declaring classes with and without interfaces with explicit inheritance of a wrapper type
+#define ___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze_, name_, baseT, dllName_, interfaces_, flags_, baseCustom, ...) \
 namespace namespaze_ { \
     class name_; \
 } \
+MARK_REF_T(namespaze_::name_); \
 namespace namespaze_ { \
     class name_ : public baseT { \
         using ___TargetType = name_; \
-        constexpr static auto ___Base__Size = sizeof(baseT); \
+        constexpr static auto ___Base__Size = il2cpp_instance_sizeof(baseT);\
+        constexpr static auto __IL2CPP_IS_VALUE_TYPE = false;\
         friend ::custom_types::Register; \
         public: \
         struct ___TypeRegistration : ::custom_types::TypeRegistration { \
@@ -230,13 +242,13 @@ namespace namespaze_ { \
                 return dllName_; \
             } \
             Il2CppClass* baseType() const override { \
-                return ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get(); \
+                return ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT>::get(); \
             } \
             std::vector<Il2CppClass*> const interfaces() const override { \
                 return interfaces_; \
             } \
             constexpr Il2CppTypeEnum typeEnum() const override { \
-                return typeEnum_; \
+                return Il2CppTypeEnum::IL2CPP_TYPE_CLASS; \
             } \
             constexpr uint32_t typeFlags() const override { \
                 return flags_; \
@@ -246,7 +258,7 @@ namespace namespaze_ { \
                 return klass_ptr; \
             } \
             size_t size() const override { \
-                return sizeof(___TargetType); \
+                return ___TargetType::__IL2CPP_REFERENCE_TYPE_SIZE; \
             } \
             TypeRegistration* customBase() const override { \
                 return baseCustom; \
@@ -264,11 +276,15 @@ namespace namespaze_ { \
             } \
         }; \
         public: \
+        explicit name_(void* i) : baseT(i) {}\
         __VA_ARGS__ \
+        public:\
+        constexpr static auto __IL2CPP_REFERENCE_TYPE_SIZE = ___Base__Size + sizeof(___InternalRepresentation);\
     }; \
 } \
+static_assert(sizeof(::namespaze_::name_) == sizeof(void*), "Wrapper types should never have extra instance fields within, as those fields are meaningless!");\
 template<> \
-struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_> { \
     static inline Il2CppClass* get() { \
         return ::namespaze_::name_::___TypeRegistration::klass_ptr; \
     } \
@@ -283,42 +299,42 @@ struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS(namespaze, name, baseNamespaze, baseName, baseSize, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, #namespaze, {}, 0, __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE(namespaze, name, baseNamespaze, baseName, baseSize, #namespaze, {}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base namespace, base name, baseSize, and dll name.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_DLL(namespaze, name, baseNamespaze, baseName, baseSize, dllName_, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, dllName_, {}, 0, __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE(namespaze, name, baseNamespaze, baseName, baseSize, dllName_, {}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base namespace, base name, baseSize, and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_INTERFACES(namespaze, name, baseNamespaze, baseName, baseSize, interfaces, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, #namespaze, {interfaces}, 0, __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE(namespaze, name, baseNamespaze, baseName, baseSize, #namespaze, {interfaces}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base namespace, base name, baseSize, dll name, and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this holds DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_INTERFACES_DLL(namespaze, name, baseNamespaze, baseName, baseSize, dllName_, interfaces, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseNamespaze, baseName, baseSize, dllName_, {interfaces}, 0, __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE(namespaze, name, baseNamespaze, baseName, baseSize, dllName_, {interfaces}, 0, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, and base type.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
-#define DECLARE_CLASS_CODEGEN(namespaze, name, baseT, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, #namespaze, {}, 0, nullptr, __VA_ARGS__)
+#define DECLARE_CLASS_CORDL(namespaze, name, baseT, ...) \
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseT, #namespaze, {}, 0, nullptr, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base type, and dllName.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
-#define DECLARE_CLASS_CODEGEN_DLL(namespaze, name, baseT, dllName_, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, dllName_, {}, 0, nullptr, __VA_ARGS__)
+#define DECLARE_CLASS_CORDL_DLL(namespaze, name, baseT, dllName_, ...) \
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseT, dllName_, {}, 0, nullptr, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base type, and interface types.
 // Assumes the class being declared is non-abstract.
@@ -326,8 +342,8 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 // TODO: Note that this type does NOT properly inherit its interfaces or provide conversion operators.
 // Casts WILL be necessary.
-#define DECLARE_CLASS_CODEGEN_INTERFACES(namespaze, name, baseT, interfaceTs, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, #namespaze, {interfaceTs}, 0, nullptr, __VA_ARGS__)
+#define DECLARE_CLASS_CORDL_INTERFACES(namespaze, name, baseT, interfaceTs, ...) \
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseT, #namespaze, {interfaceTs}, 0, nullptr, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base type, dll name, and interface types.
 // Assumes the class being declared is non-abstract.
@@ -335,50 +351,50 @@ ___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 // TODO: Note that this type does NOT properly inherit its interfaces or provide conversion operators.
 // Casts WILL be necessary.
-#define DECLARE_CLASS_CODEGEN_INTERFACES_DLL(namespaze, name, baseT, interfaceTs, dllName_, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseT, dllName_, interfaceTs, 0, nullptr, __VA_ARGS__)
+#define DECLARE_CLASS_CORDL_INTERFACES_DLL(namespaze, name, baseT, interfaceTs, dllName_, ...) \
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseT, dllName_, interfaceTs, 0, nullptr, __VA_ARGS__)
 
 // Declares a class with the given namespace, name, and base type (WHICH MUST BE A DECLARE TYPE OF ITS OWN!)
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_CUSTOM(namespaze, name, baseCustomT, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseCustomT, #namespaze, {}, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseCustomT, #namespaze, {}, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
 
 // Declares a class with the given namespace, name, base type (WHICH MUST BE A DECLARE TYPE OF ITS OWN!), and dll name.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_CUSTOM_DLL(namespaze, name, baseCustomT, dllName_, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseCustomT, dllName_, {}, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseCustomT, dllName_, {}, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
 
 // Declares a class with the given namespace, name, and base type (WHICH MUST BE A DECLARE TYPE OF ITS OWN!), and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_CUSTOM_INTERFACES(namespaze, name, baseCustomT, interfaceTs, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseCustomT, #namespaze, interfaceTs, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseCustomT, #namespaze, interfaceTs, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
 
 // Declares a class with the given namespace, name, and base type (WHICH MUST BE A DECLARE TYPE OF ITS OWN!), dll name, and interface list.
 // Assumes the class being declared is non-abstract.
 // impl specifies the implementation of the class, the actual definition of the type.
 // It is recommended this hold other DECLARE statements, as defined in macros.hpp
 #define DECLARE_CLASS_CUSTOM_INTERFACES_DLL(namespaze, name, baseCustomT, dllName_, interfaceTs, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_CLASS, baseCustomT, dllName_, interfaceTs, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
+___DECLARE_CLASS_WRAPPER_TYPE_INHERITANCE(namespaze, name, baseCustomT, dllName_, interfaceTs, 0, baseCustomT::___TypeRegistration::get(), __VA_ARGS__)
 
 // Declares a value type with the given namespace, name, base namespace, base name, and baseSize.
 // Assumes the struct being declared is non-generic/abstract.
 // impl specifies the implementation of the class, which is the actual definition of the type.
 // It is recommended that this holds DECLARE statements as defined in macros.hpp, but fields can ultimately be of any type.
 #define DECLARE_VALUE(namespaze, name, baseNamespaze, baseName, baseSize, ...) \
-___DECLARE_TYPE_WRAPPER(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_VALUETYPE, baseNamespaze, baseName, baseSize, #namespaze, {}, 0, __VA_ARGS__)
+namespace namespaze { struct [[deprecated("Declaring custom value types is deprecated")]] name { }; }
 
 // Declares a value type with the given namespace, name, and base type.
 // Assumes the struct being declared is non-abstract.
 // impl specifies the implementation of the struct, the actual definition of the type.
 // It is recommended that this holds DECLARE statements as defined in macros.hpp, but fields can ultimately be of any type.
-#define DECLARE_VALUE_CODEGEN(namespaze, name, baseT, ...) \
-___DECLARE_TYPE_WRAPPER_INHERITANCE(namespaze, name, Il2CppTypeEnum::IL2CPP_TYPE_VALUETYPE, baseT, #namespaze, {}, 0, nullptr, __VA_ARGS__)
+#define DECLARE_VALUE_CORDL(namespaze, name, baseT, ...) \
+namespace namespaze { struct [[deprecated("Declaring custom value types is deprecated")]] name { }; }
 
 #ifdef DEFINE_TYPE
 #error "DEFINE_TYPE is already defined! Undefine it before including macros.hpp!"
@@ -394,14 +410,13 @@ bool namespaze::name::___TypeRegistration::init = false;
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
 
-#ifdef DECLARE_INSTANCE_FIELD_DEFAULT
-#error "DECLARE_INSTANCE_FIELD_DEFAULT is already defined! Undefine it before including macros.hpp!"
+#ifdef DEFINE_INSTANCE_FIELD_REGISTRATOR
+#error "DEFINE_INSTANCE_FIELD_REGISTRATOR is already defined! Undefine it before including macros.hpp!"
 #endif
-// Declares a field with type, name, value.
-// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
-// Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
-#define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
-private: \
+
+// used by all DECLARE_INSTANCE_FIELD_... macros to easily define their registrator, since they're all the same
+#define DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, visibility_)\
+private:\
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
     ___FieldRegistrator_##name_() { \
         ___TargetType::___TypeRegistration::addField(this); \
@@ -414,19 +429,27 @@ struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
         return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
     } \
     constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PUBLIC; \
+        return visibility_; \
     } \
     constexpr size_t size() const override { \
-        return sizeof(type_); \
+        return il2cpp_sizeof(type_); \
     } \
     int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
+        return ___TargetType::___Base__Size + offsetof(___InternalRepresentation, name_); \
     } \
 }; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-public: \
-type_ name_ = value
+static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator
 
+#ifdef DECLARE_INSTANCE_FIELD_DEFAULT
+#error "DECLARE_INSTANCE_FIELD_DEFAULT is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// Declares a field with type, name, value.
+// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
+// Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
+#define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC); \
+public: custom_types::extracted_field_t<type_> name_ = value
 
 #ifdef DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT
 #error "DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT is already defined! Undefine it before including macros.hpp!"
@@ -435,93 +458,91 @@ type_ name_ = value
 // Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
 // Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
 #define DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT(type_, name_, value) \
-private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PRIVATE; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
-}; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-private: \
-type_ name_ = value
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE); \
+private: custom_types::extracted_field_t<type_> name_ = value
 
 #ifdef DECLARE_INSTANCE_FIELD
 #error "DECLARE_INSTANCE_FIELD is already defined! Undefine it before including macros.hpp!"
 #endif
+
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD(type_, name_) \
-private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PUBLIC; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
-}; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-public: \
-type_ name_
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC); \
+public: custom_types::extracted_field_t<type_> name_
 
 #ifdef DECLARE_INSTANCE_FIELD_PRIVATE
 #error "DECLARE_INSTANCE_FIELD_PRIVATE is already defined! Undefine it before including macros.hpp!"
 #endif
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD_PRIVATE(type_, name_) \
-private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PRIVATE; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE); \
+private: custom_types::extracted_field_t<type_> name_
+
+#ifdef DECLARE_FIELDS
+#error "DECLARE_FIELDS is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#if __has_declspec_attribute(property)
+// put all fields you want on your type into this macro, fields should never go OUTSIDE this, except when using the FIELD_ACCESSOR macro
+// it's up to the user whether the internal representation of this type is accessible to outside this type
+#define DECLARE_FIELDS(...) \
+struct ___InternalRepresentation { \
+    __VA_ARGS__\
+    friend ___TargetType;\
 }; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-private: \
-type_ name_
+___InternalRepresentation& __get_internal() { \
+    return *reinterpret_cast<___InternalRepresentation*>(reinterpret_cast<uint8_t*>(convert()) + ___TargetType::___Base__Size); \
+}\
+__declspec(property(get=__get_internal)) ___InternalRepresentation internal
+#else
+#define DECLARE_FIELDS(...) \
+struct ___InternalRepresentation { \
+    __VA_ARGS__\
+    friend ___TargetType;\
+}; \
+___InternalRepresentation& __get_internal() { \
+    return *reinterpret_cast<___InternalRepresentation*>(reinterpret_cast<uint8_t*>(convert()) + ___TargetType::___Base__Size); \
+}
+#endif
+
+#ifdef INSTANCE_FIELD_GETTER
+#error "INSTANCE_FIELD_GETTER is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// field accessor for getting the field value, should be smart enough to return T& for value types & cpp types, while also returning T for reference types
+#define INSTANCE_FIELD_GETTER(name_) \
+inline decltype(auto) __get_ ##name_() { \
+    using ty = decltype(___InternalRepresentation::name_); \
+    static auto constexpr offset = ___TargetType::___Base__Size + offsetof(___InternalRepresentation, name_); \
+    return ::custom_types::read_field<ty>(convert(), offset); \
+}
+
+#ifdef INSTANCE_FIELD_SETTER
+#error "INSTANCE_FIELD_SETTER is already defined! Undefine it before including macros.hpp!"
+#endif
+
+// field accessor for setting the field value, should be smart enough to automatically wbarrier ref types, while just normally assigning value types
+#define INSTANCE_FIELD_SETTER(name_) \
+inline void __set_ ##name_(decltype(___InternalRepresentation::name_) value) { \
+    using ty = decltype(___InternalRepresentation::name_); \
+    static auto constexpr offset = ___TargetType::___Base__Size + offsetof(___InternalRepresentation, name_); \
+    ::custom_types::write_field<ty>(instance, offset, std::forward<ty>(value)); \
+}
+
+#ifdef FIELD_ACCESSOR
+#error "FIELD_ACCESSOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#if __has_declspec_attribute(property)
+#define FIELD_ACCESSOR(name_) \
+INSTANCE_FIELD_GETTER(name_) \
+INSTANCE_FIELD_SETTER(name_) \
+__declspec(property(get=__get_##name_, put=__set_##name_)) decltype(___InternalRepresentation::name_) name_
+#else
+#define FIELD_ACCESSOR(name_) \
+INSTANCE_FIELD_GETTER(name_) \
+INSTANCE_FIELD_SETTER(name_)
+#endif
 
 #ifdef DECLARE_STATIC_FIELD
 #error "DECLARE_STATIC_FIELD is already defined! Undefine it before including macros.hpp!"

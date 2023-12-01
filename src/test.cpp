@@ -95,7 +95,7 @@ void Il2CppNamespace::MyTypeDllTest::ctor() {
 DECLARE_CLASS_INTERFACES(Il2CppNamespace, MyCustomBeatmapLevelPackCollection, "System", "Object", sizeof(Il2CppObject),
     (il2cpp_utils::GetClassFromName("", "IBeatmapLevelPackCollection")),
     DECLARE_INSTANCE_FIELD(Il2CppArray*, wrappedArr);
-    
+
     DECLARE_OVERRIDE_METHOD(Il2CppArray*, get_beatmapLevelPacks, il2cpp_utils::FindMethod("", "IBeatmapLevelPackCollection", "get_beatmapLevelPacks"));
     DECLARE_CTOR(ctor, Il2CppArray* originalArray);
 )
@@ -137,14 +137,6 @@ void Il2CppNamespace::MyCustomBeatmapCollection2::ctor(Il2CppArray* originalArra
 // SmallTest::Test* SmallTest::Test::SelfRef(int x) {
 //     return CRASH_UNLESS(il2cpp_utils::New<SmallTest::Test*>());
 // }
-
-DECLARE_VALUE(ValueTest, Test, "System", "ValueType", 0,
-    DECLARE_INSTANCE_FIELD(int, x);
-    DECLARE_INSTANCE_FIELD(int, y);
-    DECLARE_INSTANCE_FIELD(int, z);
-)
-
-DEFINE_TYPE(ValueTest, Test);
 
 DECLARE_CLASS(SmallTest, TestIt2, "System", "Object", sizeof(Il2CppObject),
     std::vector<void*> allocField;

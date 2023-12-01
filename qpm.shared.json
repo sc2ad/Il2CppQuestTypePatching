@@ -1,0 +1,87 @@
+{
+  "config": {
+    "sharedDir": "shared",
+    "dependenciesDir": "extern",
+    "info": {
+      "name": "custom-types",
+      "id": "custom-types",
+      "version": "0.20.0",
+      "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
+      "additionalData": {
+        "soLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching.so",
+        "debugSoLink": "https://github.com/sc2ad/Il2CppQuestTypePatching/releases/download/v0.1.0/libtypepatching_debug.so",
+        "overrideSoName": "libcustom-types.so"
+      }
+    },
+    "dependencies": [
+      {
+        "id": "beatsaber-hook",
+        "versionRange": "^5.0.0",
+        "additionalData": {
+          "extraFiles": [
+            "src/inline-hook"
+          ]
+        }
+      },
+      {
+        "id": "libil2cpp",
+        "versionRange": "^0.3.0",
+        "additionalData": {}
+      },
+      {
+        "id": "capstone",
+        "versionRange": "^0.1.0",
+        "additionalData": {
+          "private": true
+        }
+      }
+    ],
+    "workspace": null
+  },
+  "restoredDependencies": [
+    {
+      "dependency": {
+        "id": "libil2cpp",
+        "versionRange": "=0.3.1",
+        "additionalData": {
+          "headersOnly": true
+        }
+      },
+      "version": "0.3.1"
+    },
+    {
+      "dependency": {
+        "id": "beatsaber-hook",
+        "versionRange": "=5.0.0",
+        "additionalData": {
+          "soLink": "https://github.com/sc2ad/beatsaber-hook/releases/download/v0.5.8/libbeatsaber-hook.so",
+          "debugSoLink": "https://github.com/sc2ad/beatsaber-hook/releases/download/v0.5.8/debug_libbeatsaber-hook.so",
+          "branchName": "master"
+        }
+      },
+      "version": "5.0.0"
+    },
+    {
+      "dependency": {
+        "id": "scotland2",
+        "versionRange": "=0.1.3",
+        "additionalData": {
+          "overrideSoName": "libsl2.so"
+        }
+      },
+      "version": "0.1.3"
+    },
+    {
+      "dependency": {
+        "id": "capstone",
+        "versionRange": "=0.1.0",
+        "additionalData": {
+          "staticLinking": true,
+          "soLink": "https://github.com/sc2ad/capstone-qpm/releases/download/v0.1.0/libcapstone.a",
+          "overrideSoName": "libcapstone.a"
+        }
+      },
+      "version": "0.1.0"
+    }
+  ]
+}
