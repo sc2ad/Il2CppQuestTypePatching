@@ -710,7 +710,7 @@ ___CREATE_INSTANCE_METHOD(__Finalize, "__Finalize", (::il2cpp_utils::FindMethod(
 // For value types, try placement new instead, or INVOKE_VALUE_CTOR.
 #define INVOKE_CTOR(...) \
 do { \
-auto& internal = __get_internal();
+auto& internal = __get_internal(); \
 new (&internal) ___InternalRepresentation(__VA_ARGS__); \
 } while (0)
 
