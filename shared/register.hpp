@@ -7,7 +7,7 @@
 #include <vector>
 #include "logging.hpp"
 #include "types.hpp"
-
+#include "beatsaber-hook/shared/utils/typedefs.h"
 
 template <>
 struct std::hash<std::pair<std::string, std::string>> {

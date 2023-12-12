@@ -57,6 +57,8 @@ namespace custom_types::Helpers {
     using Coroutine = generator<Wrapper>;
     using CoroFuncType = std::function<Coroutine ()>;
 }
+MARK_GEN_REF_PTR_T(custom_types::Helpers::generator);
+MARK_REF_PTR_T(custom_types::Helpers::Coroutine*);
 // Coroutine* mapped to void*
 template<>
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<custom_types::Helpers::Coroutine*> {
@@ -73,6 +75,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<custom_types::Help
         return il2cpp_functions::Class_GetPtrClass(il2cpp_functions::defaults->void_class);
     }
 };
+MARK_REF_PTR_T(custom_types::Helpers::CoroFuncType*);
 
 namespace custom_types::Helpers {
     /// @brief A helper type for creating custom coroutines C# from C++.
@@ -186,15 +189,11 @@ namespace custom_types::Helpers {
     }
 }
 
-DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "Object", sizeof(Il2CppObject), 
+DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "Object", sizeof(Il2CppObject),
         (il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator")),
     private:
     custom_types::Helpers::CoroFuncType coroCreator;
     custom_types::Helpers::Wrapper current;
-    // Explicitly delete copy constructor
-    ResetableCoroutine(const ResetableCoroutine& other) = delete;
-    // Explicitly delete move constructor
-    ResetableCoroutine(ResetableCoroutine&& other) = delete;
     // These fields exist as C# fields for semantic purposes only
     DECLARE_INSTANCE_FIELD(custom_types::Helpers::Coroutine*, currentCoro);
     DECLARE_INSTANCE_FIELD(bool, valid);
@@ -206,16 +205,12 @@ DECLARE_CLASS_INTERFACES(custom_types::Helpers, ResetableCoroutine, "System", "O
     DECLARE_DTOR(Finalize);
 )
 
-DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Object", sizeof(Il2CppObject), 
+DECLARE_CLASS_INTERFACES(custom_types::Helpers, StandardCoroutine, "System", "Object", sizeof(Il2CppObject),
         (il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator")),
     struct CoroutineNotResettable : std::runtime_error {
         CoroutineNotResettable() : std::runtime_error("StandardCoroutine is not resettable!") {}
     };
     custom_types::Helpers::Wrapper current;
-    // Explicitly delete copy constructor
-    StandardCoroutine(const StandardCoroutine& other) = delete;
-    // Explicitly delete move constructor
-    StandardCoroutine(StandardCoroutine&& other) = delete;
     // These fields exist as C# fields for semantic purposes only
     DECLARE_INSTANCE_FIELD(custom_types::Helpers::Coroutine*, currentCoro);
     DECLARE_INSTANCE_FIELD(bool, valid);
@@ -260,7 +255,7 @@ namespace custom_types::Helpers {
         constexpr T* operator->() noexcept {
             return ptr;
         }
-        
+
         private:
         T* ptr;
     };
@@ -272,7 +267,7 @@ namespace custom_types::Helpers {
     struct CoroutineHelper {
         private:
         static void EnsureCoroutines();
-        
+
         public:
         /// @brief Creates a new StandardCoroutine from the provided Coroutine instance, which is immediately rendered invalid.
         /// This function will throw a ::custom_types::Helpers::CoroutineAllocationFailed exception on failure.
