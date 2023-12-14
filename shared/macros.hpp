@@ -674,7 +674,7 @@ ___CREATE_INSTANCE_METHOD(name, #name, (overridingMethodInfo->flags & ~METHOD_AT
 // Declare an overriding method with: return type, name, method it is implementing, parameters...
 // This macro matches the DECLARE_OVERRIDE_METHOD macro except it matches the method you pass in with the il2cpp type check.
 #define DECLARE_OVERRIDE_METHOD_MATCH(ret, name, overridingMethod, ...) \
-DECLARE_OVERRIDE_METHOD(ret, name, il2cpp_utils::il2cpp_type_check::MetadataGetter<overridingMethod>::get() __VA_OPT__(, __VA_ARGS__))
+DECLARE_OVERRIDE_METHOD(ret, name, il2cpp_utils::il2cpp_type_check::MetadataGetter<overridingMethod>::methodInfo() __VA_OPT__(, __VA_ARGS__))
 
 #ifdef DECLARE_DTOR
 #error "DECLARE_DTOR is already defined! Undefine it before including macros.hpp!"
