@@ -191,11 +191,9 @@ namespace custom_types {
         static inline Q unpack_arg(void* arg, type_tag<Q>) {
             if constexpr (std::is_pointer_v<Q>) {
                 return reinterpret_cast<Q>(arg);
-            }
-            else if constexpr (il2cpp_utils::has_il2cpp_conversion<Q>) {
+            } else if constexpr (il2cpp_utils::il2cpp_reference_type_wrapper<Q>) {
                 return Q(arg);
-            }
-            else {
+            } else {
                 return *reinterpret_cast<Q*>(arg);
             }
         }
