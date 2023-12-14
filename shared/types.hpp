@@ -226,7 +226,7 @@ namespace custom_types {
             if constexpr (std::is_pointer_v<Q>) {
                 *static_cast<void**>(retval) = std::forward<Q>(thing);
             } else if constexpr (il2cpp_utils::il2cpp_reference_type_wrapper<Q>) {
-                static_cast<void**>(retval) = thing.convert();
+                *static_cast<void**>(retval) = thing.convert();
             } else if constexpr (il2cpp_utils::il2cpp_value_type<Q>) {
                 std::memcpy(retval, thing.convert(), il2cpp_instance_sizeof(Q));
             } else {
