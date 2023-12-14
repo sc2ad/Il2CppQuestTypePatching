@@ -469,9 +469,10 @@ static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator
 #error "DEFINE_INSTANCE_FIELD_ACCESSORS is already defined! Undefine it before including macros.hpp!"
 #endif
 
-#define DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_) \
+#define DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, visibility_) \
 protected: \
 static inline custom_types::field_accessor<type_> ___##name_##_FieldAccessor; \
+visibility_: \
 inline type_& __get_##name_() noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
 inline type_ const& __get_##name_() const noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
 inline void __set_##name_(type_ v) { ___##name_##_FieldAccessor.write(this, ___##name_##_FieldRegistrator.offset(), std::forward<type_>(v)); }
@@ -496,7 +497,7 @@ inline void __set_##name_(type_ v) { ___##name_##_FieldAccessor.write(this, ___#
 // Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
 #define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
 DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC);\
-DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, public);\
 public: \
 DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
 type_ BACKING_FIELD_NAME(name_) = value
@@ -509,7 +510,7 @@ type_ BACKING_FIELD_NAME(name_) = value
 // Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
 #define DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT(type_, name_, value) \
 DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE);\
-DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, private);\
 private: \
 DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
 type_ BACKING_FIELD_NAME(name_) = value
@@ -520,7 +521,7 @@ type_ BACKING_FIELD_NAME(name_) = value
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD(type_, name_) \
 DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC);\
-DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, public);\
 public: \
 DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
 type_ BACKING_FIELD_NAME(name_)
@@ -531,7 +532,7 @@ type_ BACKING_FIELD_NAME(name_)
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD_PRIVATE(type_, name_) \
 DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE);\
-DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, private);\
 private: \
 DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
 type_ BACKING_FIELD_NAME(name_)
