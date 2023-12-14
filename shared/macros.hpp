@@ -155,8 +155,9 @@ namespace namespaze_ { \
             } \
         }; \
         uint8_t _baseFields[baseSize]; \
+        private: \
+        name_() = default;\
         public: \
-        name_() = delete;\
         name_(name_&&) = delete;\
         name_(name_ const&) = delete;\
         __VA_ARGS__ \
@@ -275,8 +276,9 @@ namespace namespaze_ { \
                 return instance; \
             } \
         }; \
+        private: \
+        name_() = default;\
         public: \
-        name_() = delete;\
         name_(name_&&) = delete;\
         name_(name_ const&) = delete;\
         __VA_ARGS__ \
