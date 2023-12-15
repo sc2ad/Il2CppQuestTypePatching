@@ -120,7 +120,32 @@ namespace custom_types {
 		}
 		return vtableSize;
 	}
+	std::vector<Il2CppClass*> collect_parent_ifs(Il2CppClass* intf);
+	std::vector<Il2CppClass*> collect_parent_ifs(std::vector<Il2CppClass*> intfs);
 
+	std::vector<Il2CppClass*> collect_parent_ifs(Il2CppClass* intf) {
+		if (!intf->initialized) il2cpp_functions::Class_Init(intf);
+
+		auto ifs = std::vector<Il2CppClass*>(intf->implementedInterfaces, intf->implementedInterfaces + intf->interfaces_count);
+
+		if (intf->parent) {
+			auto parents = collect_parent_ifs(ifs);
+			ifs.insert(ifs.begin(), parents.begin(), parents.end());
+		}
+
+		return ifs;
+	}
+
+	std::vector<Il2CppClass*> collect_parent_ifs(std::vector<Il2CppClass*> intfs) {
+		std::vector<Il2CppClass*> ifs;
+
+		for (auto intf : intfs) {
+			auto implemented = collect_parent_ifs(intf);
+			ifs.insert(ifs.begin(), implemented.begin(), implemented.end());
+		}
+
+		return ifs;
+	}
 	void TypeRegistration::createClass() {
 		// Check to see if we have already created our class. If we have, use that.
 		auto* existing = klass();
@@ -181,6 +206,18 @@ namespace custom_types {
 		// Methods are set after processing methods
 		auto intfs = interfaces();
 		k->interfaces_count = intfs.size();
+
+		// scan for any interfaces the modder might have missed, since on quest all parent interfaces have to be implemented for things to work properly
+		auto parent_ifs = collect_parent_ifs(intfs);
+		for (auto parent : parent_ifs) {
+			if (!parent) continue;
+			if (!il2cpp_functions::class_is_interface(parent)) continue;
+			auto itr = std::find(intfs.begin(), intfs.end(), parent);
+			if (itr == intfs.end()) {
+				_logger().warning("Parent interface %s::%s did not appear in requested interfaces of type %s::%s, this can cause unexpected behaviour!", parent->namespaze, parent->name, namespaze(), name());
+			}
+		}
+
 		// k->implementedInterfaces needs to be allocated as well
 		k->implementedInterfaces = reinterpret_cast<Il2CppClass**>(calloc(intfs.size(), sizeof(Il2CppClass*)));
 		for (size_t i = 0; i < intfs.size(); i++) {
