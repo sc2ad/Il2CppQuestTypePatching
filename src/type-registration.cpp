@@ -355,7 +355,8 @@ namespace custom_types {
 		// This SHOULD be good enough for Finalize.
 		if (info->virtualMethod()) {
 			auto* k = info->virtualMethod()->klass;
-			return namespaze == k->namespaze && name == k->name && methodName == info->csharpName() && (paramCount >= 0 ? info->params_size() == paramCount : true);
+			// pure virtuals (abstract) have a vMethod->klass (& other data) that is null, but those can never be Finalize. therefore we just skip the rest of the checks if !k
+			return k && namespaze == k->namespaze && name == k->name && methodName == info->csharpName() && (paramCount >= 0 ? info->params_size() == paramCount : true);
 		}
 		return false;
 	}
@@ -424,6 +425,7 @@ namespace custom_types {
 			for (auto m : methods) {
 				auto* vMethod = m->virtualMethod();
 				if (vMethod != nullptr) {
+					logger.info("Handling override method %s", m->name());
 					bool set = false;
 					if (vMethod->slot < 0) {
 						logger.critical("Virtual data: %p has slot: %u which is invalid!", vMethod, vMethod->slot);
@@ -453,7 +455,9 @@ namespace custom_types {
 						// If it is, then we use that type's slot
 						auto* b = baseT;
 						while (b != nullptr) {
-							if (vMethod->klass == b) {
+							// pure virtuals (abstract) have a vMethod->klass (& other data) that is null
+							// TODO: verify whether this is correct behaviour!
+							if (vMethod->klass == b || !vMethod->klass) {
 								logger.debug("Matching base type: %p for method: %p", b, vMethod);
 								// We are implementing an abstract method from our abstract base. Use the virtual_data's slot exactly.
 								logger.debug("Using base slot: %u for method: %p", vMethod->slot, m->get());
@@ -514,7 +518,7 @@ namespace custom_types {
 					if (!set) {
 						// We should be implementing the interface.
 						// If we reach here, we don't implement or extend the virtual method we want to implement.
-						logger.critical("Method: %p needs virtual_data: %p which requires type: %p which does not exist!", m, vMethod, vMethod->klass);
+						logger.critical("Method: %s (%p) needs virtual_data: %p which requires type: %p which does not exist!", m->csharpName(), m, vMethod, vMethod->klass);
 						logger.critical("Ensure all of your virtual methods' types are defined in the interfaces in DECLARE_CLASS_INTERFACES!");
 						SAFE_ABORT();
 					}
