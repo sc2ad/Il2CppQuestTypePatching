@@ -15,6 +15,11 @@
 
 #endif
 
+// checks whether the ty->data could be a pointer. technically could be UB if the address is low enough
+bool MetadataHandleSet(const Il2CppType* ty) {
+    return ((uint64_t)ty->data.typeHandle >> 32);
+}
+
 template <class... TArgs>
 struct Hook_FromIl2CppTypeMain {
     constexpr static const char* name() {
@@ -40,9 +45,10 @@ struct Hook_FromIl2CppTypeMain {
             logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
             return nullptr;
         }
-        bool shouldBeOurs = false;
+        // preliminary check, if the metadata handle is not set this could be ours
+        bool shouldBeOurs = !MetadataHandleSet(typ);
         // klassIndex is only meaningful for these types
-        if ((typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.__klassIndex < 0) {
+        if (shouldBeOurs && (typ->type == IL2CPP_TYPE_CLASS || typ->type == IL2CPP_TYPE_VALUETYPE) && typ->data.__klassIndex < 0) {
             shouldBeOurs = true;
             // If the type matches our type
             size_t idx = kTypeDefinitionIndexInvalid - typ->data.__klassIndex;
@@ -79,17 +85,20 @@ MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
         logger.warning("Called with a null Il2CppClass*! (Specifically: %p)", klass);
         SAFE_ABORT();
     }
+
     auto typ = klass->this_arg;
-    if ((typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.__klassIndex < 0) {
-        // This is a custom class. Skip it.
+    if (!MetadataHandleSet(&typ) && (typ.type == IL2CPP_TYPE_CLASS || typ.type == IL2CPP_TYPE_VALUETYPE) && typ.data.__klassIndex < 0) {
         auto idx = kTypeDefinitionIndexInvalid - typ.data.__klassIndex;
-#ifndef NO_VERBOSE_LOGS
-        logger.debug("custom idx: %u", idx);
-#endif
-        return true;
-    } else {
-        return Class_Init(klass);
+        if (idx < (int)::custom_types::Register::classes.size() && idx >= 0) {
+            // This is a custom class. Skip it.
+    #ifndef NO_VERBOSE_LOGS
+            logger.debug("custom idx: %u", idx);
+    #endif
+            return true;
+        }
     }
+
+    return Class_Init(klass);
 }
 
 MAKE_HOOK(GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass*, TypeDefinitionIndex index) {
