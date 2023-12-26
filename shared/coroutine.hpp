@@ -29,7 +29,7 @@ namespace custom_types::Helpers {
 #include <functional>
 #include "macros.hpp"
 
-#ifdef HAS_CODEGEN
+#if __has_include("System/Collections/IEnumerator.hpp")
 #include "System/Collections/IEnumerator.hpp"
 namespace custom_types::Helpers {
     using enumeratorT = System::Collections::IEnumerator*;
