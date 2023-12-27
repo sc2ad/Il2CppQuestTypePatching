@@ -155,6 +155,8 @@ namespace namespaze_ { \
             } \
         }; \
         uint8_t _baseFields[baseSize]; \
+        protected: \
+        name_() {}; \
         public: \
         name_(name_&&) = delete;\
         name_(name_ const&) = delete;\
@@ -274,6 +276,8 @@ namespace namespaze_ { \
                 return instance; \
             } \
         }; \
+        protected: \
+        name_() {}; \
         public: \
         name_(name_&&) = delete;\
         name_(name_ const&) = delete;\

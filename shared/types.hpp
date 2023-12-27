@@ -225,8 +225,6 @@ namespace custom_types {
                 *static_cast<void**>(retval) = std::forward<Q>(thing);
             } else if constexpr (il2cpp_utils::il2cpp_reference_type_wrapper<Q>) {
                 *static_cast<void**>(retval) = thing.convert();
-            } else if constexpr (il2cpp_utils::il2cpp_value_type<Q>) {
-                std::memcpy(retval, thing.convert(), il2cpp_instance_sizeof(Q));
             } else {
                 auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
                 if (!klass) {
@@ -234,7 +232,7 @@ namespace custom_types {
                     return;
                 }
                 // the void* retval is a buffer created as being klass->instance_size - sizeof(Il2CppObject), see Runtime::InvokeWithThrow
-                auto sz = klass->instance_size - sizeof(Il2CppObject);
+                auto sz = sizeof(std::decay_t<Q>);
                 std::memcpy(retval, &thing, sz);
             }
         }

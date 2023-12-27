@@ -46,6 +46,7 @@ namespace custom_types::Helpers {
 namespace custom_types::Helpers {
     struct Wrapper {
         enumeratorT instance;
+        constexpr Wrapper() : instance(nullptr) {}
         constexpr Wrapper(enumeratorT value) : instance(value) {}
     };
     static_assert(sizeof(Wrapper) == sizeof(enumeratorT));
