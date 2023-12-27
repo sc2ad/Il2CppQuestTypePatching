@@ -9,14 +9,12 @@
       "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
       "additionalData": {
         "overrideSoName": "libcustom-types.so",
+        "compileOptions": {
+          "cppFlags": [
+            "-Wno-invalid-offsetof"
+          ]
+        },
         "cmake": true
-      }
-    },
-    "workspace": {
-      "scripts": {
-        "build": [
-          "pwsh ./build.ps1"
-        ]
       }
     },
     "dependencies": [
