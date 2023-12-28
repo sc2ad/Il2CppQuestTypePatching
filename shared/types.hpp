@@ -314,9 +314,12 @@ namespace custom_types {
         static void invoke(Il2CppMethodPointer ptr, [[maybe_unused]] const MethodInfo* m, [[maybe_unused]] void* obj, void** args, void* retval) {
             // We also don't need to use anything from m so it is ignored.
             // Perhaps far in the future we will check attributes on it
-            auto func = reinterpret_cast<TRet(*)(TArgs...)>(ptr);
 
             auto seq = std::make_index_sequence<sizeof...(TArgs)>();
+
+            // post unity update delegates changed which use this invoke method
+            // they get passed a nullptr ptr arg, so if they do we just take the method pointer from the method info instead!
+            auto func = ptr ? reinterpret_cast<TRet(*)(TArgs...)>(ptr) : reinterpret_cast<TRet(*)(TArgs...)>(m->methodPointer);
 
             static_invoke(func, args, seq, retval);
         }
