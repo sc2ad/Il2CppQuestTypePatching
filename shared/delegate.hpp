@@ -483,7 +483,10 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
     auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.get();
     setup_for_delegate(method);
-    auto *delegate = CRASH_UNLESS(il2cpp_utils::New<T>(delegateClass, inst, &method));
+
+    auto* delegate = reinterpret_cast<T>(il2cpp_functions::object_new(delegateClass));
+    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, &method);
+
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
@@ -495,7 +498,10 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, T
     auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
     auto* method = DelegateWrapperInstance<R, I, TArgs...>::___Invoke_MethodRegistrator.get();
     setup_for_delegate(method);
-    auto* delegate = CRASH_UNLESS(il2cpp_utils::New<T>(delegateClass, inst, &method));
+
+    auto* delegate = reinterpret_cast<T>(il2cpp_functions::object_new(delegateClass));
+    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, &method);
+
     custom_types::_logger().debug("Created instance delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
