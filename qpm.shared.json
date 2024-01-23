@@ -6,7 +6,7 @@
       "name": "custom-types",
       "id": "custom-types",
       "version": "0.16.0",
-      "url": "https://github.com/sc2ad/Il2CppQuestTypePatching",
+      "url": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching",
       "additionalData": {
         "overrideSoName": "libcustom-types.so",
         "compileOptions": {
