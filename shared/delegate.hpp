@@ -485,7 +485,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     setup_for_delegate(method);
 
     auto* delegate = reinterpret_cast<T>(il2cpp_functions::object_new(delegateClass));
-    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, &method);
+    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, (void*)&method);
 
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
@@ -500,7 +500,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, T
     setup_for_delegate(method);
 
     auto* delegate = reinterpret_cast<T>(il2cpp_functions::object_new(delegateClass));
-    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, &method);
+    il2cpp_utils::RunMethod<void, false>(delegate, ".ctor", inst, (void*)&method);
 
     custom_types::_logger().debug("Created instance delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
