@@ -20,12 +20,8 @@
     "dependencies": [
       {
         "id": "beatsaber-hook",
-        "versionRange": "^5.0.1",
-        "additionalData": {
-          "extraFiles": [
-            "src/inline-hook"
-          ]
-        }
+        "versionRange": "^5.0.2",
+        "additionalData": {}
       },
       {
         "id": "capstone",
@@ -57,14 +53,14 @@
     {
       "dependency": {
         "id": "beatsaber-hook",
-        "versionRange": "=5.0.1",
+        "versionRange": "=5.0.2",
         "additionalData": {
-          "soLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.1/libbeatsaber-hook_5_0_1.so",
-          "debugSoLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.1/debug_libbeatsaber-hook_5_0_1.so",
-          "branchName": "version/v5_0_1"
+          "soLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.2/libbeatsaber-hook_5_0_2.so",
+          "debugSoLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.2/debug_libbeatsaber-hook_5_0_2.so",
+          "branchName": "version/v5_0_2"
         }
       },
-      "version": "5.0.1"
+      "version": "5.0.2"
     },
     {
       "dependency": {

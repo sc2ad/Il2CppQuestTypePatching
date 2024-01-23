@@ -7,6 +7,7 @@ project(${COMPILE_ID})
 # c++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # define that stores the actual source directory
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -41,13 +42,17 @@ endif()
 # recursively get all src files
 RECURSE_FILES(cpp_file_list ${SOURCE_DIR}/*.cpp)
 RECURSE_FILES(c_file_list ${SOURCE_DIR}/*.c)
+RECURSE_FILES(inline_hook_c ${EXTERN_DIR}/includes/beatsaber-hook/shared/inline-hook/*.c)
+RECURSE_FILES(inline_hook_cpp ${EXTERN_DIR}/includes/beatsaber-hook/shared/inline-hook/*.cpp)
 
 # add all src files to compile
 add_library(
-    ${COMPILE_ID} 
-    SHARED 
+    ${COMPILE_ID}
+    SHARED
     ${cpp_file_list}
     ${c_file_list}
+    ${inline_hook_c}
+    ${inline_hook_cpp}
 )
 
 # add src dir as include dir

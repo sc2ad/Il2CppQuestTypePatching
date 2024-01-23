@@ -17,12 +17,8 @@
   "dependencies": [
     {
       "id": "beatsaber-hook",
-      "versionRange": "^5.0.1",
-      "additionalData": {
-        "extraFiles": [
-          "src/inline-hook"
-        ]
-      }
+      "versionRange": "^5.0.2",
+      "additionalData": {}
     },
     {
       "id": "capstone",
