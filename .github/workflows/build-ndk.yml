@@ -1,15 +1,18 @@
 name: NDK build
 
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - "version-*"
+  pull_request:
+    branches-ignore:
+      - "version-*"
+
 env:
   module_id: custom-types
   qmodName: CustomTypes
   cache-name: customtypes_cache
-
-on:
-  workflow_dispatch:
-  push:
-  pull_request:
-    branches: [master]
 
 jobs:
   build:
@@ -24,9 +27,13 @@ jobs:
 
       - uses: seanmiddleditch/gha-setup-ninja@v3
 
+      - name: Setup canary NDK
+        id: setup-ndk
+        uses: ./.github/actions/canary-ndk
+
       - name: Create ndkpath.txt
         run: |
-          echo "$ANDROID_NDK_LATEST_HOME" > ${GITHUB_WORKSPACE}/ndkpath.txt
+          echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
           cat ${GITHUB_WORKSPACE}/ndkpath.txt
 
       - name: QPM Rust Action

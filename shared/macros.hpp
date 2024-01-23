@@ -60,12 +60,15 @@
 namespace namespaze_ { \
     class name_; \
 } \
+MARK_REF_PTR_T(namespaze_::name_);\
 namespace namespaze_ { \
     class name_ { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
         public: \
+        constexpr static bool __IL2CPP_IS_VALUE_TYPE = typeEnum_ != Il2CppTypeEnum::IL2CPP_TYPE_CLASS;\
+        static const int __IL2CPP_REFERENCE_TYPE_SIZE;\
         struct ___TypeRegistration : ::custom_types::TypeRegistration { \
             ___TypeRegistration() { \
                 ::custom_types::Register::AddType(this); \
@@ -152,9 +155,14 @@ namespace namespaze_ { \
             } \
         }; \
         uint8_t _baseFields[baseSize]; \
+        protected: \
+        name_() {}; \
         public: \
+        name_(name_&&) = delete;\
+        name_(name_ const&) = delete;\
         __VA_ARGS__ \
     }; \
+    inline constexpr const int name_::__IL2CPP_REFERENCE_TYPE_SIZE = sizeof(name_);\
 } \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
@@ -172,12 +180,15 @@ struct ::il2cpp_utils::il2cpp_type_check::need_box<::namespaze_::name_> { \
 namespace namespaze_ { \
     class name_; \
 } \
+MARK_REF_PTR_T(namespaze_::name_);\
 namespace namespaze_ { \
     class name_ : public baseT { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \
         public: \
+        constexpr static bool __IL2CPP_IS_VALUE_TYPE = typeEnum_ != Il2CppTypeEnum::IL2CPP_TYPE_CLASS;\
+        static const int __IL2CPP_REFERENCE_TYPE_SIZE;\
         struct ___TypeRegistration : ::custom_types::TypeRegistration { \
             ___TypeRegistration() { \
                 ::custom_types::Register::AddType(this); \
@@ -230,7 +241,9 @@ namespace namespaze_ { \
                 return dllName_; \
             } \
             Il2CppClass* baseType() const override { \
-                return ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get(); \
+                auto klass = ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<baseT*>::get();\
+                if (!klass->initialized) il2cpp_functions::Class_Init(klass);\
+                return klass;\
             } \
             std::vector<Il2CppClass*> const interfaces() const override { \
                 return interfaces_; \
@@ -263,9 +276,14 @@ namespace namespaze_ { \
                 return instance; \
             } \
         }; \
+        protected: \
+        name_() {}; \
         public: \
+        name_(name_&&) = delete;\
+        name_(name_ const&) = delete;\
         __VA_ARGS__ \
     }; \
+    inline constexpr const int name_::__IL2CPP_REFERENCE_TYPE_SIZE = sizeof(name_);\
 } \
 template<> \
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<::namespaze_::name_*> { \
@@ -394,13 +412,33 @@ bool namespaze::name::___TypeRegistration::init = false;
 // TODO: Add a way of declaring abstract/interface types.
 // This requires messing with method slots even more than I do right now.
 
-#ifdef DECLARE_INSTANCE_FIELD_DEFAULT
-#error "DECLARE_INSTANCE_FIELD_DEFAULT is already defined! Undefine it before including macros.hpp!"
+// if we compile with declspec, use that to wrap field accesses automatically,
+// this then requires the backing fields to have a different name, this achieves that
+#ifdef BACKING_FIELD_NAME
+#error "BACKING_FIELD_NAME is already defined! Undefine it before including macros.hpp!"
 #endif
-// Declares a field with type, name, value.
-// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
-// Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
-#define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
+
+#if __has_declspec_attribute(property) && !defined(CT_NO_DECLSPEC_PROPS)
+#define BACKING_FIELD_NAME(name_) ___backing_field_##name_
+#else
+#define BACKING_FIELD_NAME(name_) name_
+#endif
+
+#ifdef BACKING_FIELD_OFFSET_OF
+#error "BACKING_FIELD_OFFSET_OF is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#if __has_declspec_attribute(property) && !defined(CT_NO_DECLSPEC_PROPS)
+#define BACKING_FIELD_OFFSET_OF(name_) offsetof(___TargetType, ___backing_field_##name_)
+#else
+#define BACKING_FIELD_OFFSET_OF(name_) offsetof(___TargetType, name_)
+#endif
+
+#ifdef DEFINE_INSTANCE_FIELD_REGISTRATOR
+#error "DEFINE_INSTANCE_FIELD_REGISTRATOR is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#define DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, flags_)\
 private: \
 struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
     ___FieldRegistrator_##name_() { \
@@ -411,22 +449,58 @@ struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
     } \
     const Il2CppType* type() const override { \
         ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
+        auto klass = ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get();\
+        if (!klass->initialized) il2cpp_functions::Class_Init(klass);\
+        return ::il2cpp_functions::class_get_type(klass); \
     } \
     constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PUBLIC; \
+        return flags_; \
     } \
     constexpr size_t size() const override { \
         return sizeof(type_); \
     } \
     int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
+        return BACKING_FIELD_OFFSET_OF(name_); \
     } \
 }; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-public: \
-type_ name_ = value
+static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator
 
+#ifdef DEFINE_INSTANCE_FIELD_ACCESSORS
+#error "DEFINE_INSTANCE_FIELD_ACCESSORS is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#define DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, visibility_) \
+protected: \
+static inline custom_types::field_accessor<type_> ___##name_##_FieldAccessor; \
+visibility_: \
+inline type_& __get_##name_() noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
+inline type_ const& __get_##name_() const noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
+inline void __set_##name_(type_ v) { ___##name_##_FieldAccessor.write(this, ___##name_##_FieldRegistrator.offset(), std::forward<type_>(v)); }
+
+// if we have no property support, we should not emit code that tries to be one. instead just emit nothing.
+// earlier we defined a special way to have backing fields exist, so you will always be able to access the fields with this->fieldname
+#ifdef DECLARE_INSTANCE_CPP_PROPERTY
+#error "DECLARE_INSTANCE_CPP_PROPERTY is already defined! Undefine it before including macros.hpp!"
+#endif
+
+#if __has_declspec_attribute(property) && !defined(CT_NO_DECLSPEC_PROPS)
+#define DECLARE_INSTANCE_CPP_PROPERTY(type_, name_) __declspec(property(get=__get_##name_,put=__set_##name_)) type_ name_
+#else
+#define DECLARE_INSTANCE_CPP_PROPERTY(type_, name_)
+#endif
+
+#ifdef DECLARE_INSTANCE_FIELD_DEFAULT
+#error "DECLARE_INSTANCE_FIELD_DEFAULT is already defined! Undefine it before including macros.hpp!"
+#endif
+// Declares a field with type, name, value.
+// Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
+// Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
+#define DECLARE_INSTANCE_FIELD_DEFAULT(type_, name_, value) \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, public);\
+public: \
+DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
+type_ BACKING_FIELD_NAME(name_) = value
 
 #ifdef DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT
 #error "DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT is already defined! Undefine it before including macros.hpp!"
@@ -435,93 +509,33 @@ type_ name_ = value
 // Fields declared like this must also be registered via REGISTER_FIELD within the REGISTER_TYPE function.
 // Fields like this are ONLY initialized when the C++ constructor is called. See the INVOKE_CTOR macro for more info.
 #define DECLARE_INSTANCE_FIELD_PRIVATE_DEFAULT(type_, name_, value) \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, private);\
 private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PRIVATE; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
-}; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-private: \
-type_ name_ = value
+DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
+type_ BACKING_FIELD_NAME(name_) = value
 
 #ifdef DECLARE_INSTANCE_FIELD
 #error "DECLARE_INSTANCE_FIELD is already defined! Undefine it before including macros.hpp!"
 #endif
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD(type_, name_) \
-private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PUBLIC; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
-}; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PUBLIC);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, public);\
 public: \
-type_ name_
+DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
+type_ BACKING_FIELD_NAME(name_)
 
 #ifdef DECLARE_INSTANCE_FIELD_PRIVATE
 #error "DECLARE_INSTANCE_FIELD_PRIVATE is already defined! Undefine it before including macros.hpp!"
 #endif
 // Declare a field with type, name.
 #define DECLARE_INSTANCE_FIELD_PRIVATE(type_, name_) \
+DEFINE_INSTANCE_FIELD_REGISTRATOR(type_, name_, FIELD_ATTRIBUTE_PRIVATE);\
+DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, private);\
 private: \
-struct ___FieldRegistrator_##name_ : ::custom_types::FieldRegistrator { \
-    ___FieldRegistrator_##name_() { \
-        ___TargetType::___TypeRegistration::addField(this); \
-    } \
-    constexpr const char* name() const override { \
-        return #name_; \
-    } \
-    const Il2CppType* type() const override { \
-        ::il2cpp_functions::Init(); \
-        return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<type_>::get()); \
-    } \
-    constexpr uint16_t fieldAttributes() const override { \
-        return FIELD_ATTRIBUTE_PRIVATE; \
-    } \
-    constexpr size_t size() const override { \
-        return sizeof(type_); \
-    } \
-    int32_t offset() const override { \
-        return offsetof(___TargetType, name_); \
-    } \
-}; \
-static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator; \
-private: \
-type_ name_
+DECLARE_INSTANCE_CPP_PROPERTY(type_, name_);\
+type_ BACKING_FIELD_NAME(name_)
 
 #ifdef DECLARE_STATIC_FIELD
 #error "DECLARE_STATIC_FIELD is already defined! Undefine it before including macros.hpp!"
@@ -590,10 +604,10 @@ struct ___MethodRegistrator_##name_<R (T::*)(TArgs...)> : ::custom_types::Method
         il2cpp_functions::Init(); \
         return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<R>::get()); \
     } \
-    std::vector<ParameterInfo> params() const override { \
+    std::vector<const Il2CppType*> params() const override { \
         int32_t counter = 0; \
         il2cpp_functions::Init(); \
-        return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get())})...}; \
+        return {(::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get()))...}; \
     } \
     uint8_t params_size() const override { \
         return sizeof...(TArgs); \
@@ -656,6 +670,14 @@ ___CREATE_INSTANCE_METHOD(name, #name, METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUT
 public: \
 ret name(__VA_ARGS__); \
 ___CREATE_INSTANCE_METHOD(name, #name, (overridingMethodInfo->flags & ~METHOD_ATTRIBUTE_ABSTRACT) | METHOD_ATTRIBUTE_PUBLIC | METHOD_ATTRIBUTE_HIDE_BY_SIG, overridingMethodInfo)
+
+#ifdef DECLARE_OVERRIDE_METHOD_MATCH
+#error "DECLARE_OVERRIDE_METHOD_MATCH is already defined! Undefine it before including macros.hpp!"
+#endif
+// Declare an overriding method with: return type, name, method it is implementing, parameters...
+// This macro matches the DECLARE_OVERRIDE_METHOD macro except it matches the method you pass in with the il2cpp type check.
+#define DECLARE_OVERRIDE_METHOD_MATCH(ret, name, overridingMethod, ...) \
+DECLARE_OVERRIDE_METHOD(ret, name, il2cpp_utils::il2cpp_type_check::MetadataGetter<overridingMethod>::methodInfo() __VA_OPT__(, __VA_ARGS__))
 
 #ifdef DECLARE_DTOR
 #error "DECLARE_DTOR is already defined! Undefine it before including macros.hpp!"
@@ -756,10 +778,10 @@ struct ___MethodRegistrator_##name_<R (*)(TArgs...)> : ::custom_types::MethodReg
         il2cpp_functions::Init(); \
         return ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<R>::get()); \
     } \
-    std::vector<ParameterInfo> params() const override { \
+    std::vector<const Il2CppType*> params() const override { \
         int32_t counter = 0; \
         il2cpp_functions::Init(); \
-        return {(ParameterInfo{"param", counter++, static_cast<uint32_t>(-1), ::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get())})...}; \
+        return {(::il2cpp_functions::class_get_type(::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<TArgs>::get()))...}; \
     } \
     uint8_t params_size() const override { \
         return sizeof...(TArgs); \
