@@ -52,7 +52,7 @@ namespace custom_types {
 
     /// @brief Logs the provided ParameterInfo*
     /// @param info The ParameterInfo* to log all fields on.
-    void logParam(const ParameterInfo* info);
+    void logParam(const Il2CppType* info, int index);
 
     /// @brief Logs the provided MethodInfo*
     /// @param info The MethodInfo* to log all fields on.

@@ -23,17 +23,20 @@ jobs:
 
       - uses: seanmiddleditch/gha-setup-ninja@v3
 
+      - name: Setup canary NDK
+        id: setup-ndk
+        uses: ./.github/actions/canary-ndk
+
       - name: Create ndkpath.txt
         run: |
-          echo "$ANDROID_NDK_LATEST_HOME" > ${GITHUB_WORKSPACE}/ndkpath.txt
+          echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
           cat ${GITHUB_WORKSPACE}/ndkpath.txt
 
-      - name: Get Tag Version
-        id: get_tag_version
+      - name: Extract version
+        id: version
         run: |
-          echo ${GITHUB_REF#refs/tags/}
-          echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
-          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+          echo "TAG=${GITHUB_REF#refs/tags/}" >> ${GITHUB_OUTPUT}
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> ${GITHUB_OUTPUT}
 
       - name: QPM Rust Action
         uses: Fernthedev/qpm-rust-action@main
@@ -47,8 +50,8 @@ jobs:
           publish: true
           publish_token: ${{secrets.PUBLISH_KEY}}
 
-          version: ${{ steps.get_tag_version.outputs.VERSION }}
-          tag: ${{ steps.get_tag_version.outputs.TAG }}
+          version: ${{ steps.version.outputs.VERSION }}
+          tag: ${{ steps.version.outputs.TAG }}
 
           # set to true if applicable, ASSUMES the file is already a release asset
           qpm_release_bin: true
@@ -76,13 +79,12 @@ jobs:
           pwsh -Command ./createqmod.ps1 ${{env.qmodName}}
 
       - name: Rename debug file
-        run: mv "./build/debug/${{ steps.libname.outputs.NAME }}" "./build/debug/debug_${{ steps.libname.outputs.NAME }}"
+        run: mv "./build/debug/${{ steps.libname.outputs.NAME }}" "./build/debug_${{ steps.libname.outputs.NAME }}"
 
       - name: Upload to Release
         id: upload_file_release
         uses: softprops/action-gh-release@v0.1.15
         with:
-          name: ${{ github.event.inputs.release_msg }}
           tag_name: ${{ github.event.inputs.version }}
           files: |
             ./build/${{ steps.libname.outputs.NAME }}
