@@ -497,7 +497,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
             }
         )
     );
-    CRASH_UNLESS(il2cpp_utils::RunMethod<void, false>(delegate, ctor_minfo, inst, (void*)&method));
+    CRASH_UNLESS(il2cpp_utils::RunMethodOpt<void, false>(delegate, ctor_minfo, inst, (void*)&method));
 
     custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
@@ -524,7 +524,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, T
             }
         )
     );
-    CRASH_UNLESS(il2cpp_utils::RunMethod<void, false>(delegate, ctor_minfo, inst, (void*)&method));
+    CRASH_UNLESS(il2cpp_utils::RunMethodOpt<void, false>(delegate, ctor_minfo, inst, (void*)&method));
 
     custom_types::_logger().debug("Created instance delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
