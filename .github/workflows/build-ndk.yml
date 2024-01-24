@@ -3,15 +3,20 @@ name: NDK build
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - "version-*"
+    tags:
+      - "v*"
+    branches:
+      - "master"
+      - "dev/*"
+      - "feat/*"
+      - "fix/*"
   pull_request:
-    branches-ignore:
-      - "version-*"
+    branches:
+      - "master"
 
 env:
   module_id: custom-types
-  qmodName: CustomTypes
+  qmod_name: CustomTypes
   cache-name: customtypes_cache
 
 jobs:
@@ -19,73 +24,107 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-        name: Checkout
-        with:
-          submodules: true
-          lfs: true
+    - uses: actions/checkout@v2
+      name: Checkout
+      with:
+        submodules: true
+        lfs: true
 
-      - uses: seanmiddleditch/gha-setup-ninja@v3
+    - uses: seanmiddleditch/gha-setup-ninja@v3
 
-      - name: Setup canary NDK
-        id: setup-ndk
-        uses: ./.github/actions/canary-ndk
+    - name: Setup canary NDK
+      id: setup-ndk
+      uses: ./.github/actions/canary-ndk
 
-      - name: Create ndkpath.txt
-        run: |
-          echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
-          cat ${GITHUB_WORKSPACE}/ndkpath.txt
+    - name: Create ndkpath.txt
+      run: |
+        echo ${{ steps.setup-ndk.outputs.ndk-path }} > ${GITHUB_WORKSPACE}/ndkpath.txt
+        cat ${GITHUB_WORKSPACE}/ndkpath.txt
 
-      - name: QPM Rust Action
-        uses: Fernthedev/qpm-rust-action@main
-        with:
-          #required
-          workflow_token: ${{secrets.GITHUB_TOKEN}}
+    # get version from pushed tag
+    - name: Extract version
+      if: startsWith(github.ref, 'refs/tags/v')
+      id: version
+      run: |
+        echo "TAG=${GITHUB_REF#refs/tags/}" >> ${GITHUB_OUTPUT}
+        echo "VERSION=${GITHUB_REF#refs/tags/v}" >> ${GITHUB_OUTPUT}
 
-          restore: true # will run restore on download
-          cache: true #will cache dependencies
+    # if we don't have a tag, don't do anything special
+    - name: Setup qpm
+      if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      uses: Fernthedev/qpm-action@main
+      with:
+        workflow_token: ${{ secrets.GITHUB_TOKEN }}
+        restore: true
+        cache: true
+        publish: false
 
-          # Name of qmod in release asset. Assumes exists, same as prior
-          qpm_qmod: ${{env.qmodName}}.qmod
+      # if we have a tag, we are making a qpm release
+    - name: Setup qpm for release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: Fernthedev/qpm-action@main
+      with:
+        workflow_token: ${{ secrets.GITHUB_TOKEN }}
+        restore: true
+        cache: true
+        publish: true
+        publish_token: ${{ secrets.QPM_KEY }}
+        version: ${{ steps.version.outputs.VERSION }}
+        tag: ${{ steps.version.outputs.TAG }}
+        qpm_release_bin: true
+        qpm_debug_bin: true
+        qpm_qmod: ${{ env.qmod_name }}.qmod
 
-      - name: QPM Collapse
-        run: qpm-rust collapse
+    - name: QPM Collapse
+      run: qpm collapse
 
-      - name: Build
-        run: |
-          cd ${GITHUB_WORKSPACE}
-          qpm-rust s build
+    - name: Build & Create qmod
+      run: |
+        cd ${GITHUB_WORKSPACE}
+        qpm s qmod
 
-      - name: Create Qmod
-        run: |
-          qpm-rust qmod build
-          pwsh -Command ./createqmod.ps1 ${{env.qmodName}}
+    - name: Get Library Name
+      id: libname
+      run: |
+        cd ./build/
+        pattern="lib${module_id}*.so"
+        files=( $pattern )
+        echo "NAME=${files[0]}" >> ${GITHUB_OUTPUT}
 
-      - name: Get Library Name
-        id: libname
-        run: |
-          cd ./build/
-          pattern="lib${module_id}*.so"
-          files=( $pattern )
-          echo ::set-output name=NAME::"${files[0]}"
+    - name: Rename debug artifact
+      run: mv "./build/debug/${{ steps.libname.outputs.NAME }}" "./build/debug_${{ steps.libname.outputs.NAME }}"
 
-      - name: Upload non-debug artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.libname.outputs.NAME }}
-          path: ./build/${{ steps.libname.outputs.NAME }}
-          if-no-files-found: error
+    - name: Upload non-debug artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ steps.libname.outputs.NAME }}
+        path: ./build/${{ steps.libname.outputs.NAME }}
+        if-no-files-found: error
 
-      - name: Upload debug artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: debug_${{ steps.libname.outputs.NAME }}
-          path: ./build/debug/${{ steps.libname.outputs.NAME }}
-          if-no-files-found: error
+    - name: Upload debug artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: debug_${{ steps.libname.outputs.NAME }}
+        path: ./build/debug_${{ steps.libname.outputs.NAME }}
+        if-no-files-found: error
 
-      - name: Upload qmod artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{env.qmodName}}.qmod
-          path: ./${{ env.qmodName }}.qmod
-          if-no-files-found: error
+    - name: Upload qmod artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{env.qmod_name}}.qmod
+        path: ./${{ env.qmod_name }}.qmod
+        if-no-files-found: error
+
+    # if we had a tag, we should make a release
+    - name: Upload release artifacts
+      if: startsWith(github.ref, 'refs/tags/v')
+      id: upload_file_release
+      uses: softprops/action-gh-release@v0.1.15
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        files: |
+          ./build/${{ steps.libname.outputs.NAME }}
+          ./build/debug_${{ steps.libname.outputs.NAME }}
+          ./${{ env.qmodName }}.qmod
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
