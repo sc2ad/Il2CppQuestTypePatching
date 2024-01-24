@@ -488,7 +488,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     // find the ctor method that takes object, intptr
     auto ctor_minfo = THROW_UNLESS(
         il2cpp_utils::FindMethod(
-            delegateClass,
+            const_cast<Il2CppClass*>(delegateClass),
             ".ctor",
             std::array<Il2CppClass*, 0>{},
             std::array<const Il2CppType*, 2>{
@@ -515,7 +515,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, T
     // find the ctor method that takes object, intptr
     auto ctor_minfo = THROW_UNLESS(
         il2cpp_utils::FindMethod(
-            delegateClass,
+            const_cast<Il2CppClass*>(delegateClass),
             ".ctor",
             std::array<Il2CppClass*, 0>{},
             std::array<const Il2CppType*, 2>{
