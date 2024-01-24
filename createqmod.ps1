@@ -16,7 +16,7 @@ $filelist = @($mod)
 
 $cover = "./" + $modJson.coverImage
 if ((-not ($cover -eq "./")) -and (Test-Path $cover))
-{ 
+{
     $filelist += ,$cover
 }
 
@@ -31,6 +31,16 @@ foreach ($mod in $modJson.modFiles)
 }
 
 foreach ($lib in $modJson.libraryFiles)
+{
+    $path = "./extern/libs/" + $lib
+    if (-not (Test-Path $path))
+    {
+        $path = "./build/" + $lib
+    }
+    $filelist += $path
+}
+
+foreach ($lib in $modJson.lateModFiles)
 {
     $path = "./extern/libs/" + $lib
     if (-not (Test-Path $path))
@@ -63,7 +73,7 @@ if (Test-Path "./ExtraFiles")
                 $folderPath = $dir.Directory.Name + "/" + $folderPath
             }
 
-            if ($folderPath.Contains("Icons")) 
+            if ($folderPath.Contains("Icons"))
             {
                 continue;
             }
@@ -79,7 +89,7 @@ if (Test-Path "./ExtraFiles")
     {
         $path = "./ExtraFiles/" + $file
         $filelist += ,$path
-    } 
+    }
 }
 else
 {

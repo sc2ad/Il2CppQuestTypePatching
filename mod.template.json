@@ -8,7 +8,9 @@
   "coverImage": "cover.png",
   "dependencies": [],
   "modFiles": [],
-  "libraryFiles": [],
+  "libraryFiles": [
+    "${binary}"
+  ],
   "fileCopies": [],
   "copyExtensions": []
 }
