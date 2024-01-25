@@ -469,12 +469,25 @@ static inline ___FieldRegistrator_##name_ ___##name_##_FieldRegistrator
 #error "DEFINE_INSTANCE_FIELD_ACCESSORS is already defined! Undefine it before including macros.hpp!"
 #endif
 
+// if we have exceptions the getters aren't noexcept
+#if __has_feature(cxx_exceptions)
+#define CT_FIELD_GET_EXCEPT
+#else
+#define CT_FIELD_GET_EXCEPT noexcept
+#endif
+
 #define DEFINE_INSTANCE_FIELD_ACCESSORS(type_, name_, visibility_) \
 protected: \
 static inline custom_types::field_accessor<type_> ___##name_##_FieldAccessor; \
 visibility_: \
-inline type_& __get_##name_() noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
-inline type_ const& __get_##name_() const noexcept { return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); } \
+inline type_& __get_##name_() CT_FIELD_GET_EXCEPT { \
+    CT_FIELD_ACCESS_CHECK(this); \
+    return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset()); \
+} \
+inline type_ const& __get_##name_() const CT_FIELD_GET_EXCEPT { \
+    CT_FIELD_ACCESS_CHECK(this); \
+    return ___##name_##_FieldAccessor.read(this, ___##name_##_FieldRegistrator.offset());  \
+} \
 inline void __set_##name_(type_ v) { ___##name_##_FieldAccessor.write(this, ___##name_##_FieldRegistrator.offset(), std::forward<type_>(v)); }
 
 // if we have no property support, we should not emit code that tries to be one. instead just emit nothing.
