@@ -2,6 +2,7 @@
 #include <type_traits>
 #include "beatsaber-hook/shared/utils/type-concepts.hpp"
 #include "beatsaber-hook/shared/utils/il2cpp-functions.hpp"
+#include "beatsaber-hook/shared/utils/il2cpp-utils-exceptions.hpp"
 
 namespace custom_types {
     template<class F>
@@ -32,6 +33,17 @@ namespace custom_types {
     std::vector<Il2CppClass*> ExtractClasses() {
         return {classof(TArgs)...};
     }
+
+    struct NullAccessException : il2cpp_utils::exceptions::StackTraceException {
+        NullAccessException() : il2cpp_utils::exceptions::StackTraceException("Null instance access on a custom type field!") {}
+    };
+
+#if __has_feature(cxx_exceptions)
+    #define CT_FIELD_ACCESS_CHECK(inst) if (!static_cast<const void*>(inst)) throw ::custom_types::NullAccessException()
+#else
+    #define CT_FIELD_ACCESS_CHECK(inst) if (!static_cast<const void*>(inst)) SAFE_ABORT_MSG("Null instance access on a custom type field!")
+#endif
+
     template<typename T>
     struct field_accessor {
         inline constexpr T const* field_addr(const void* instance, std::size_t offset) const noexcept {
@@ -55,7 +67,7 @@ namespace custom_types {
         }
     };
 
-    template<il2cpp_utils::il2cpp_reference_type_pointer T>
+    template<il2cpp_utils::il2cpp_reference_type T>
     struct field_accessor<T> {
         inline constexpr void* field_addr(void* instance, std::size_t offset) const noexcept {
             return static_cast<void*>(static_cast<uint8_t*>(instance) + offset);
