@@ -265,7 +265,7 @@ namespace custom_types::Helpers {
 
     /// @brief A helper type for creating custom coroutines C# from C++.
     /// See ResetableCoroutine and StandardCoroutine for more info.
-    struct CoroutineHelper {
+    struct __attribute__((visibility("default"))) CoroutineHelper {
         private:
         static void EnsureCoroutines();
 

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "./_config.h"
 #include "macros.hpp"
 #include <functional>
 #include "beatsaber-hook/shared/utils/il2cpp-utils.hpp"
 
 namespace custom_types {
 
-int get_delegate_count();
+CUSTOM_TYPES_EXPORT int get_delegate_count();
 
 inline void setup_for_delegate([[maybe_unused]] MethodInfo* info) {
     // The method in question actually isn't quite fit for being a proper delegate
@@ -467,7 +468,7 @@ void DelegateWrapperInstance<RI, TI, TArgsI...>::dtor() {
     this->~DelegateWrapperInstance();
 }
 
-void log_delegate(Il2CppDelegate* d);
+CUSTOM_TYPES_EXPORT void log_delegate(Il2CppDelegate* d);
 
 template<class T = MulticastDelegate*, class R, class... TArgs>
 T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs...>* inst) {

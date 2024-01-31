@@ -55,6 +55,10 @@
 #define INTERFACE_LIST(...) ::custom_types::ExtractClasses<__VA_ARGS__>()
 #endif
 
+#ifndef CUSTOM_TYPES_EXPORT_VISIBILITY
+#define CUSTOM_TYPES_EXPORT_VISIBILITY __attribute__((visibility("default")))
+#endif
+
 // Helper macro for declaring classes with and without interfaces
 #define ___DECLARE_TYPE_WRAPPER(namespaze_, name_, typeEnum_, baseNamespaze, baseName, baseSize, dllName_, interfaces_, flags_, ...) \
 namespace namespaze_ { \
@@ -62,7 +66,7 @@ namespace namespaze_ { \
 } \
 MARK_REF_PTR_T(namespaze_::name_);\
 namespace namespaze_ { \
-    class name_ { \
+    class CUSTOM_TYPES_EXPORT_VISIBILITY name_ { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = baseSize; \
         friend ::custom_types::Register; \
@@ -182,7 +186,7 @@ namespace namespaze_ { \
 } \
 MARK_REF_PTR_T(namespaze_::name_);\
 namespace namespaze_ { \
-    class name_ : public baseT { \
+    class CUSTOM_TYPES_EXPORT_VISIBILITY name_ : public baseT { \
         using ___TargetType = name_; \
         constexpr static auto ___Base__Size = sizeof(baseT); \
         friend ::custom_types::Register; \

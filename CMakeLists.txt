@@ -14,7 +14,8 @@ set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # compile options used
-add_compile_options(-frtti -fPIE -fPIC -fexceptions)
+add_link_options(-Wl,--exclude-libs,ALL)
+add_compile_options(-frtti -fPIE -fPIC -fexceptions -fvisibility=hidden)
 add_compile_options(-Wall -Werror -Wextra -Wno-invalid-offsetof -O3)
 # Extra -Wno's that were not there originally to make it work
 add_compile_options(-Wno-unused-variable -Wno-unused-function)

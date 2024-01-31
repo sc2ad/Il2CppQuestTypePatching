@@ -80,7 +80,7 @@ namespace custom_types {
     /// @brief An abstract type that holds all the information required to register a type.
     /// The general rationale here is that each of these types contains everything necessary for creating a custom type
     /// The custom type will get generated and then needs to be assigned properly
-    struct TypeRegistration {
+    struct __attribute__((visibility("default"))) TypeRegistration {
         friend Register;
 
         virtual std::vector<FieldRegistrator*> const getFields() const = 0;
