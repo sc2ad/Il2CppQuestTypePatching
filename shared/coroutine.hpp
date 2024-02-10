@@ -59,7 +59,7 @@ namespace custom_types::Helpers {
     using CoroFuncType = std::function<Coroutine ()>;
 }
 MARK_GEN_REF_PTR_T(custom_types::Helpers::generator);
-MARK_REF_PTR_T(custom_types::Helpers::Coroutine*);
+MARK_REF_PTR_T(custom_types::Helpers::Coroutine);
 // Coroutine* mapped to void*
 template<>
 struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<custom_types::Helpers::Coroutine*> {
@@ -76,7 +76,7 @@ struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<custom_types::Help
         return il2cpp_functions::Class_GetPtrClass(il2cpp_functions::defaults->void_class);
     }
 };
-MARK_REF_PTR_T(custom_types::Helpers::CoroFuncType*);
+MARK_REF_PTR_T(custom_types::Helpers::CoroFuncType);
 
 namespace custom_types::Helpers {
     /// @brief A helper type for creating custom coroutines C# from C++.
