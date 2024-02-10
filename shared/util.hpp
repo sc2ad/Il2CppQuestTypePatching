@@ -29,12 +29,7 @@ namespace custom_types {
         }
     };
 
-    template<class... TArgs>
-    std::vector<Il2CppClass*> ExtractClasses() {
-        return {classof(TArgs)...};
-    }
-
-    struct NullAccessException : il2cpp_utils::exceptions::StackTraceException {
+    struct CUSTOM_TYPES_EXPORT NullAccessException : il2cpp_utils::exceptions::StackTraceException {
         NullAccessException() : il2cpp_utils::exceptions::StackTraceException("Null instance access on a custom type field!") {}
     };
 
