@@ -52,7 +52,7 @@ CUSTOM_TYPES_FUNC void setup(CModInfo* info) {
     info->id = MOD_ID;
     info->version = VERSION;
     info->version_long = VERSION_LONG;
-    modInfo.assign(info);
+    modInfo.assign(*info);
     modLogger().debug("Completed setup!");
 }
 
