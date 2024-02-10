@@ -38,13 +38,14 @@ struct Hook_FromIl2CppTypeMain {
     }
     static Il2CppClass* hook_FromIl2CppType(TArgs... args) {
         static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
-        auto typ = std::get<0>(std::make_tuple(args...));
+        const Il2CppType* typ = std::get<0>(std::make_tuple(args...));
         // _logger().debug("FromIl2CppType: %p", typ);
         if (typ == nullptr) {
             // Extra error checking to avoid unknown null derefs.
             logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
             return nullptr;
         }
+        logger.warning("Check if typ is valid %p", typ);
         // preliminary check, if the metadata handle is not set this could be ours
         bool shouldBeOurs = !MetadataHandleSet(typ);
         // klassIndex is only meaningful for these types

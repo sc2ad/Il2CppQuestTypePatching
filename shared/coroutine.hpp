@@ -1,5 +1,6 @@
 #pragma once
 
+#include "coroutine.hpp"
 #if __has_include(<coroutine>)
 #include <coroutine>
 namespace custom_types::Helpers {
@@ -375,3 +376,20 @@ namespace std {
         a.swap(b);
     }
 }
+
+template <typename T>
+struct ::il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<custom_types::Helpers::CoroP<T>> {
+    static inline Il2CppClass* get() {
+        il2cpp_functions::Init();
+        static auto klass = il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator");
+
+        return klass;
+    }
+};
+
+MARK_GEN_REF_T(custom_types::Helpers::CoroP);
+MARK_REF_T(custom_types::Helpers::CoroP<custom_types::Helpers::StandardCoroutine>);
+MARK_REF_T(custom_types::Helpers::CoroP<custom_types::Helpers::ResetableCoroutine>);
+
+static_assert(il2cpp_utils::il2cpp_reference_type<custom_types::Helpers::CoroP<custom_types::Helpers::StandardCoroutine>>);
+static_assert(il2cpp_utils::il2cpp_reference_type<custom_types::Helpers::CoroP<custom_types::Helpers::ResetableCoroutine>>);

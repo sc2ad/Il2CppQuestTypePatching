@@ -61,7 +61,15 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "Ma
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
     modLogger().debug("Starting coroutine");
-    il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds()));
+    auto coro = custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds());
+    ::il2cpp_utils::ExtractType(coro);
+    ::il2cpp_utils::ExtractType<CoroP<StandardCoroutine>&>(coro);
+    const Il2CppType* typ = il2cpp_utils::il2cpp_type_check::il2cpp_arg_type<CoroP<StandardCoroutine>&>::get(coro);
+    const Il2CppClass* typ2 = il2cpp_utils::il2cpp_type_check::il2cpp_arg_class<CoroP<StandardCoroutine>>::get(coro);
+    const Il2CppClass* typ3 = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<CoroP<StandardCoroutine>>::get();
+    // ::il2cpp_utils::ExtractType<CoroP<StandardCoroutine>>(coro);
+
+    // il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds()));
 }
 
 CUSTOM_TYPES_FUNC void load() {
