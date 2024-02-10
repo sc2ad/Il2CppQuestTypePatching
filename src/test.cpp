@@ -182,7 +182,7 @@ DEFINE_TYPE(SmallTest, TestIt3);
 
 static custom_types::ClassWrapper* klassWrapper;
 
-extern "C" void setup(CModInfo* info) {
+CUSTOM_TYPES_FUNC void setup(CModInfo* info) {
     info->id = MOD_ID;
     info->version = VERSION;
     info->version_long = VERSION_LONG;
@@ -254,7 +254,7 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(BeatmapLevelModels_UpdateAllLoadedBeatmapLe
     CRASH_UNLESS(il2cpp_utils::SetFieldValue(self, "_allLoadedBeatmapLevelPackCollection", myType));
 }
 
-extern "C" void load() {
+CUSTOM_TYPES_FUNC void load() {
     static auto logger = modLogger().WithContext("Load");
     logger.debug("Registering types! (current size: %lu)", custom_types::Register::classes.size());
     custom_types::Register::AutoRegister();

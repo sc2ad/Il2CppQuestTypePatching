@@ -48,7 +48,7 @@ Coroutine testWaitForSeconds() {
     co_return;
 }
 
-extern "C" void setup(CModInfo* info) {
+CUSTOM_TYPES_FUNC void setup(CModInfo* info) {
     info->id = MOD_ID;
     info->version = VERSION;
     info->version_long = VERSION_LONG;
@@ -64,7 +64,7 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "Ma
     il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds()));
 }
 
-extern "C" void load() {
+CUSTOM_TYPES_FUNC void load() {
     INSTALL_HOOK(modLogger(), MainMenuViewController_DidActivate);
 }
 
