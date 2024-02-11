@@ -45,7 +45,6 @@ struct Hook_FromIl2CppTypeMain {
             logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
             return nullptr;
         }
-        logger.warning("Check if typ is valid %p", typ);
         // preliminary check, if the metadata handle is not set this could be ours
         bool shouldBeOurs = !MetadataHandleSet(typ);
         // klassIndex is only meaningful for these types
