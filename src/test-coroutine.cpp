@@ -1,3 +1,4 @@
+#include <chrono>
 #ifdef LOCAL_TEST_COROUTINE
 #include "beatsaber-hook/shared/utils/hooking.hpp"
 #include "coroutine.hpp"
@@ -5,54 +6,58 @@
 
 using namespace custom_types::Helpers;
 
-modloader::ModInfo modInfo{ "test", "0.0.0", 0 };
+modloader::ModInfo modInfo{ MOD_ID"-test", VERSION, VERSION_LONG };
 
 Logger& modLogger() {
-    static auto myLogger = new Logger(modInfo);
+    static auto myLogger = new Logger(modInfo, LoggerOptions(false, true));
     return *myLogger;
 }
 
 Coroutine testNestedCoro(int n) {
-    // modLogger().debug("begin nested coro");
+    modLogger().debug("begin nested coro");
     co_yield nullptr;
     // modLogger().debug("one step nested coro");
     // This will not be deleted by GC, as it will be stored as a field in the coro when invoked.
     co_yield reinterpret_cast<enumeratorT>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
     modLogger().debug("yielding until: %d", n);
     for (int i = 0; i < n; i++) {
-        // modLogger().debug("nested coro yield: %d", i);
+        modLogger().debug("nested coro yield: %d", i);
         co_yield nullptr;
     }
     co_return;
-    // modLogger().debug("nested coroutine complete");
+    modLogger().debug("nested coroutine complete");
 }
 
 Coroutine testRecursiveCall() {
-    // modLogger().debug("begin recursive coro");
+    modLogger().debug("Recursive call start!");
     auto instance = CoroutineHelper::New<il2cpp_utils::CreationType::Manual>(testNestedCoro, 3);
-    // modLogger().debug("created nested instance");
+    modLogger().debug("Recursive call yield 1 %p!", instance.convert());
     co_yield instance;
-    // modLogger().debug("complete with nested instance");
     // Reset instance and try again
+    modLogger().debug("Recursive yield reset!");
     instance->Reset();
-    // modLogger().debug("reset nested instance, running again");
+
+    modLogger().debug("Recursive call yield 2! %p", instance.convert());
     co_yield instance;
+
     modLogger().debug("all done");
     co_return;
 }
 
 Coroutine testWaitForSeconds() {
     modLogger().debug("About to wait!");
+    auto start = std::chrono::system_clock::now();
     co_yield reinterpret_cast<enumeratorT>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
-    modLogger().debug("I have performed a wait!");
+    auto end = std::chrono::system_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+    modLogger().debug("I have performed a wait! %lldms", duration);
     co_return;
 }
 
 CUSTOM_TYPES_FUNC void setup(CModInfo* info) {
-    info->id = MOD_ID;
-    info->version = VERSION;
-    info->version_long = VERSION_LONG;
-    modInfo.assign(*info);
+    *info = modInfo.to_c();
     modLogger().debug("Completed setup!");
 }
 
@@ -61,19 +66,23 @@ MAKE_HOOK_FIND_CLASS_UNSAFE_INSTANCE(MainMenuViewController_DidActivate, "", "Ma
     MainMenuViewController_DidActivate(self, firstActivation, addedToHierarchy, screenSystemEnabling);
 
     modLogger().debug("Starting coroutine");
-    auto coro = custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds());
-    ::il2cpp_utils::ExtractType(coro);
-    ::il2cpp_utils::ExtractType<CoroP<StandardCoroutine>&>(coro);
-    const Il2CppType* typ = il2cpp_utils::il2cpp_type_check::il2cpp_arg_type<CoroP<StandardCoroutine>&>::get(coro);
-    const Il2CppClass* typ2 = il2cpp_utils::il2cpp_type_check::il2cpp_arg_class<CoroP<StandardCoroutine>>::get(coro);
-    const Il2CppClass* typ3 = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<CoroP<StandardCoroutine>>::get();
-    // ::il2cpp_utils::ExtractType<CoroP<StandardCoroutine>>(coro);
 
-    // il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds()));
+    il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testWaitForSeconds()));
+    il2cpp_utils::RunMethod(self, "StartCoroutine", custom_types::Helpers::CoroutineHelper::New(testRecursiveCall()));
+}
+
+MAKE_HOOK(abort_hook, nullptr, void) {
+    modLogger().info("abort was called!");
+    modLogger().Backtrace(40);
+    abort_hook();
 }
 
 CUSTOM_TYPES_FUNC void load() {
     INSTALL_HOOK(modLogger(), MainMenuViewController_DidActivate);
+
+    auto libc = dlopen("libc.so", RTLD_NOW);
+    auto abort_addr = dlsym(libc, "abort");
+    INSTALL_HOOK_DIRECT(modLogger(), abort_hook, abort_addr);
 }
 
 #endif

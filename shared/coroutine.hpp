@@ -107,15 +107,9 @@ namespace custom_types::Helpers {
             constexpr Helpers::suspend_always initial_suspend() const noexcept { return {}; }
             constexpr Helpers::suspend_always final_suspend() const noexcept { return {}; }
 
-            template<typename U = T>
-            requires (!std::is_rvalue_reference<U>::value)
-            Helpers::suspend_always yield_value(std::remove_reference_t<T>& value) noexcept {
-                m_value = std::addressof(value);
-                return {};
-            }
-
-            Helpers::suspend_always yield_value(std::remove_reference_t<T>&& value) noexcept {
-                m_value = std::addressof(value);
+            template <std::convertible_to<T> From>  // C++20 concept
+            std::suspend_always yield_value(From&& from) {
+                m_value = std::forward<From>(from);  // caching the result in promise
                 return {};
             }
 
@@ -126,8 +120,11 @@ namespace custom_types::Helpers {
             void return_void() {
             }
 
-            reference_type value() const noexcept {
-                return static_cast<reference_type>(*m_value);
+            reference_type const value() const noexcept {
+                return static_cast<reference_type>(m_value);
+            }
+            reference_type value() noexcept {
+                return static_cast<reference_type>(m_value);
             }
 
             // Don't allow any use of 'co_await' inside the generator coroutine.
@@ -139,8 +136,12 @@ namespace custom_types::Helpers {
                     std::rethrow_exception(m_exception);
                 }
             }
+
+            [[nodiscard]] bool failed() const {
+                return m_exception != nullptr;
+            }
         private:
-            pointer_type m_value;
+            T m_value;
             std::exception_ptr m_exception;
         };
     }

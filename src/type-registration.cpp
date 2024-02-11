@@ -147,16 +147,14 @@ namespace custom_types {
 		return ifs;
 	}
 
-	std::list<Il2CppClass*> collect_parent_ifs(std::vector<Il2CppClass*> intfs) {
-		std::list<Il2CppClass*> ifs;
-
+	std::vector<Il2CppClass*> collect_parent_ifs(std::vector<Il2CppClass*> intfs) {
 		for (auto intf : intfs) {
 			auto implemented = collect_parent_ifs(intf);
-			ifs.insert(ifs.begin(), implemented.begin(), implemented.end());
-		}
+            intfs.insert(intfs.begin(), implemented.begin(), implemented.end());
+        }
 
-		return ifs;
-	}
+        return intfs;
+    }
 
 	void TypeRegistration::createClass() {
 		// Check to see if we have already created our class. If we have, use that.
@@ -182,7 +180,9 @@ namespace custom_types {
 				cb->createClass();
 				lock.lock();
 			}
-		}
+        }
+
+        
 		_logger().debug("Creating type: %s::%s with: %lu methods, %lu static fields, %lu fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
 		auto vtableSize = getVtableSize();
 		// Create the Il2CppClass instance that will represent this custom type.
@@ -235,10 +235,17 @@ namespace custom_types {
 			}
 		}
 
-		// k->implementedInterfaces needs to be allocated as well
+        std::string fullName = (std::stringstream() << namespaze() << "::" << name()).str();
+
+        _logger().debug("Interface count %s: %lu", fullName.c_str(), intfs.size());
+        _logger().debug("All interface count %s: %lu", fullName.c_str(), all_intfs.size());
+
+        // k->implementedInterfaces needs to be allocated as well
 		k->implementedInterfaces = reinterpret_cast<Il2CppClass**>(calloc(all_intfs.size(), sizeof(Il2CppClass*)));
-		for (size_t i = 0; auto intf : all_intfs) {
-			k->implementedInterfaces[i++] = intf;
+        for (size_t i = 0; i < all_intfs.size(); i++) {
+            _logger().debug("Implementing for %s: %s", fullName.c_str(), il2cpp_utils::ClassStandardName(all_intfs[i], true).c_str());
+
+            k->implementedInterfaces[i] = all_intfs[i];
 		}
 
 		// TODO: Figure out generic class (will also need to inflate it)

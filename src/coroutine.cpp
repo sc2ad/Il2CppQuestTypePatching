@@ -1,4 +1,5 @@
 #include "coroutine.hpp"
+#include "logging.hpp"
 #include "register.hpp"
 
 namespace custom_types::Helpers {
@@ -29,21 +30,29 @@ struct InternalHelper {
     //     // Our current instance is complete, run ourselves now.
     //     current = nullptr;
     // }
+    custom_types::_logger().debug("Coroutine resume instance IEnumerator %p", current.instance);
+    // reset value, we have nothing
+    current = nullptr;
     currentCoro->m_coroutine.resume();
-    // TODO: See if there is ever a case where this caught exception would
-    // result in the coroutine not properly being reset ex: current not being
-    // set to nullptr, currentCoro not being set to nullptr
-    IL2CPP_CATCH_HANDLER(
-        currentCoro->m_coroutine.promise().rethrow_if_exception();)
     if (currentCoro->m_coroutine.done()) {
-      current = nullptr;
-      // If we have an exception, throw it to the il2cpp domain if we can.
-      // Set currentCoro to nullptr, so that we failsafe exit
-      currentCoro = nullptr;
+      current.instance = nullptr;
+
+      // this was originally here but it caused crashes in the tests and seems to be a memory leak anyways
+      // currentCoro = nullptr;
+      
+      // TODO: See if there is ever a case where this caught exception would
+      // result in the coroutine not properly being reset ex: current not being
+      // set to nullptr, currentCoro not being set to nullptr
+      if (currentCoro->m_coroutine.promise().failed()) {
+          IL2CPP_CATCH_HANDLER(currentCoro->m_coroutine.promise().rethrow_if_exception();)
+      }
+
+
       return false;
     }
     // Otherwise, get the next current value
     current = currentCoro->m_coroutine.promise().value();
+    custom_types::_logger().debug("Coroutine resume new value %p", current.instance);
     return true;
   }
 };
@@ -65,8 +74,18 @@ bool ResetableCoroutine::MoveNext() {
   return InternalHelper::MoveNextHelper(currentCoro, current);
 }
 
-Il2CppObject *ResetableCoroutine::get_Current() {
-  return reinterpret_cast<Il2CppObject *>(current.instance);
+Il2CppObject* ResetableCoroutine::get_Current() {
+    // if (current.instance) {
+    //     if (!current.instance->klass->initialized_and_no_error) {
+    //         il2cpp_functions::Class_Init(current.instance->klass);
+    //     }
+
+    //     auto enumeratorTKlass = il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator");
+
+    //     custom_types::_logger().debug("Unity asked for resettable value, we have %p %s %s", current.instance, il2cpp_utils::ClassStandardName(current.instance->klass, true).c_str(),
+    //                                   il2cpp_functions::class_is_assignable_from(enumeratorTKlass, current.instance->klass) ? "true" : "false");
+    // }
+    return reinterpret_cast<Il2CppObject*>(current.instance);
 }
 
 void ResetableCoroutine::Reset() {
@@ -99,14 +118,22 @@ void StandardCoroutine::ctor(Coroutine *coro) {
 }
 
 bool StandardCoroutine::MoveNext() {
-  if (!valid) {
-    throw CoroutineDisposed();
+    if (!valid) {
+      throw CoroutineDisposed();
   }
   return InternalHelper::MoveNextHelper(currentCoro, current);
 }
 
-Il2CppObject *StandardCoroutine::get_Current() {
-  return reinterpret_cast<Il2CppObject *>(current.instance);
+Il2CppObject* StandardCoroutine::get_Current() {
+    // if (current.instance) {
+    //     auto enumeratorTKlass = il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator");
+
+    //     auto containsInterface = std::find(current.instance->klass->implementedInterfaces, current.instance->klass->implementedInterfaces + current.instance->klass->interfaces_count, enumeratorTKlass);
+
+    //     custom_types::_logger().debug("Unity asked for value, we have %p %s %s", current.instance, il2cpp_utils::ClassStandardName(current.instance->klass, true).c_str(),
+    //                                   il2cpp_functions::class_is_subclass_of(current.instance->klass, enumeratorTKlass, true) ? "true" : "false");
+    // }
+    return reinterpret_cast<Il2CppObject*>(current.instance);
 }
 
 void StandardCoroutine::Reset() { throw CoroutineNotResettable(); }
