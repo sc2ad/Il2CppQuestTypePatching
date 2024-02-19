@@ -76,6 +76,21 @@ struct Hook_FromIl2CppTypeMain {
     }
 };
 
+MAKE_HOOK(Type_GetClassOrElementClass, nullptr, Il2CppClass*, Il2CppType* type) {
+
+    if (type->type == IL2CPP_TYPE_ARRAY) {
+        return il2cpp_functions::Class_FromIl2CppType(const_cast<Il2CppType*>(type->data.array->etype));
+    }
+
+    if (type->type == IL2CPP_TYPE_SZARRAY) {
+        return il2cpp_functions::Class_FromIl2CppType(const_cast<Il2CppType*>(type->data.type));
+    }
+
+    // this is what il2cpp does here normally, but we want to redirect through our checked call of FromIl2CppType instead...
+    // return MetadataCache::GetTypeInfoFromType(type);
+    return il2cpp_functions::Class_FromIl2CppType(type);
+}
+
 MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
     static auto logger = ::custom_types::_logger().WithContext("Class::Init");
     // If we are attempting to call Class::Init() on an Il2CppClass* that is a
@@ -562,6 +577,18 @@ void Register::EnsureHooks() {
         INSTALL_HOOK_DIRECT(logger, Class_Init, (void*)il2cpp_functions::il2cpp_Class_Init);
         uintptr_t GetScriptingClassAddr = findPattern(baseAddr("libunity.so"), "ff 43 02 d1 fa 23 00 f9 f9 63 05 a9 f7 5b 06 a9 f5 53 07 a9 f3 7b 08 a9 57 d0 3b d5 e8 16 40 f9 f6 03 01 aa");
         INSTALL_HOOK_DIRECT(logger, GetScriptingClass, reinterpret_cast<void*>(GetScriptingClassAddr));
+
+        // get the location of Type::GetClassOrElementClass
+        uintptr_t get_class_or_element_class_addr = (uintptr_t)il2cpp_functions::il2cpp_type_get_class_or_element_class;
+        uint32_t b = *(uint32_t*)get_class_or_element_class_addr;
+        // b instructions have an immediate of 26 bits, which is the offset in instructions (in bytes / 4)
+        // leftmost 6 bits are the instruction identifier, rightmost 26 are the immediate
+        constexpr const uint32_t b_immediate_mask = 0x03ffffff;
+        auto offset = b & b_immediate_mask;
+        // offset off of the would-be PC, then get that address
+        uintptr_t GetClassOrElementClassAddr = get_class_or_element_class_addr + offset * sizeof(uint32_t);
+
+        INSTALL_HOOK_DIRECT(logger, Type_GetClassOrElementClass, reinterpret_cast<void*>(GetClassOrElementClassAddr));
         // {
         //     // We need to do a tiny bit of xref tracing to find the bottom level
         //     Class::FromName call
