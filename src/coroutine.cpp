@@ -10,7 +10,7 @@ struct InternalHelper {
   static bool MoveNextHelper(Coroutine *&currentCoro, Wrapper &current) {
     if (!currentCoro) {
       // If we do not have a current coroutine, we exit immediately.
-      custom_types::_logger().debug("redundant MoveNext call!");
+      custom_types::logger.debug("redundant MoveNext call!");
       return false;
     }
     // Each call to MoveNext performs the following:
@@ -30,7 +30,7 @@ struct InternalHelper {
     //     // Our current instance is complete, run ourselves now.
     //     current = nullptr;
     // }
-    custom_types::_logger().debug("Coroutine resume instance IEnumerator %p", current.instance);
+    custom_types::logger.debug("Coroutine resume instance IEnumerator {}", fmt::ptr(current.instance));
     // reset value, we have nothing
     current = nullptr;
     currentCoro->m_coroutine.resume();
@@ -39,7 +39,7 @@ struct InternalHelper {
 
       // this was originally here but it caused crashes in the tests and seems to be a memory leak anyways
       // currentCoro = nullptr;
-      
+
       // TODO: See if there is ever a case where this caught exception would
       // result in the coroutine not properly being reset ex: current not being
       // set to nullptr, currentCoro not being set to nullptr
@@ -52,7 +52,7 @@ struct InternalHelper {
     }
     // Otherwise, get the next current value
     current = currentCoro->m_coroutine.promise().value();
-    custom_types::_logger().debug("Coroutine resume new value %p", current.instance);
+    custom_types::logger.debug("Coroutine resume new value {}", fmt::ptr(current.instance));
     return true;
   }
 };
@@ -82,8 +82,8 @@ Il2CppObject* ResetableCoroutine::get_Current() {
 
     //     auto enumeratorTKlass = il2cpp_utils::GetClassFromName("System.Collections", "IEnumerator");
 
-    //     custom_types::_logger().debug("Unity asked for resettable value, we have %p %s %s", current.instance, il2cpp_utils::ClassStandardName(current.instance->klass, true).c_str(),
-    //                                   il2cpp_functions::class_is_assignable_from(enumeratorTKlass, current.instance->klass) ? "true" : "false");
+    //     custom_types::logger.debug("Unity asked for resettable value, we have {} {} {}", fmt::ptr(current.instance), il2cpp_utils::ClassStandardName(current.instance->klass, true),
+    //                                   il2cpp_functions::class_is_assignable_from(enumeratorTKlass, current.instance->klass));
     // }
     return reinterpret_cast<Il2CppObject*>(current.instance);
 }
@@ -130,8 +130,8 @@ Il2CppObject* StandardCoroutine::get_Current() {
 
     //     auto containsInterface = std::find(current.instance->klass->implementedInterfaces, current.instance->klass->implementedInterfaces + current.instance->klass->interfaces_count, enumeratorTKlass);
 
-    //     custom_types::_logger().debug("Unity asked for value, we have %p %s %s", current.instance, il2cpp_utils::ClassStandardName(current.instance->klass, true).c_str(),
-    //                                   il2cpp_functions::class_is_subclass_of(current.instance->klass, enumeratorTKlass, true) ? "true" : "false");
+    //     custom_types::logger.debug("Unity asked for value, we have {} {} {}", fmt::ptr(current.instance), il2cpp_utils::ClassStandardName(current.instance->klass, true),
+    //                                   il2cpp_functions::class_is_subclass_of(current.instance->klass, enumeratorTKlass, true));
     // }
     return reinterpret_cast<Il2CppObject*>(current.instance);
 }
@@ -149,7 +149,7 @@ void StandardCoroutine::Finalize() {
 void CoroutineHelper::EnsureCoroutines() {
   static bool initialized = false;
   if (!initialized) {
-    custom_types::_logger().debug("Calling EnsureCoroutines... Attempting to "
+    custom_types::logger.debug("Calling EnsureCoroutines... Attempting to "
                                   "initialize coro custom types");
     custom_types::Register::ExplicitRegister(
         {&__registration_instance_ResetableCoroutine,

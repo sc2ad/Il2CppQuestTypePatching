@@ -19,9 +19,9 @@ Coroutine testNestedCoro(int n) {
     // modLogger().debug("one step nested coro");
     // This will not be deleted by GC, as it will be stored as a field in the coro when invoked.
     co_yield reinterpret_cast<enumeratorT>(CRASH_UNLESS(il2cpp_utils::New("UnityEngine", "WaitForSecondsRealtime", 2.3f)));
-    modLogger().debug("yielding until: %d", n);
+    modLogger().debug("yielding until: {}", n);
     for (int i = 0; i < n; i++) {
-        modLogger().debug("nested coro yield: %d", i);
+        modLogger().debug("nested coro yield: {}", i);
         co_yield nullptr;
     }
     co_return;
@@ -31,13 +31,13 @@ Coroutine testNestedCoro(int n) {
 Coroutine testRecursiveCall() {
     modLogger().debug("Recursive call start!");
     auto instance = CoroutineHelper::New<il2cpp_utils::CreationType::Manual>(testNestedCoro, 3);
-    modLogger().debug("Recursive call yield 1 %p!", instance.convert());
+    modLogger().debug("Recursive call yield 1 {}!", fmt::ptr(instance.convert()));
     co_yield instance;
     // Reset instance and try again
     modLogger().debug("Recursive yield reset!");
     instance->Reset();
 
-    modLogger().debug("Recursive call yield 2! %p", instance.convert());
+    modLogger().debug("Recursive call yield 2! {}", fmt::ptr(instance.convert()));
     co_yield instance;
 
     modLogger().debug("all done");
@@ -52,7 +52,7 @@ Coroutine testWaitForSeconds() {
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    modLogger().debug("I have performed a wait! %lldms", duration);
+    modLogger().debug("I have performed a wait! {}ms", duration);
     co_return;
 }
 

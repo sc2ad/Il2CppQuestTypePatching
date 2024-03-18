@@ -16,14 +16,14 @@ namespace cs {
         size_t sz = szBytes;
         while (sz > 0) {
             bool res = cs_disasm_iter(getHandle(), &instructions, &sz, &ptr, insn);
-            custom_types::_logger().debug("%p diassemb: %s (rCount: %i, nCalls: %u, sz: %zu)", (void*)ptr, insn->mnemonic, rCount, nCalls, sz);
+            custom_types::logger.debug("0x{:08x} diassemb: {} (rCount: {}, nCalls: {}, sz: {})", ptr, insn->mnemonic, rCount, nCalls, sz);
             if (res) {
                 // Valid decode, so lets check to see if it is a match or we need to break.
                 if (insn->id == ARM64_INS_RET) {
                     if (rCount == 0) {
                         // Early termination!
                         cs_free(insn, 1);
-                        custom_types::_logger().debug("Could not find: %u call at: %p within: %i rets! Found all of the rets first!", nToRetOn, addr, retCount);
+                        custom_types::logger.debug("Could not find: {} call at: {} within: {} rets! Found all of the rets first!", nToRetOn, fmt::ptr(addr), retCount);
                         return {};
                     }
                     rCount--;
@@ -40,7 +40,7 @@ namespace cs {
                         if (nCalls == 1) {
                             std::string name(insn->mnemonic);
                             cs_free(insn, 1);
-                            custom_types::_logger().debug("Found: %u match, at: %p within: %i rets, but the result was a %s! Cannot compute destination address!", nToRetOn, addr, retCount, name.c_str());
+                            custom_types::logger.debug("Found: {} match, at: {} within: {} rets, but the result was a {}! Cannot compute destination address!", nToRetOn, fmt::ptr(addr), retCount, name.c_str());
                             return {};
                         } else {
                             nCalls--;
@@ -52,7 +52,7 @@ namespace cs {
             else {
                 // Invalid instructions are ignored silently.
                 // In order to skip these properly, we must increment our instructions, ptr, and size accordingly.
-                custom_types::_logger().debug("FAILED PARSE: %p diassemb: 0x%x", (void*)ptr, *(uint32_t*)ptr);
+                custom_types::logger.debug("FAILED PARSE: 0x{:08x} diassemb: 0x{:08x}", ptr, *(uint32_t*)ptr);
                 sz -= 4;
                 ptr += 4;
                 instructions += 4;
@@ -60,7 +60,7 @@ namespace cs {
         }
         // If we run out of bytes to parse, we fail
         cs_free(insn, 1);
-        custom_types::_logger().debug("Could not find: %u call at: %p within: %i rets, within size: %zu!", nToRetOn, addr, retCount, szBytes);
+        custom_types::logger.debug("Could not find: {} call at: {} within: {} rets, within size: {}!", nToRetOn, fmt::ptr(addr), retCount, szBytes);
         return {};
     }
 

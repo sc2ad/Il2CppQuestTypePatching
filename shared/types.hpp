@@ -167,7 +167,7 @@ namespace custom_types {
             // Ignore position, it will also be set on iteration.
             // TODO: Maybe some day we can actually use the parameters names themselves!
             if (type == nullptr) {
-                _logger().warning("Failed to get type of parameter!");
+                custom_types::logger.warn("Failed to get type of parameter!");
             }
             info = type;
             for (const auto& q : parameter_converter<Decl, Ps...>::get()) {
@@ -211,7 +211,7 @@ namespace custom_types {
                 // I DO wonder if our invoke functions miss registration with GC...
                 auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
                 if (!klass) {
-                    _logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
+                    custom_types::logger.critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
                     return nullptr;
                 }
                 il2cpp_functions::Init();
@@ -228,7 +228,7 @@ namespace custom_types {
             } else {
                 auto* klass = il2cpp_utils::il2cpp_type_check::il2cpp_no_arg_class<Q>::get();
                 if (!klass) {
-                    _logger().critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
+                    custom_types::logger.critical("Failed to get non-null Il2CppClass* during invoke of custom function!");
                     return;
                 }
                 // the void* retval is a buffer created as being klass->instance_size - sizeof(Il2CppObject), see Runtime::InvokeWithThrow

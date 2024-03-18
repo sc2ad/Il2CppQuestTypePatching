@@ -17,7 +17,7 @@ struct Il2CppRuntimeInterfaceOffsetPair;
 namespace custom_types {
     /// @brief Returns the logger used within custom types. Should not be called publicly.
     /// @return The logger used internally
-    CUSTOM_TYPES_EXPORT Logger& _logger();
+    static constexpr auto logger = Paper::ConstLoggerContext("CustomTypes");
 
     /// @brief Logs the provided Il2CppAssemblyName* with a provided label.
     /// @param name The Il2CppAssemblyName* to log all fields on.

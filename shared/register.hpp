@@ -45,7 +45,7 @@ class Register {
     static void addToMapping(const TypeRegistration* itr) {
         auto namePair = std::make_pair(std::string(itr->namespaze()), std::string(itr->name()));
         if (!classMapping.contains(namePair)) {
-            custom_types::_logger().debug("Adding new type to class mapping: %p", itr->klass());
+            custom_types::logger.debug("Adding new type to class mapping: {}", fmt::ptr(itr->klass()));
             // Only add to the class mapping if the exact type created does not
             // already exist.
             classMapping.insert({ namePair, itr->klass() });
@@ -69,10 +69,10 @@ class Register {
             std::lock_guard lock(classMappingMtx);
             for (auto itr : toRegister) {
                 itr->createClass();
-                _logger().debug(
-                    "Created class! registration: %p, %s::%s klass: %p, "
-                    "%s::%s, image: %p",
-                    itr, itr->namespaze(), itr->name(), itr->klass(), itr->klass()->namespaze, itr->klass()->name, itr->klass()->image);
+                custom_types::logger.debug(
+                    "Created class! registration: {}, {}::{} klass: {}, "
+                    "{}::{}, image: {}",
+                    fmt::ptr(itr), itr->namespaze(), itr->name(), fmt::ptr(itr->klass()), itr->klass()->namespaze, itr->klass()->name, fmt::ptr(itr->klass()->image));
                 addToMapping(itr);
             }
         }
@@ -83,8 +83,8 @@ class Register {
                 actual->populateMethods();
                 actual->setInitialized();
             }
-            _logger().debug("Registered registration: %p, %s::%s klass: %p, %s::%s, image: %p", actual, actual->namespaze(), actual->name(), actual->klass(), actual->klass()->namespaze,
-                            actual->klass()->name, actual->klass()->image);
+            custom_types::logger.debug("Registered registration: {}, {}::{} klass: {}, {}::{}, image: {}", fmt::ptr(actual), actual->namespaze(), actual->name(), fmt::ptr(actual->klass()), actual->klass()->namespaze,
+                            actual->klass()->name, fmt::ptr(actual->klass()->image));
             registeredTypes.push_back(actual);
         }
         toRegister.clear();
@@ -109,10 +109,10 @@ class Register {
             std::lock_guard lock(classMappingMtx);
             for (auto itr : toAdd) {
                 itr->createClass();
-                _logger().debug(
-                    "Created class! registration: %p, %s::%s klass: %p, "
-                    "%s::%s, image: %p",
-                    itr, itr->namespaze(), itr->name(), itr->klass(), itr->klass()->namespaze, itr->klass()->name, itr->klass()->image);
+                custom_types::logger.debug(
+                    "Created class! registration: {}, {}::{} klass: {}, "
+                    "{}::{}, image: {}",
+                    fmt::ptr(itr), itr->namespaze(), itr->name(), fmt::ptr(itr->klass()), itr->klass()->namespaze, itr->klass()->name, fmt::ptr(itr->klass()->image));
                 addToMapping(itr);
             }
         }
@@ -122,14 +122,14 @@ class Register {
                 actual->populateMethods();
                 actual->setInitialized();
             }
-            _logger().debug("Registered registration: %p, %s::%s klass: %p, %s::%s, image: %p", actual, actual->namespaze(), actual->name(), actual->klass(), actual->klass()->namespaze,
-                            actual->klass()->name, actual->klass()->image);
+            custom_types::logger.debug("Registered registration: {}, {}::{} klass: {}, {}::{}, image: {}", fmt::ptr(actual), actual->namespaze(), actual->name(), fmt::ptr(actual->klass()), actual->klass()->namespaze,
+                            actual->klass()->name, fmt::ptr(actual->klass()->image));
             registeredTypes.push_back(actual);
         }
     }
 
     CUSTOM_TYPES_EXPORT static void AddType(TypeRegistration* type) {
-        _logger().debug("Added instance to register: %p", type);
+        custom_types::logger.debug("Added instance to register: {}", fmt::ptr(type));
         toRegister.push_back(type);
     }
 

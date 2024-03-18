@@ -32,7 +32,7 @@ public:
     struct ___TypeRegistration : ::custom_types::TypeRegistration {
         ___TypeRegistration() {
             ::custom_types::Register::AddType(this);
-            ::custom_types::_logger().debug("Adding delegate type: %s", name());
+            ::custom_types::logger.debug("Adding delegate type: {}", name());
             instance = this;
         }
         std::vector<::custom_types::FieldRegistrator*> const getFields() const override {
@@ -53,10 +53,10 @@ public:
         }
         const char* name() const override {
             if constexpr (!std::is_same_v<void, RI>) {
-                static std::string nm{string_format("DelegateWrapper(%zu ret, %zu args, %zu sz) (%d)", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                static std::string nm{fmt::format("DelegateWrapper({} ret, {} args, {} sz) ({})", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
                 return nm.c_str();
             } else {
-                static std::string nm{string_format("DelegateWrapper(void ret, %zu args, %zu sz) (%d)", sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                static std::string nm{fmt::format("DelegateWrapper(void ret, {} args, {} sz) ({})", sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
                 return nm.c_str();
             }
         }
@@ -216,7 +216,7 @@ template<class RI, class... TArgsI>
 RI __attribute__((noinline)) DelegateWrapperStatic<RI, TArgsI...>::Invoke(DelegateWrapperStatic<RI, TArgsI...>* instance, TArgsI... args) {
     IL2CPP_CATCH_HANDLER(
         if (!instance || !instance->wrappedFunc) {
-            custom_types::_logger().critical("Attempting to invoke delegate on a null or destroyed instance: %p, class: %p (%s)", instance, ___TypeRegistration::klass_ptr, ___TypeRegistration::get()->name());
+            custom_types::logger.critical("Attempting to invoke delegate on a null or destroyed instance: {}, class: {} ({})", fmt::ptr(instance), fmt::ptr(___TypeRegistration::klass_ptr), ___TypeRegistration::get()->name());
         }
         if constexpr (std::is_same_v<RI, void>) {
             instance->wrappedFunc(args...);
@@ -227,7 +227,7 @@ RI __attribute__((noinline)) DelegateWrapperStatic<RI, TArgsI...>::Invoke(Delega
 }
 template<class RI, class... TArgsI>
 void DelegateWrapperStatic<RI, TArgsI...>::dtor() {
-    custom_types::_logger().debug("Destroying delegate: %p, class: %p (%s)", this, ___TypeRegistration::klass_ptr, ___TypeRegistration::get()->name());
+    custom_types::logger.debug("Destroying delegate: {}, class: {} ({})", fmt::ptr(this), fmt::ptr(___TypeRegistration::klass_ptr), ___TypeRegistration::get()->name());
     this->~DelegateWrapperStatic();
 }
 
@@ -245,7 +245,7 @@ public:
     struct ___TypeRegistration : ::custom_types::TypeRegistration {
         ___TypeRegistration() {
             ::custom_types::Register::AddType(this);
-            ::custom_types::_logger().debug("Adding instance delegate type: %s", name());
+            ::custom_types::logger.debug("Adding instance delegate type: {}", name());
             instance = this;
         }
         std::vector<::custom_types::FieldRegistrator*> const getFields() const override {
@@ -266,10 +266,10 @@ public:
         }
         const char* name() const override {
             if constexpr (!std::is_same_v<void, RI>) {
-                static std::string nm{string_format("DelegateWrapper(%zu ret, %zu args, %zu sz) (%d)", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                static std::string nm{fmt::format("DelegateWrapper({} ret, {} args, {} sz) ({})", sizeof(RI), sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
                 return nm.c_str();
             } else {
-                static std::string nm{string_format("DelegateWrapper(void ret, %zu args, %zu sz) (%d)", sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
+                static std::string nm{fmt::format("DelegateWrapper(void ret, {} args, {} sz) ({})", sizeof...(TArgsI), sizeof(___TargetType), custom_types::get_delegate_count())};
                 return nm.c_str();
             }
         }
@@ -453,7 +453,7 @@ template<class RI, class TI, class... TArgsI>
 RI __attribute__((noinline)) DelegateWrapperInstance<RI, TI, TArgsI...>::Invoke(DelegateWrapperInstance<RI, TI, TArgsI...>* instance, TArgsI... args) {
     IL2CPP_CATCH_HANDLER(
         if (!instance || !instance->wrappedFunc) {
-            custom_types::_logger().critical("Attempting to invoke instance delegate that is null or has been destroyed! %p, class: %p (%s)", instance, ___TypeRegistration::klass_ptr, ___TypeRegistration::get()->name());
+            custom_types::logger.critical("Attempting to invoke instance delegate that is null or has been destroyed! {}, class: {} ({})", fmt::ptr(instance), fmt::ptr(___TypeRegistration::klass_ptr), ___TypeRegistration::get()->name());
         }
         if constexpr (std::is_same_v<RI, void>) {
             instance->wrappedFunc(instance->obj, args...);
@@ -464,7 +464,7 @@ RI __attribute__((noinline)) DelegateWrapperInstance<RI, TI, TArgsI...>::Invoke(
 }
 template<class RI, class TI, class... TArgsI>
 void DelegateWrapperInstance<RI, TI, TArgsI...>::dtor() {
-    custom_types::_logger().debug("Destroying delegate: %p, class: %p (%s)", this, ___TypeRegistration::klass_ptr, ___TypeRegistration::get()->name());
+    custom_types::logger.debug("Destroying delegate: {}, class: {} ({})", fmt::ptr(this), fmt::ptr(___TypeRegistration::klass_ptr), ___TypeRegistration::get()->name());
     this->~DelegateWrapperInstance();
 }
 
@@ -480,7 +480,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     // It should already have been allocated, so get will cache it for us.
     // We need to ensure static initialization of both the dtor method registrator
     // and the invoke method registrator:
-    custom_types::_logger().debug("Delegate dtor registrator: %p", DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get());
+    custom_types::logger.debug("Delegate dtor registrator: {}", fmt::ptr(DelegateWrapperStatic<R, TArgs...>::___dtor_MethodRegistrator.get()));
     auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
     auto* method = DelegateWrapperStatic<R, TArgs...>::___Invoke_MethodRegistrator.get();
     setup_for_delegate(method);
@@ -500,14 +500,14 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperStatic<R, TArgs.
     );
     CRASH_UNLESS(il2cpp_utils::RunMethodOpt<void, false>(delegate, ctor_minfo, inst, (void*)&method));
 
-    custom_types::_logger().debug("Created delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
+    custom_types::logger.debug("Created delegate: {} ({}), for instance: {} with MethodInfo*: {}", fmt::ptr(delegate), fmt::ptr(delegateClass), fmt::ptr(inst), fmt::ptr(method));
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
 }
 
 template<class T = MulticastDelegate*, class R, class I, class... TArgs>
 T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, TArgs...>* inst) {
-    custom_types::_logger().debug("Delegate instance dtor registrator: %p", DelegateWrapperInstance<R, I, TArgs...>::___dtor_MethodRegistrator.get());
+    custom_types::logger.debug("Delegate instance dtor registrator: {}", fmt::ptr(DelegateWrapperInstance<R, I, TArgs...>::___dtor_MethodRegistrator.get()));
     auto* invokeMethod = CRASH_UNLESS(il2cpp_functions::class_get_method_from_name(delegateClass, "Invoke", -1));
     auto* method = DelegateWrapperInstance<R, I, TArgs...>::___Invoke_MethodRegistrator.get();
     setup_for_delegate(method);
@@ -527,7 +527,7 @@ T MakeDelegate(const Il2CppClass* delegateClass, DelegateWrapperInstance<R, I, T
     );
     CRASH_UNLESS(il2cpp_utils::RunMethodOpt<void, false>(delegate, ctor_minfo, inst, (void*)&method));
 
-    custom_types::_logger().debug("Created instance delegate: %p (%p), for instance: %p with MethodInfo*: %p", delegate, delegateClass, inst, method);
+    custom_types::logger.debug("Created instance delegate: {} ({}), for instance: {} with MethodInfo*: {}", fmt::ptr(delegate), fmt::ptr(delegateClass), fmt::ptr(inst), fmt::ptr(method));
     log_delegate(reinterpret_cast<Il2CppDelegate*>(delegate));
     return delegate;
 }
@@ -545,7 +545,7 @@ template<typename T = MulticastDelegate*, class R, class... TArgs>
 T MakeDelegate(const Il2CppClass* delegateClass, std::function<R(TArgs...)> const& f) {
     il2cpp_functions::Init();
     // NOTE: This static field MUST be used in order for it to be instantiated within the generic, thus, it is important to NOT remove this log
-    custom_types::_logger().debug("Type registration for delegate being created (forcibly instantiated): %s", DelegateWrapperStatic<R, TArgs...>::__registration_instance_DelegateWrapperStatic.name());
+    custom_types::logger.debug("Type registration for delegate being created (forcibly instantiated): {}", DelegateWrapperStatic<R, TArgs...>::__registration_instance_DelegateWrapperStatic.name());
     auto* wrapperInstance = reinterpret_cast<DelegateWrapperStatic<R, TArgs...>*>(il2cpp_functions::object_new(DelegateWrapperStatic<R, TArgs...>::___TypeRegistration::klass_ptr));
     wrapperInstance->wrappedFunc = f;
     return custom_types::MakeDelegate<T>(delegateClass, wrapperInstance);
@@ -568,7 +568,7 @@ template<typename T = MulticastDelegate*, class R, class I, class... TArgs>
 // TODO: Requires that I has a classof
 T MakeDelegate(const Il2CppClass* delegateClass, I obj, std::function<R (I, TArgs...)> const& f) {
     il2cpp_functions::Init();
-    custom_types::_logger().debug("Type registration for delegate being created (forcibly instantiated): %s", DelegateWrapperInstance<R, I, TArgs...>::__registration_instance_DelegateWrapperInstance.name());
+    custom_types::logger.debug("Type registration for delegate being created (forcibly instantiated): {}", DelegateWrapperInstance<R, I, TArgs...>::__registration_instance_DelegateWrapperInstance.name());
     auto* wrapperInstance = reinterpret_cast<DelegateWrapperInstance<R, I, TArgs...>*>(il2cpp_functions::object_new(DelegateWrapperInstance<R, I, TArgs...>::___TypeRegistration::klass_ptr));
     wrapperInstance->wrappedFunc = f;
     wrapperInstance->obj = obj;

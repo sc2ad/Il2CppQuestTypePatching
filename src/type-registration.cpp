@@ -22,7 +22,7 @@ namespace custom_types {
 		type->type = typeEnum();
 		// This should be a unique number, assigned when each new type is created.
 		type->data.__klassIndex = Register::typeIdx--;
-		_logger().debug("Made new type: %p, idx: %i", type, type->data.__klassIndex);
+		custom_types::logger.debug("Made new type: {}, idx: {}", fmt::ptr(type), type->data.__klassIndex);
 		return type;
 	}
 
@@ -65,8 +65,6 @@ namespace custom_types {
 	}
 
 	uint16_t TypeRegistration::getVtableSize() {
-		static auto logger = _logger().WithContext("getVtableSize");
-
 		int vtableSize = 0;
 		auto* bt = baseType();
 		if (bt) {
@@ -94,7 +92,7 @@ namespace custom_types {
 				}
 				vtableSize = bt->vtable_count;
 				if (vtableSize == 0) {
-					logger.warning("You (%s::%s) are attempting to inherit from a type that has no vtable entries (%s::%s). This is almost always a mistake. Did you mean to declare the base type as a custom base instead?", namespaze(), name(), bt->namespaze, bt->name);
+					logger.warn("You ({}::{}) are attempting to inherit from a type that has no vtable entries ({}::{}). This is almost always a mistake. Did you mean to declare the base type as a custom base instead?", namespaze(), name(), bt->namespaze, bt->name);
 				}
 			}
 			// After everything is copied, we can easily iterate over our methods, find any that are virtual
@@ -114,9 +112,9 @@ namespace custom_types {
 			logger.critical("Cannot create a vtable without a base type!");
 			SAFE_ABORT();
 		}
-		logger.debug("vtable size: %u", vtableSize);
+		logger.debug("vtable size: {}", vtableSize);
 		if (vtableSize == 0) {
-			logger.warning("VTABLE SIZE IS 0! IS THIS CORRECT? (Type: %s::%s)", namespaze(), name());
+			logger.warn("VTABLE SIZE IS 0! IS THIS CORRECT? (Type: {}::{})", namespaze(), name());
 		}
 		return vtableSize;
 	}
@@ -170,20 +168,20 @@ namespace custom_types {
 		if (cb) {
 			// If the base is already being loaded, we have a circular dependency.
 			if (loadingTypes.contains(cb)) {
-				_logger().critical("Circular dependency! %s::%s (base type of: %s::%s) is already being loaded!", cb->namespaze(), cb->name(), namespaze(), name());
+				custom_types::logger.critical("Circular dependency! {}::{} (base type of: {}::{}) is already being loaded!", cb->namespaze(), cb->name(), namespaze(), name());
 				SAFE_ABORT();
 			}
 			// Attempt to load the custom base if we haven't already.
 			if (!cb->initialized()) {
-				_logger().debug("Attempting to create class for custom dependency: %s::%s", cb->namespaze(), cb->name());
+				custom_types::logger.debug("Attempting to create class for custom dependency: {}::{}", cb->namespaze(), cb->name());
 				lock.unlock();
 				cb->createClass();
 				lock.lock();
 			}
         }
 
-        
-		_logger().debug("Creating type: %s::%s with: %lu methods, %lu static fields, %lu fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
+
+		custom_types::logger.debug("Creating type: {}::{} with: {} methods, {} static fields, {} fields!", namespaze(), name(), getMethods().size(), getStaticFields().size(), getFields().size());
 		auto vtableSize = getVtableSize();
 		// Create the Il2CppClass instance that will represent this custom type.
 		auto* k = static_cast<Il2CppClass*>(calloc(1, sizeof(Il2CppClass) + vtableSize * sizeof(VirtualInvokeData)));
@@ -228,22 +226,22 @@ namespace custom_types {
 				if (!il2cpp_functions::class_is_interface(parent)) continue;
 				auto itr = std::find(intfs.begin(), intfs.end(), parent);
 				if (itr == intfs.end()) {
-					_logger().warning("Parent interface %s::%s did not appear in requested interfaces of type %s::%s, but was found in a recursive search!", parent->namespaze, parent->name, namespaze(), name());
-					_logger().warning("This interface was subsequently added to the list of implemented interfaces, make sure to also implement parent interfaces!");
-					_logger().warning("(In some cases this will never crash, but still cause weird behaviour)");
+					custom_types::logger.warn("Parent interface {}::{} did not appear in requested interfaces of type {}::{}, but was found in a recursive search!", parent->namespaze, parent->name, namespaze(), name());
+					custom_types::logger.warn("This interface was subsequently added to the list of implemented interfaces, make sure to also implement parent interfaces!");
+					custom_types::logger.warn("(In some cases this will never crash, but still cause weird behaviour)");
 				}
 			}
 		}
 
         std::string fullName = (std::stringstream() << namespaze() << "::" << name()).str();
 
-        _logger().debug("Interface count %s: %lu", fullName.c_str(), intfs.size());
-        _logger().debug("All interface count %s: %lu", fullName.c_str(), all_intfs.size());
+        custom_types::logger.debug("Interface count {}: {}", fullName.c_str(), intfs.size());
+        custom_types::logger.debug("All interface count {}: {}", fullName.c_str(), all_intfs.size());
 
         // k->implementedInterfaces needs to be allocated as well
 		k->implementedInterfaces = reinterpret_cast<Il2CppClass**>(calloc(all_intfs.size(), sizeof(Il2CppClass*)));
         for (size_t i = 0; i < all_intfs.size(); i++) {
-            _logger().debug("Implementing for %s: %s", fullName.c_str(), il2cpp_utils::ClassStandardName(all_intfs[i], true).c_str());
+            custom_types::logger.debug("Implementing for {}: {}", fullName.c_str(), il2cpp_utils::ClassStandardName(all_intfs[i], true).c_str());
 
             k->implementedInterfaces[i] = all_intfs[i];
 		}
@@ -300,9 +298,9 @@ namespace custom_types {
 		auto fields = getFields();
 		auto staticFields = getStaticFields();
 		if (staticFields.size() > 0 || static_fields_size() > 0) {
-			_logger().critical("DO NOT USE STATIC FIELDS! DO NOT DO NOT DO NOT! IT BREAKS A WHOLE LOT OF STUFF!");
-			_logger().critical("MESSAGE SC2AD IF YOU REALLY NEED THEM, WE MIGHT BE ABLE TO MAKE SOME MAGIC HAPPEN!");
-			_logger().critical("CUSTOM TYPES WILL NOW CRASH BECAUSE YOU WOULD HAVE CRASHED ANYWAYS, TRUST ME!");
+			custom_types::logger.critical("DO NOT USE STATIC FIELDS! DO NOT DO NOT DO NOT! IT BREAKS A WHOLE LOT OF STUFF!");
+			custom_types::logger.critical("MESSAGE SC2AD IF YOU REALLY NEED THEM, WE MIGHT BE ABLE TO MAKE SOME MAGIC HAPPEN!");
+			custom_types::logger.critical("CUSTOM TYPES WILL NOW CRASH BECAUSE YOU WOULD HAVE CRASHED ANYWAYS, TRUST ME!");
 			// TODO: We need to xref trace for: Class::s_staticFieldData to ensure liveness works as intended.
 			// See: Class.cpp:1012
 			SAFE_ABORT_MSG("SAY NO TO STATIC FIELDS!");
@@ -369,7 +367,6 @@ namespace custom_types {
 	}
 
 	void TypeRegistration::getVtable(std::vector<VirtualInvokeData>& vtable, std::vector<Il2CppRuntimeInterfaceOffsetPair>& offsets) {
-		static auto logger = _logger().WithContext("getVtable");
 		// First, we want to iterate over our methods
 		// With these methods, we want to determine if any of them have virtual data
 		// If they do, we want to look in our existing vtable if they exist. If they do, remap the methodPointer
@@ -395,12 +392,12 @@ namespace custom_types {
 		// Then we overwrite it, yay!
 		// Otherwise, we copy it over
 
-		logger.debug("Setting up vtable for type: %s::%s", namespaze(), name());
+		logger.debug("Setting up vtable for type: {}::{}", namespaze(), name());
 		auto* cb = customBase();
 		if (cb) {
 			// If we have a custom base type, we must populate its methods and fields now before we attempt to inherit its vtable
 			if (!cb->initialized()) {
-				logger.debug("Initializing custom base: %p", cb);
+				logger.debug("Initializing custom base: {}", fmt::ptr(cb));
 				cb->populateFields();
 				cb->populateMethods();
 				cb->setInitialized();
@@ -413,7 +410,7 @@ namespace custom_types {
 			// - Change single values as we see them.
 			// If we have a base type and we aren't a custom type, attempt to initialize the base type (just in case)
 			if (!cb && !baseT->initialized_and_no_error) {
-				logger.debug("Initializing base type: %p", baseT);
+				logger.debug("Initializing base type: {}", fmt::ptr(baseT));
 				il2cpp_functions::Class_Init(baseT);
 			}
 			if (baseT->interfaceOffsets) {
@@ -432,10 +429,10 @@ namespace custom_types {
 			for (auto m : methods) {
 				auto* vMethod = m->virtualMethod();
 				if (vMethod != nullptr) {
-					logger.info("Handling override method %s", m->name());
+					logger.info("Handling override method {}", m->name());
 					bool set = false;
 					if (vMethod->slot < 0) {
-						logger.critical("Virtual data: %p has slot: %u which is invalid!", vMethod, vMethod->slot);
+						logger.critical("Virtual data: {} has slot: {} which is invalid!", fmt::ptr(vMethod), vMethod->slot);
 						SAFE_ABORT();
 					}
 					for (auto& inter : offsets) {
@@ -446,10 +443,10 @@ namespace custom_types {
 							m->get()->slot = vMethod->slot + inter.offset;
 							if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
 								// Our corrected slot is invalid!
-								logger.critical("Existing interface slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
+								logger.critical("Existing interface slot: {} invalid! vtable size: {}", m->get()->slot, vtable.size());
 								SAFE_ABORT();
 							}
-							logger.debug("Using slot: %u", m->get()->slot);
+							logger.debug("Using slot: {}", m->get()->slot);
 							vtable[m->get()->slot].method = m->get();
 							vtable[m->get()->slot].methodPtr = m->methodPointer();
 							set = true;
@@ -465,16 +462,16 @@ namespace custom_types {
 							// pure virtuals (abstract) have a vMethod->klass (& other data) that is null
 							// TODO: verify whether this is correct behaviour!
 							if (vMethod->klass == b || !vMethod->klass) {
-								logger.debug("Matching base type: %p for method: %p", b, vMethod);
+								logger.debug("Matching base type: {} for method: {}", fmt::ptr(b), fmt::ptr(vMethod));
 								// We are implementing an abstract method from our abstract base. Use the virtual_data's slot exactly.
-								logger.debug("Using base slot: %u for method: %p", vMethod->slot, m->get());
+								logger.debug("Using base slot: {} for method: {}", vMethod->slot, fmt::ptr(m->get()));
 								m->get()->slot = vMethod->slot;
 								if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
 									// Our corrected slot is invalid!
-									logger.critical("virtual_data slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
+									logger.critical("virtual_data slot: {} invalid! vtable size: {}", m->get()->slot, vtable.size());
 									SAFE_ABORT();
 								}
-								logger.debug("Using slot: %u", m->get()->slot);
+								logger.debug("Using slot: {}", m->get()->slot);
 								vtable[m->get()->slot].method = m->get();
 								vtable[m->get()->slot].methodPtr = m->get()->methodPointer;
 								set = true;
@@ -492,13 +489,13 @@ namespace custom_types {
 									if (inter->method_count < vMethod->slot) {
 										// For some reason, the interface has a lower method count than the slot of the method we are looking for...
 										// This could theoretically be the case when we have an interface that implements multiple interfaces?
-										logger.critical("Interface: %p method count: %u < virtual data: %p slot: %u", inter, inter->method_count, vMethod, vMethod->slot);
+										logger.critical("Interface: {} method count: {} < virtual data: {} slot: {}", fmt::ptr(inter), inter->method_count, fmt::ptr(vMethod), vMethod->slot);
 										SAFE_ABORT();
 									}
 									auto& off = offsets.emplace_back();
 									off.interfaceType = inter;
 									off.offset = vtable.size();
-									logger.debug("Made new interface offset for type: %p, offset: %u", off.interfaceType, off.offset);
+									logger.debug("Made new interface offset for type: {}, offset: {}", fmt::ptr(off.interfaceType), off.offset);
 									// Now we need to add to vtable to ensure we have all of our interface methods
 									// for this interface properly added.
 									// TODO: We should do an assertion here to make sure that we actually properly implement each method.
@@ -510,10 +507,10 @@ namespace custom_types {
 									m->get()->slot = off.offset + vMethod->slot;
 									if (m->get()->slot >= vtable.size() || m->get()->slot < 0) {
 										// Our corrected slot is invalid!
-										logger.critical("New interface slot: %u invalid! vtable size: %lu", m->get()->slot, vtable.size());
+										logger.critical("New interface slot: {} invalid! vtable size: {}", m->get()->slot, vtable.size());
 										SAFE_ABORT();
 									}
-									logger.debug("Using slot: %u", m->get()->slot);
+									logger.debug("Using slot: {}", m->get()->slot);
 									vtable[m->get()->slot].method = m->get();
 									vtable[m->get()->slot].methodPtr = m->get()->methodPointer;
 									set = true;
@@ -525,7 +522,7 @@ namespace custom_types {
 					if (!set) {
 						// We should be implementing the interface.
 						// If we reach here, we don't implement or extend the virtual method we want to implement.
-						logger.critical("Method: %s (%p) needs virtual_data: %p which requires type: %p which does not exist!", m->csharpName(), m, vMethod, vMethod->klass);
+						logger.critical("Method: {} ({}) needs virtual_data: {} which requires type: {} which does not exist!", m->csharpName(), fmt::ptr(m), fmt::ptr(vMethod), fmt::ptr(vMethod->klass));
 						logger.critical("Ensure all of your virtual methods' types are defined in the interfaces in DECLARE_CLASS_INTERFACES!");
 						SAFE_ABORT();
 					}
@@ -555,7 +552,7 @@ namespace custom_types {
 			// If we come across any vtable items that have null function pointers or other stuff, we become sad.
 			// This means we haven't implemented everything, so we should make a point in ensuring this happens.
 			if (vtable[i].method == nullptr && vtable[i].methodPtr == nullptr) {
-				_logger().critical("Type: %s::%s has Vtable index: %zu has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", namespaze(), name(), i);
+				custom_types::logger.critical("Type: {}::{} has Vtable index: {} has null method or method pointer! Ensure you implement the interface entirely (and do not use any nullptrs!)", namespaze(), name(), i);
 				SAFE_ABORT();
 			}
 			k->vtable[i] = vtable[i];
@@ -585,7 +582,7 @@ namespace custom_types {
 	}
 
 	void TypeRegistration::clear() {
-		_logger().warning("Clearing type registration: %p", this);
+		custom_types::logger.warn("Clearing type registration: {}", fmt::ptr(this));
 		auto* k = klass();
 		if (k) {
 			if (k->typeHierarchy) {

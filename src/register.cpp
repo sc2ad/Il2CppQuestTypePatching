@@ -1,3 +1,4 @@
+#include <filesystem>
 #define IL2CPP_FUNC_VISIBILITY public
 #include "register.hpp"
 #include "logging.hpp"
@@ -37,12 +38,11 @@ struct Hook_FromIl2CppTypeMain {
         return hook_FromIl2CppType;
     }
     static Il2CppClass* hook_FromIl2CppType(TArgs... args) {
-        static auto logger = ::custom_types::_logger().WithContext("FromIl2CppType");
         const Il2CppType* typ = std::get<0>(std::make_tuple(args...));
-        // _logger().debug("FromIl2CppType: %p", typ);
+        // custom_types::logger.debug("FromIl2CppType: {}", fmt::ptr(typ));
         if (typ == nullptr) {
             // Extra error checking to avoid unknown null derefs.
-            logger.warning("FromIl2CppType was given a null Il2CppType*! Returning a null!");
+            custom_types::logger.warn("FromIl2CppType was given a null Il2CppType*! Returning a null!");
             return nullptr;
         }
         // preliminary check, if the metadata handle is not set this could be ours
@@ -53,15 +53,15 @@ struct Hook_FromIl2CppTypeMain {
             // If the type matches our type
             size_t idx = kTypeDefinitionIndexInvalid - typ->data.__klassIndex;
 #ifndef NO_VERBOSE_LOGS
-            logger.debug("Custom idx: %u for type: %p", idx, typ);
+            custom_types::logger.debug("Custom idx: {} for type: {}", idx, fmt::ptr(typ));
 #endif
             if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
 #ifndef NO_VERBOSE_LOGS
-                logger.debug("Returning custom class with idx %i!", idx);
+                custom_types::logger.debug("Returning custom class with idx {}!", idx);
 #endif
                 auto* k = ::custom_types::Register::classes[idx];
                 if (k == nullptr) {
-                    logger.warning("Class at idx: %zu is null!", idx);
+                    custom_types::logger.warn("Class at idx: {} is null!", idx);
                 }
                 return k;
             }
@@ -69,20 +69,19 @@ struct Hook_FromIl2CppTypeMain {
         // Otherwise, return orig
         auto klass = FromIl2CppType(args...);
         if (shouldBeOurs) {
-            logger.debug("Called with klassIndex %i which is not our custom type?!", typ->data.__klassIndex);
-            il2cpp_utils::LogClass(logger, klass, false);
+            custom_types::logger.debug("Called with klassIndex {} which is not our custom type?!", typ->data.__klassIndex);
+            il2cpp_utils::LogClass(custom_types::logger, klass, false);
         }
         return klass;
     }
 };
 
 MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
-    static auto logger = ::custom_types::_logger().WithContext("Class::Init");
     // If we are attempting to call Class::Init() on an Il2CppClass* that is a
     // custom Il2CppClass*, we need to ignore.
     if (!klass) {
         // We will provide some useful debug info here
-        logger.warning("Called with a null Il2CppClass*! (Specifically: %p)", klass);
+        custom_types::logger.warn("Called with a null Il2CppClass*! (Specifically: {})", fmt::ptr(klass));
         SAFE_ABORT();
     }
 
@@ -92,7 +91,7 @@ MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
         if (idx < (int)::custom_types::Register::classes.size() && idx >= 0) {
             // This is a custom class. Skip it.
     #ifndef NO_VERBOSE_LOGS
-            logger.debug("custom idx: %u", idx);
+            logger.debug("custom idx: {}", idx);
     #endif
             return true;
         }
@@ -103,12 +102,11 @@ MAKE_HOOK(Class_Init, nullptr, bool, Il2CppClass* klass) {
 
 MAKE_HOOK(GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClass*, TypeDefinitionIndex index) {
     if (index < 0) {
-        static auto logger = ::custom_types::_logger().WithContext("GlobalMetadata::GetTypeInfoFromTypeDefinitionIndex");
         // index is either invalid or one of ours
         size_t idx = kTypeDefinitionIndexInvalid - index;
-        logger.debug("custom idx: %zu", idx);
+        custom_types::logger.debug("custom idx: {}", idx);
         if (idx < ::custom_types::Register::classes.size() && idx >= 0) {
-            logger.debug("Returning custom class with idx %zu!", idx);
+            custom_types::logger.debug("Returning custom class with idx {}!", idx);
             auto* k = ::custom_types::Register::classes[idx];
             return k;
         }
@@ -118,12 +116,11 @@ MAKE_HOOK(GlobalMetadata_GetTypeInfoFromTypeDefinitionIndex, nullptr, Il2CppClas
 }
 
 MAKE_HOOK(GetScriptingClass, nullptr, Il2CppClass*, void* thisptr, char* assembly, char* namespaze, char* name) {
-    static auto logger = ::custom_types::_logger().WithContext("GetScriptingClass");
     auto ret = GetScriptingClass(thisptr, assembly, namespaze, name);
     if (!ret) {
         for (auto clazz : ::custom_types::Register::classes) {
             if (strcmp(clazz->namespaze, namespaze) == 0 && strcmp(clazz->name, name) == 0) {
-                logger.debug("Found class: %s, %s", namespaze, name);
+                custom_types::logger.debug("Found class: {}, {}", namespaze, name);
                 return clazz;
             }
         }
@@ -143,31 +140,31 @@ MAKE_HOOK(GetScriptingClass, nullptr, Il2CppClass*, void* thisptr, char* assembl
 #include <cstdlib>
 
 void* ct_malloc(std::size_t sz) {
-    custom_types::_logger().debug("Tracking an il2cpp malloc of: %zu", sz);
+    custom_types::logger.debug("Tracking an il2cpp malloc of: {}", sz);
     return malloc(sz);
 }
 void* ct_aligned_malloc(std::size_t sz, std::size_t alignment) {
-    custom_types::_logger().debug("Tracking an il2cpp aligned malloc: %zu, %zu", sz, alignment);
+    custom_types::logger.debug("Tracking an il2cpp aligned malloc: {}, {}", sz, alignment);
     return memalign(sz, alignment);
 }
 void ct_free(void* ptr) {
-    custom_types::_logger().debug("Tracking an il2cpp free: %p", ptr);
+    custom_types::logger.debug("Tracking an il2cpp free: {}", fmt::ptr(ptr));
     free(ptr);
 }
 void ct_aligned_free(void* ptr) {
-    custom_types::_logger().debug("Tracking an il2cpp aligned free: %p", ptr);
+    custom_types::logger.debug("Tracking an il2cpp aligned free: {}", fmt::ptr(ptr));
     free(ptr);
 }
 void* ct_calloc(std::size_t nmeb, std::size_t sz) {
-    custom_types::_logger().debug("Tracking an il2cpp calloc: %zu, %zu", nmeb, sz);
+    custom_types::logger.debug("Tracking an il2cpp calloc: {}, {}", nmeb, sz);
     return calloc(nmeb, sz);
 }
 void* ct_realloc(void* ptr, std::size_t sz) {
-    custom_types::_logger().debug("Tracking an il2cpp realloc: %p, %zu", ptr, sz);
+    custom_types::logger.debug("Tracking an il2cpp realloc: {}, {}", fmt::ptr(ptr), sz);
     return realloc(ptr, sz);
 }
 void* ct_aligned_realloc(void* memory, std::size_t newSize, std::size_t alignment) {
-    custom_types::_logger().debug("Tracking an il2cpp aligned realloc: %p, %zu, %zu", memory, newSize, alignment);
+    custom_types::logger.debug("Tracking an il2cpp aligned realloc: {}, {}, {}", fmt::ptr(memory), newSize, alignment);
     void* newMemory = realloc(memory, newSize);
 
     // Fast path: realloc returned aligned memory
@@ -216,46 +213,46 @@ MAKE_HOOK(LivenessState_TraverseGenericObject, nullptr, void, Il2CppObject* obj,
     // Not to mention the actual object and state ptrs
 
     // auto klass = GET_CLASS(obj);
-    // custom_types::_logger().debug("%zu:
-    // LivenessState::TraverseGenericObject(%p, %p), with klass: %p (%s::%s)",
-    // generic_obj_traverse_count++, obj, state, obj->klass, namespaze(klass),
+    // custom_types::logger.debug("{}:
+    // LivenessState::TraverseGenericObject({}, {}), with klass: {} ({}::{})",
+    // generic_obj_traverse_count++, fmt::ptr(obj), fmt::ptr(state), fmt::ptr(obj->klass), namespaze(klass),
     // namek(klass)); process_array is at 0x18 (custom_growable_array*)
     // traverse_depth is at 0x48 (int)
     // auto arrPtr =
     // *reinterpret_cast<il2cpp::utils::dynamic_array<Il2CppObject*>**>(reinterpret_cast<uint8_t*>(state)
-    // + 0x18); custom_types::_logger().debug("traverse_depth: %d",
+    // + 0x18); custom_types::logger.debug("traverse_depth: {}",
     // *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(state) + 0x48));
-    // custom_types::_logger().debug("arrPtr: %p, inner: %p, size: %zu", arrPtr,
-    // arrPtr->data(), arrPtr->size()); custom_types::_logger().flush(); for
+    // custom_types::logger.debug("arrPtr: {}, inner: {}, size: {}", fmt::ptr(arrPtr),
+    // fmt::ptr(arrPtr->data()), arrPtr->size()); custom_types::logger.flush(); for
     // (size_t i = 0; i < arrPtr->size(); i++) { 	auto inst = arrPtr->data()[i];
-    // 	custom_types::_logger().debug("arr val: %zu ptr: %p, class: %p
-    // (%s::%s)", i, inst, inst->klass, namespaze(GET_CLASS(inst)),
+    // 	custom_types::logger.debug("arr val: {} ptr: {}, class: {}
+    // ({}::{})", i, fmt::ptr(inst), fmt::ptr(inst->klass), namespaze(GET_CLASS(inst)),
     // namek(GET_CLASS(inst)));
     // }
     // if (arrPtr->size() > 0) {
     // 	auto inst = arrPtr->data()[arrPtr->size() - 1];
-    // 	custom_types::_logger().debug("arr val: %zu, ptr: %p, class: %p
-    // (%s::%s)", arrPtr->size() - 1, inst, inst->klass,
+    // 	custom_types::logger.debug("arr val: {}, ptr: {}, class: {}
+    // ({}::{})", arrPtr->size() - 1, fmt::ptr(inst), fmt::ptr(inst->klass),
     // namespaze(GET_CLASS(inst)), namek(GET_CLASS(inst)));
-    // 	custom_types::_logger().flush();
+    // 	custom_types::logger.flush();
     // }
     generic_obj_traverse_count++;
     LivenessState_TraverseGenericObject(obj, state);
-    // custom_types::_logger().debug("Complete
+    // custom_types::logger.debug("Complete
     // LivenessState::TraverseGenericObject");
 }
 
 MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj, bool isStruct, Il2CppClass* klass, void* state) {
     // Here we are going to log... AGAIN
     // but this time only a few things
-    // custom_types::_logger().debug("LivenessState::TraverseObjectInternal(%p,
-    // %s, %p, %p)", obj, isStruct ? "true" : "false", klass, state);
-    // custom_types::_logger().flush();
-    // custom_types::_logger().debug("class: (%s::%s)", namespaze(klass),
-    // namek(klass)); custom_types::_logger().flush();
+    // custom_types::logger.debug("LivenessState::TraverseObjectInternal({},
+    // {}, {}, {})", fmt::ptr(obj), isStruct, fmt::ptr(klass), fmt::ptr(state));
+    // custom_types::logger.flush();
+    // custom_types::logger.debug("class: ({}::{})", namespaze(klass),
+    // namek(klass)); custom_types::logger.flush();
     obj_traverse_count++;
     auto ret = LivenessState_TraverseObjectInternal(obj, isStruct, klass, state);
-    // custom_types::_logger().debug("Complete
+    // custom_types::logger.debug("Complete
     // LivenessState::TraverseObjectInternal");
     return ret;
 }
@@ -264,14 +261,14 @@ MAKE_HOOK(LivenessState_TraverseObjectInternal, nullptr, bool, Il2CppObject* obj
 // 	// filter class is 0x10
 // 	auto filter =
 // *reinterpret_cast<Il2CppClass**>(reinterpret_cast<uint8_t*>(state) + 0x10);
-// 	custom_types::_logger().debug("Liveness::FromStatics(%p)", state);
-// 	custom_types::_logger().debug("filter class: %p", filter);
-// 	custom_types::_logger().flush();
-// 	custom_types::_logger().debug("filter class: %s::%s", namespaze(filter),
-// namek(filter)); 	custom_types::_logger().flush();
+// 	custom_types::logger.debug("Liveness::FromStatics({})", fmt::ptr(state));
+// 	custom_types::logger.debug("filter class: {}", fmt::ptr(filter));
+// 	custom_types::logger.flush();
+// 	custom_types::logger.debug("filter class: {}::{}", namespaze(filter),
+// namek(filter)); 	custom_types::logger.flush();
 // 	// TODO: Log class statics info
 // 	Liveness_FromStatics(state);
-// 	custom_types::_logger().debug("Complete Liveness::FromStatics");
+// 	custom_types::logger.debug("Complete Liveness::FromStatics");
 // }
 
 static inline bool HasParentUnsafe(const Il2CppClass* klass, const Il2CppClass* parent) {
@@ -314,56 +311,57 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
                 // We have a VERY BIG PROBLEM!
                 // This will cause a (hard to diagnose) crash!
                 // So, we will dump as much info as we can.
-                custom_types::_logger().critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
-                custom_types::_logger().critical(
-                    "LivenessState::TraverseGCDescriptor(%p, %p) class: %p, gc_desc: "
-                    "%p, %s::%s %s",
-                    obj, state, GET_CLASS(obj), GET_CLASS(obj)->gc_desc, namespaze(GET_CLASS(obj)), namek(GET_CLASS(obj)), generics(GET_CLASS(obj)).c_str());
+                custom_types::logger.critical("WARNING! THIS WILL CRASH, DUMPING SEMANTIC INFORMATION...");
+                custom_types::logger.critical(
+                    "LivenessState::TraverseGCDescriptor({}, {}) class: {}, gc_desc: "
+                    "{}, {}::{} {}",
+                    fmt::ptr(obj), fmt::ptr(state), fmt::ptr(GET_CLASS(obj)), fmt::ptr(GET_CLASS(obj)->gc_desc), namespaze(GET_CLASS(obj)), namek(GET_CLASS(obj)), generics(GET_CLASS(obj)).c_str());
                 // malloc_info()
                 // TODO: Yeah
-                auto path = string_format(LOG_PATH, "com.beatgames.beatsaber") + "CustomTypesMallocInfoOnExit.xml";
+                std::filesystem::path path = "/sdcard/ModData/com.beatgames.beatsaber/Mods/CustomTypes/CustomTypesMallocInfoOnExit.xml";
+                if (!std::filesystem::exists(path.parent_path())) std::filesystem::create_directories(path.parent_path());
                 auto f = fopen(path.c_str(), "w");
                 if (!malloc_info(0, f)) {
-                    custom_types::_logger().critical("Failed to write to: %s!", path.c_str());
+                    custom_types::logger.critical("Failed to write to: {}!", path.c_str());
                 } else {
-                    custom_types::_logger().debug("Wrote malloc info to: %s", path.c_str());
+                    custom_types::logger.debug("Wrote malloc info to: {}", path.c_str());
                 }
                 fclose(f);
-                custom_types::_logger().critical(
-                    "LivenessState::TraverseGCDescriptor(%p, %p), with val: %p (klass: "
-                    "%p), idx: %u",
-                    obj, state, val, val->klass, i);
+                custom_types::logger.critical(
+                    "LivenessState::TraverseGCDescriptor({}, {}), with val: {} (klass: "
+                    "{}), idx: {}",
+                    fmt::ptr(obj), fmt::ptr(state), fmt::ptr(val), fmt::ptr(val->klass), i);
                 if (GET_CLASS(val)) {
-                    custom_types::_logger().critical("has_references: %u", GET_CLASS(val)->has_references);
+                    custom_types::logger.critical("has_references: {}", (bool)GET_CLASS(val)->has_references);
                 }
-                // custom_types::_logger().critical("Logging filterClass: %p",
-                // filterClass); custom_types::logAll(filterClass);
-                // custom_types::_logger().critical("Logging all registered custom
+                // custom_types::logger.critical("Logging filterClass: {}",
+                // fmt::ptr(filterClass)); custom_types::logAll(filterClass);
+                // custom_types::logger.critical("Logging all registered custom
                 // types..."); for (auto k : custom_types::Register::classes) {
-                // 	custom_types::_logger().critical("KLASS PTR: %p", k);
+                // 	custom_types::logger.critical("KLASS PTR: {}", fmt::ptr(k));
                 // 	custom_types::logAll(k);
                 // }
 
-                custom_types::_logger().debug(
-                    "gc descriptor test field: obj: %p, "
-                    "field: %p, value: %p, class: %p",
-                    obj, valptr, val, val ? val->klass : nullptr);
-                custom_types::_logger().critical("obj_traverse_count: %zu", obj_traverse_count);
-                custom_types::_logger().critical("generic_obj_traverse_count: %zu", generic_obj_traverse_count);
+                custom_types::logger.debug(
+                    "gc descriptor test field: obj: {}, "
+                    "field: {}, value: {}, class: {}",
+                    fmt::ptr(obj), fmt::ptr(valptr), fmt::ptr(val), fmt::ptr(val ? val->klass : nullptr));
+                custom_types::logger.critical("obj_traverse_count: {}", obj_traverse_count);
+                custom_types::logger.critical("generic_obj_traverse_count: {}", generic_obj_traverse_count);
 
-                custom_types::_logger().critical(
+                custom_types::logger.critical(
                     "Talk to Sc2ad to try and understand what the hell is going on "
                     "here and why.");
-                custom_types::_logger().critical(
+                custom_types::logger.critical(
                     "Also, please be very kind and send him this whole log file! It "
                     "would be much appreciated.");
-                custom_types::_logger().critical(
+                custom_types::logger.critical(
                     "With that said, the log in this file may have been truncated, so "
                     "consider grabbing the file log for custom types instead.");
-                custom_types::_logger().critical(
+                custom_types::logger.critical(
                     "custom types will now try to log as much information it can about "
                     "the offending instance's class before crashing...");
-                custom_types::_logger().debug("Capturing memory snapshot...");
+                custom_types::logger.debug("Capturing memory snapshot...");
                 // auto snapshot = il2cpp_functions::capture_memory_snapshot();
                 // auto snapshot_path = string_format(LOG_PATH,
                 // "com.beatgames.beatsaber") + "MemoryDump.bin"; std::ofstream
@@ -371,23 +369,19 @@ MAKE_HOOK(LivenessState_TraverseGCDescriptor, nullptr, void, Il2CppObject* obj, 
                 // memory_snapshot.write(reinterpret_cast<char*>(snapshot),
                 // sizeof(*snapshot)); memory_snapshot.close();
                 // il2cpp_functions::free_captured_memory_snapshot(snapshot);
-                // custom_types::_logger().debug("Logging memory dump to %s",
+                // custom_types::logger.debug("Logging memory dump to {}",
                 // snapshot_path.c_str());
-                custom_types::_logger().critical("KLASS PTR: %p", obj->klass);
-                custom_types::_logger().flush();
+                custom_types::logger.critical("KLASS PTR: {}", fmt::ptr(obj->klass));
                 if (GET_CLASS(obj)) {
                     custom_types::logAll(GET_CLASS(obj));
                 }
-                custom_types::_logger().critical("KLASS PTR: %p", val->klass);
-                custom_types::_logger().critical("Attempting HasParentUnsafe(%p, %p)...", GET_CLASS(val), filterClass);
-                custom_types::_logger().flush();
+                custom_types::logger.critical("KLASS PTR: {}", fmt::ptr(val->klass));
+                custom_types::logger.critical("Attempting HasParentUnsafe({}, {})...", fmt::ptr(GET_CLASS(val)), fmt::ptr(filterClass));
                 auto ret = HasParentUnsafe(GET_CLASS(val), filterClass);
-                custom_types::_logger().critical("HasParentUnsafe return: %s", ret ? "true" : "false");
-                custom_types::_logger().flush();
+                custom_types::logger.critical("HasParentUnsafe return: {}", ret);
                 if (GET_CLASS(val)) {
                     custom_types::logAll(GET_CLASS(val));
                 }
-                custom_types::_logger().flush();
                 // Things I have learned, just dumping here:
                 // static fields and classes that have a nonzero quantity of static
                 // fields need to be added to: Class::GetStaticFieldData() as for
@@ -417,14 +411,14 @@ std::optional<uint32_t*> readsafeb(uint32_t const* const addr) {
     // Read from addr, 1 instruction, with pc at addr, into insns.
     // TODO: consider using cs_disasm_iter
     auto count = cs_disasm(cs::getHandle(), reinterpret_cast<const uint8_t*>(addr), sizeof(uint32_t), reinterpret_cast<uint64_t>(addr), 1, &insns);
-    RET_DEFAULT_UNLESS(custom_types::_logger(), count == 1);
+    RET_DEFAULT_UNLESS(custom_types::logger, count == 1);
     auto inst = insns[0];
     // Thunks have a single b
-    RET_DEFAULT_UNLESS(custom_types::_logger(), inst.id == ARM64_INS_B);
+    RET_DEFAULT_UNLESS(custom_types::logger, inst.id == ARM64_INS_B);
     auto platinsn = inst.detail->arm64;
-    RET_DEFAULT_UNLESS(custom_types::_logger(), platinsn.op_count == 1);
+    RET_DEFAULT_UNLESS(custom_types::logger, platinsn.op_count == 1);
     auto op = platinsn.operands[0];
-    RET_DEFAULT_UNLESS(custom_types::_logger(), op.type == ARM64_OP_IMM);
+    RET_DEFAULT_UNLESS(custom_types::logger, op.type == ARM64_OP_IMM);
     // Our b dest is addr + (imm << 2), except capstone does this for us.
     auto dst = reinterpret_cast<uint32_t*>(op.imm);
     cs_free(insns, 1);
@@ -437,15 +431,12 @@ std::optional<uint32_t*> readsafeb(uint32_t const* const addr) {
 // part of the key, but as it stands, that is not necessary.
 // MAKE_HOOK(Class_FromName, nullptr, Il2CppClass*, Il2CppImage* image, const
 // char* namespaze, const char* name) {
-//     #ifndef NO_VERBOSE_LOGS
-//     static auto logger =
-//     ::custom_types::_logger().WithContext("Class::FromName"); #endif auto
 //     pair = std::make_pair(std::string(namespaze), std::string(name)); auto
 //     itr = custom_types::Register::classMapping.find(pair); if (itr !=
 //     custom_types::Register::classMapping.end()) {
 //         #ifndef NO_VERBOSE_LOGS
-//         logger.debug("Returning custom class from: %s::%s lookup: %p",
-//         namespaze, name, itr->second); #endif return itr->second;
+//         custom_types::logger.debug("Returning custom class from: {}::{} lookup: {}",
+//         namespaze, name, fmt::ptr(itr->second)); #endif return itr->second;
 //     }
 //     return Class_FromName(image, namespaze, name);
 // }
@@ -484,10 +475,10 @@ Il2CppAssembly* Register::createAssembly(std::string_view name, Il2CppImage* img
         std::unique_lock lock(assemblyMtx);
         // Add our new assembly to the collection of all known assemblies
         il2cpp_functions::Assembly_GetAllAssemblies()->push_back(assemb);
-        _logger().debug("Added new assembly image: %p", assemb->image);
+        custom_types::logger.debug("Added new assembly image: {}", fmt::ptr(assemb->image));
         assembs.insert({ strName, assemb });
     }
-    _logger().debug("Created new assembly: %s, %p", name.data(), assemb);
+    custom_types::logger.debug("Created new assembly: {}, {}", name, fmt::ptr(assemb));
     return assemb;
 }
 
@@ -543,7 +534,7 @@ const Il2CppImage* Register::createImage(std::string_view name) {
     // }};
     // img->codeGenModule = codegen;
     // TOOD: We shall leave the others undefined for now.
-    _logger().debug("Created new image: %s, %p", name.data(), img);
+    custom_types::logger.debug("Created new image: {}, {}", name, fmt::ptr(img));
     return img;
 }
 
@@ -551,7 +542,8 @@ void Register::EnsureHooks() {
     std::lock_guard lock(installationMtx);
     if (!installed) {
         il2cpp_functions::Init();
-        static auto logger = _logger().WithContext("EnsureHooks");
+        Paper::Logger::RegisterFileContextId(custom_types::logger.tag, "CustomTypesPaper");
+
         logger.debug("Installing FromIl2CppType hook...");
         if constexpr (sizeof(Il2CppCodeGenModule) < 104) {
             Hooking::InstallHookDirect<Hook_FromIl2CppTypeMain<Il2CppType*>>(logger, (void*)il2cpp_functions::il2cpp_Class_FromIl2CppType);
@@ -585,7 +577,7 @@ void Register::EnsureHooks() {
 #define BREAK(var, ...)                  \
     do {                                 \
         if (!var) {                      \
-            logger.warning(__VA_ARGS__); \
+            logger.warn(__VA_ARGS__); \
             goto exit;                   \
         }                                \
     } while (0)

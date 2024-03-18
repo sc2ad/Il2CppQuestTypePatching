@@ -33,7 +33,7 @@
     "dependencies": [
       {
         "id": "beatsaber-hook",
-        "versionRange": "^5.0.2",
+        "versionRange": "^5.1.1",
         "additionalData": {}
       },
       {
@@ -42,10 +42,35 @@
         "additionalData": {
           "private": true
         }
+      },
+      {
+        "id": "paper",
+        "versionRange": "^3.6.1",
+        "additionalData": {}
       }
     ]
   },
   "restoredDependencies": [
+    {
+      "dependency": {
+        "id": "paper",
+        "versionRange": "=3.6.1",
+        "additionalData": {
+          "soLink": "https://github.com/Fernthedev/paperlog/releases/download/v3.6.1/libpaperlog.so",
+          "debugSoLink": "https://github.com/Fernthedev/paperlog/releases/download/v3.6.1/debug_libpaperlog.so",
+          "overrideSoName": "libpaperlog.so",
+          "modLink": "https://github.com/Fernthedev/paperlog/releases/download/v3.6.1/paperlog.qmod",
+          "branchName": "version/v3_6_1",
+          "compileOptions": {
+            "systemIncludes": [
+              "shared/utfcpp/source"
+            ]
+          },
+          "cmake": false
+        }
+      },
+      "version": "3.6.1"
+    },
     {
       "dependency": {
         "id": "libil2cpp",
@@ -59,15 +84,34 @@
     {
       "dependency": {
         "id": "beatsaber-hook",
-        "versionRange": "=5.0.9",
+        "versionRange": "=5.1.1",
         "additionalData": {
-          "soLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.9/libbeatsaber-hook_5_0_9.so",
-          "debugSoLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.0.9/debug_libbeatsaber-hook_5_0_9.so",
-          "branchName": "version/v5_0_9",
+          "soLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.1.1/libbeatsaber-hook_5_1_1.so",
+          "debugSoLink": "https://github.com/QuestPackageManager/beatsaber-hook/releases/download/v5.1.1/debug_libbeatsaber-hook_5_1_1.so",
+          "branchName": "version/v5_1_1",
           "cmake": true
         }
       },
-      "version": "5.0.9"
+      "version": "5.1.1"
+    },
+    {
+      "dependency": {
+        "id": "fmt",
+        "versionRange": "=10.0.0",
+        "additionalData": {
+          "headersOnly": true,
+          "branchName": "version/v10_0_0",
+          "compileOptions": {
+            "systemIncludes": [
+              "fmt/include/"
+            ],
+            "cppFlags": [
+              "-DFMT_HEADER_ONLY"
+            ]
+          }
+        }
+      },
+      "version": "10.0.0"
     },
     {
       "dependency": {

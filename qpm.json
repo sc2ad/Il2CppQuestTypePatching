@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
@@ -8,26 +9,14 @@
     "url": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching",
     "additionalData": {
       "overrideSoName": "libcustom-types.so",
-      "cmake": true,
       "compileOptions": {
-        "cppFlags": [ "-Wno-invalid-offsetof" ]
-      }
+        "cppFlags": [
+          "-Wno-invalid-offsetof"
+        ]
+      },
+      "cmake": true
     }
   },
-  "dependencies": [
-    {
-      "id": "beatsaber-hook",
-      "versionRange": "^5.0.2",
-      "additionalData": {}
-    },
-    {
-      "id": "capstone",
-      "versionRange": "^0.1.0",
-      "additionalData": {
-        "private": true
-      }
-    }
-  ],
   "workspace": {
     "scripts": {
       "build": [
@@ -39,5 +28,24 @@
         "pwsh ./createqmod.ps1 CustomTypes -clean"
       ]
     }
-  }
+  },
+  "dependencies": [
+    {
+      "id": "beatsaber-hook",
+      "versionRange": "^5.1.1",
+      "additionalData": {}
+    },
+    {
+      "id": "capstone",
+      "versionRange": "^0.1.0",
+      "additionalData": {
+        "private": true
+      }
+    },
+    {
+      "id": "paper",
+      "versionRange": "^3.6.1",
+      "additionalData": {}
+    }
+  ]
 }

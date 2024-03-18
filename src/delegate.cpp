@@ -8,21 +8,21 @@ int get_delegate_count() {
 }
 
 void log_delegate(Il2CppDelegate* d) {
-    auto& logger = custom_types::_logger();
-    logger.debug("LOGGING DELEGATE: %p", d);
+    auto& logger = custom_types::logger;
+    logger.debug("LOGGING DELEGATE: {}", fmt::ptr(d));
     if (d) {
-        logger.debug("data: %p", d->data);
-        logger.debug("delegate_trampoline: %p", d->delegate_trampoline);
-        logger.debug("extraArg: %zu", d->extraArg);
-        logger.debug("invoke_impl: %p", d->invoke_impl);
-        logger.debug("method: %p", d->method);
-        logger.debug("method_code: %p", d->method_code);
-        logger.debug("method_info: %p", d->method_info);
-        logger.debug("method_is_virtual: %s", d->method_is_virtual ? "true" : "false");
-        logger.debug("method_ptr: %p", d->method_ptr);
-        logger.debug("klass ptr: %p", d->object.klass);
-        logger.debug("original_method_info: %p", d->original_method_info);
-        logger.debug("target: %p", d->target);
+        logger.debug("data: {}", fmt::ptr(d->data));
+        logger.debug("delegate_trampoline: {}", fmt::ptr(d->delegate_trampoline));
+        logger.debug("extraArg: {}", d->extraArg);
+        logger.debug("invoke_impl: {}", fmt::ptr(d->invoke_impl));
+        logger.debug("method: {}", fmt::ptr(d->method));
+        logger.debug("method_code: {}", fmt::ptr(d->method_code));
+        logger.debug("method_info: {}", fmt::ptr(d->method_info));
+        logger.debug("method_is_virtual: {}", (bool)d->method_is_virtual);
+        logger.debug("method_ptr: {}", fmt::ptr(d->method_ptr));
+        logger.debug("klass ptr: {}", fmt::ptr(d->object.klass));
+        logger.debug("original_method_info: {}", fmt::ptr(d->original_method_info));
+        logger.debug("target: {}", fmt::ptr(d->target));
     }
 }
 
@@ -38,7 +38,7 @@ void main() {
     // Static
     custom_types::MakeDelegate<Il2CppObject*>(f);
     auto ptr = DelegateWrapperStatic<void, Il2CppObject*, int, Il2CppObject*>::___TypeRegistration::klass_ptr;
-    
+
     // Instance
     Il2CppObject inst{};
     custom_types::MakeDelegate<Il2CppObject*>(&inst, f);
